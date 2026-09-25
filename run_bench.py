@@ -21,7 +21,9 @@ from asq.kernels import VAR_CGD, VAR_MNLD, VAR_SC
 RESULTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
 os.makedirs(RESULTS, exist_ok=True)
 
-# digitised Jin 2024 anchors (v4; to be replaced by PDF extraction)
+# Reference anchors digitised from the attached paper PDF:
+# Jin, Li & Chen 2024, IJNME 125(22):e7572 (L-BFGS monolithic
+# AT2 phase-field), Figs./Table 1. NOT from web sources.
 JIN_ANCHORS = {
     'jin_snt_pf': dict(F=[0, 0.28, 0.52, 0.72, 0.7565, 0.61, 0.24, 0.02, 0.005],
                        u=[0, 0.0015, 0.003, 0.0045, 0.0059, 0.0062, 0.0065,

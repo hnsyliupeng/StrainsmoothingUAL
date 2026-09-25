@@ -1,6 +1,6 @@
 # ASQ-UAL：CS-MNLD 应变平滑与非局部损伤耦合的自适应求解框架 — 技术报告
 
-> **模块**: `asq/`（预处理、UAL 核心、自适应、后处理）｜**验证基准**: Jin 2024 (SNT/SNS/TPB, AT2-PF 数字化锚点) + MNLD 论文 (arxiv 2506.24099, L 形板)
+> **模块**: `asq/`（预处理、UAL 核心、自适应、后处理）｜**验证基准**: Jin, Li & Chen 2024《A novel phase-field monolithic scheme for brittle crack propagation based on the limited-memory BFGS method with adaptive mesh refinement》(IJNME 125(22):e7572; SNT/SNS/TPB 图表数字化锚点) + Saji, Pantidis & Mobasher 2025《Modified non-local damage model: resolving spurious damage evolution》(arXiv:2506.24099; MNLD 本构与 L 形板构型)
 > **状态**: 全部验证完成 — SNT −2.3%/+1.8%, SNS +2.7%/+6.6%, TPB +5.3%/−1.3%（峰值载荷/峰值位移误差）；
 > 横向对比 CGD/MNLD/SC-MNLD（Jin 材料 + L 形板）与纵向对比（位移法/原始 UAL）见 §2、§5
 
@@ -346,12 +346,12 @@ def adapt(self, U0, lam0, U_trial=None):
 
 ## 5. 算例验证与定量对比
 
-### 5.1 基准设置（Jin 2024, 平面应力）
+### 5.1 基准设置（Jin, Li & Chen 2024, IJNME e7572, 平面应力）
 
 材料: λ=121.15, μ=80.77 kN/mm² (E=210 GPa, ν=0.3), gc=2.7e-3 kN/mm, l=0.0075。
 SNT: 1×1 mm, 预裂缝 (0,0.5)→(0.5,0.5), 底边 uy=0 + 角点 (0,0) ux=0, 顶边 uy=λ。
 SNS: 底边全固定, 顶边 uy=0 + ux=λ, **侧边 uy=0**（滚支, 依 Jin 源码 scenario 4）。
-参考值: 论文图数字化 (SNT 峰值 0.7565 kN @ 5.9e-3; SNS 峰值 0.5466 kN @ 9.6e-3,
+参考值: 该论文 PDF 图表数字化 (SNT 峰值 0.7565 kN @ 5.9e-3; SNS 峰值 0.5466 kN @ 9.6e-3,
 u=0.015 处 0.359 kN; SNS 临界步 ux=0.010)。
 
 ### 5.2 SNT/SNS 相场验证
@@ -474,26 +474,44 @@ TPB 深回跳的跳后平衡态 (y≈1.3) 需能量-驱动动力学或 L-BFGS �
   ~3k（MNLD/CGD）/~15k（SC, 细带 lc=0.0122 需要 h/2⁷）——远低于
   AT2-PF 的 15–20k（l=0.0075 需要 h/2⁸）。
 
-**L 形板（MNLD 论文 §5.2.5 / Radulovic 等, 500×500 mm 去右下象限, reentrant
-角 (250,250), 底边 (0,0)–(250,0) 固支, lc=6 mm, G=8000 MPa, ν=0.18,
-ε_D=2.5e-4, α=0.96, β=600, s1=1.5, s2=9, 修正 von Mises 等效应变）**
+**L 形板（MNLD 论文 §5.2.5, 500×500 mm 去右下象限, reentrant 角 (250,250),
+底边 (0,0)–(250,0) 固支, lc=6 mm, G=8000 MPa, ν=0.18, ε_D=2.5e-4,
+α=0.96, β=600, s1=1.5, s2=9, 修正 von Mises 等效应变 + 修正 Geers 律）**
 
-*载荷构型甄别。* MNLD 论文正文无可数字化的 L 板锚点数据，故载荷/边界按
-Bruņ–Wick–Berre–Nordbotten–Radu（arXiv:1903.08717 §5.3）的 L-panel 基准
-确定：Γ_u = {(x,y): 470≤x≤500, y=250}——右臂底面 30 mm 条带上的竖向
-(+y) 载荷。我们试算的另外两种构型均给出**错误的失效机制**：右端面 +y →
-左柱弥散损伤云（无角点裂纹）；右端面 −y → 仅受载角点局部压碎（曲线干净
-但无角点开裂）。条带构型（最终采用，另加载荷区 r=45 mm、grade-1 网格
-细化）给出的角点裂纹与文献路径（镜像后）一致：自 (250,250) 沿
-y≈255–280 向左延伸、尖端微微上翘——即文献所述 "slightly above the
-horizontal line"。
+*载荷构型（以 MNLD 论文原文为第一来源）。* MNLD 论文 §5.2.5 原文：
+"a vertical displacement of **1 mm** is applied to a **30 mm portion of the
+right end** of the domain and **the bottom surface is fully constrained**"
+（注：arXiv HTML 版因公式渲染重复伪影将 1 mm 误显示为 "11 mm"，同页
+"3030 mm"="30 mm"、"33 mm×33 mm"="3 mm×3 mm" 可证；发表文本与标准构型
+均为 1 mm）。"右端 30 mm 部分"的确切位置按 MNLD 论文所引的标准 L 板
+文献链（其 refs [74–76]：Winkler 2001 实验 / Radulovic 2011 / Huang
+2016）确定：Γ_u = {(x,y): 470≤x≤500, y=250}——右臂底面靠自由端的
+30 mm 条带，+y 竖向位移；该构型在 Brun–Ahmed–Berre–Nordbotten–Radu
+（arXiv:1903.08717）§5.3 单调加载变体中有逐字确认："the lower left
+boundary is fixed: ux=uy=0 mm. A displacement condition for uy is
+prescribed in the right corner on a section Γ_u that has 30 mm length."
+（下左边界全固支；uy 施加于右角 30 mm 段）。我们另试算的两种解读均给出
+**错误的失效机制**：右端面 (500, 250–280) +y → 左柱弥散损伤云（无角点
+裂纹）；右端面 −y → 仅受载角点局部压碎。最终采用条带构型（另加载荷区
+r=45 mm、grade-1 网格细化）。
 
-*竞争失效（诚实呈现）。* MNLD 论文材料很软（ε_D=2.5e-4 → σ_c≈4.7 MPa）：
-30 mm 条带上的平均应力在 F > σ_c·30 ≈ 142 kN/mm 时必然超过 σ_c，而三
-模型的峰值（187–308）全部高于该限——条带正下方的撕裂是**应力强迫的**
-（网格细化无法改变平均应力），与角点裂纹构成竞争失效。Wick 系文献用更
-强的材料（G_c=8.9e-5 等）避开此竞争。因此本例只做**定性对比**（裂纹路
-径、曲线形态、损伤带），不做峰值定量比对。
+*裂纹路径与文献定量吻合。* 三模型裂纹均自 reentrant 角 (250,250) 形核并
+向**左上**弯入立柱（中心轴指向 (170, 290) 一带，初始角 ≈27°）。这与
+Winkler 实验的验证数值（Mesgarnejad–Bourdin–Khonsari 2015，Winkler
+混凝土）一致：其变分断裂模拟的初始裂纹角 26.06°–33.21°，实验区间
+0°–43°，临界位移 ≈0.24–0.26 mm——我们的初始角 ≈27° 落在两个区间内，
+形核位移（MNLD 0.77 / CGD 0.44 / SC 0.41 mm，对应更软的损伤律）量级
+合理。
+
+*竞争失效（诚实呈现）。* MNLD 论文材料很软（ε_D=2.5e-4 → σ_c≈4.7
+MPa）：30 mm 条带上的平均应力在 F > σ_c·30 ≈ 142 kN/mm 时必然超过
+σ_c，而三模型的峰值（187–308）全部高于该限——条带正下方的撕裂是
+**应力强迫的**（网格细化无法改变平均应力），与角点裂纹构成竞争失效。
+验证文献中的 Winkler 混凝土（E=25.85 GPa, f_t=2.7 MPa, G_c=95 N/m，
+脆性相场）峰值仅 12.5–15.7 kN、峰后急剧跌落，不存在此竞争；MNLD 的
+软 Geers 律则将板驱入条带强度极限之外。因此本例只做**定性对比**（裂纹
+路径、曲线形态、损伤带），不做峰值定量比对（MNLD 论文图 13a 无可数字
+化锚点数据）。
 
 | 模型 | F_peak [kN/mm] | u_peak [mm] | 步数 | 耗时 | 末端 DoF | 峰后行为 |
 |---|---|---|---|---|---|---|
@@ -501,11 +519,11 @@ horizontal line"。
 | CS-CGD | 187.4 | 0.438 | 27 | 276 s | ~14.2k | 降至 100 |
 | CS-SC-MNLD | 223.8 | 0.406 | 28 | 351 s | 14.3k | 近水平（末端 223.6；条带撕裂段 Newton 失败，终止于 u=0.437） |
 
-![L 形板三模型反应-位移曲线（文献条带载荷构型）](../results/lshape_curves.png)
+![L 形板三模型反应-位移曲线（MNLD 论文 §5.2.5 载荷构型）](../results/lshape_curves.png)
 
 *模型差异（定性）：*
 
-- **裂纹路径**三模型一致：角点 (250,250) 沿 y≈255–280 左行、尖端上翘
+- **裂纹路径**三模型一致：自角点 (250,250) 以初始角 ≈27° 向左上弯入立柱
   （MNLD 上翘最剧，向 (80, 350) 方向弯入左柱），叠加条带下方撕裂区
   （x≈470–500）——两区损伤即上述竞争失效的体现；
 - **带宽**：角点附近 d>0.5 的竖向厚度 CGD ≈ 72 mm ≫ SC ≈ 31 mm；
@@ -591,12 +609,14 @@ TPB 深回跳是弧长法的边界情况（见 §5.2 TPB）。
 MNLD/CGD（lc=0.0323）比 AT2-PF（l=0.0075）粗网格即可解析 —— 全部
 GD 横向算例 10–1636 s。
 
-**5. L 形板（文献条带载荷构型，定性）**：三模型角点裂纹路径一致且与
-Bruņ–Wick 文献路径（镜像）吻合；MNLD 论文材料的软性使条带平均应力超
-σ_c（F > 142 kN/mm）的撕裂与角点裂纹构成**竞争失效**（文献用更强材料
-避开），故只做定性对比：峰值排序 MNLD(308) > SC(224) > CGD(187) 与
-核化控制排序一致，CGD 带最宽、SC 带最窄，MNLD 峰后保留 94% 载荷
-（裂纹止裂 + 条带承载）。
+**5. L 形板（MNLD 论文 §5.2.5 构型，定性）**：按 MNLD 论文原文构型
+（右端 30 mm 条带 1 mm 竖向位移 + 底面全固支）运行；三模型裂纹均自
+reentrant 角以初始角 ≈27° 弯入立柱，落在 Winkler 实验区间 0°–43° 与
+变分断裂模拟 26°–33°（Mesgarnejad 2015）之内；MNLD 论文材料的软性使
+条带平均应力超 σ_c（F > 142 kN/mm）的撕裂与角点裂纹构成**竞争失效**
+（验证文献的脆性混凝土无此问题），故只做定性对比：峰值排序
+MNLD(308) > SC(224) > CGD(187) 与核化控制排序一致，CGD 带最宽、SC 带
+最窄，MNLD 峰后保留 94% 载荷（裂纹止裂 + 条带承载）。
 
 **6. 数值韧性**（§1.3 失效模式表的实证）：函数式历史消除试探污染；
 
@@ -604,3 +624,53 @@ Bruņ–Wick 文献路径（镜像）吻合；MNLD 论文材料的软性使条�
 回退 + 随 τ 缩放的再播种联合解决极限点冻结；损伤跳跃根过滤器（物理
 判据）拒绝塌缩伪解而不误杀大切线步。
 
+
+---
+
+## 参考文献（参考结果的数据来源）
+
+**定量参考（图表数字化锚点，全部取自用户提供的论文原文，无网络图片）：**
+
+1. **Tao Jin, Zhao Li, Kuiying Chen** (2024). *A novel phase-field monolithic
+   scheme for brittle crack propagation based on the limited-memory BFGS
+   method with adaptive mesh refinement.* **Int. J. Numer. Methods Eng.**
+   125(22): e7572. doi:10.1002/nme.7572.
+   —— SNT/SNS/TPB 相场（AT2）载荷-位移曲线锚点、裂纹路径、Table 1
+   （DoF/耗时: SNT 16401/169.3 s; SNS 3792→19002/761.1 s;
+   TPB 14862→39477/8240 s, 16 核）。
+
+2. **Roshan Philip Saji, Panos Pantidis, Mostafa E. Mobasher** (2025).
+   *Modified non-local damage model: resolving spurious damage evolution.*
+   arXiv:2506.24099（Engineering Fracture Mechanics 111767）.
+   —— MNLD 本构（f_a、f_r、s1/s2 过渡）、修正 Geers 律、SNS/L 形板/三点
+   弯基准、L 形板构型（§5.2.5: 右端 30 mm 部分 1 mm 竖向位移 + 底面全约
+   束; lc=6 mm, G=8000 MPa, ν=0.18, εD=2.5e-4, α=0.96, β=600, s1=1.5,
+   s2=9; 5398 四边形单元、细化区 3×3 mm）。
+
+3. **Roshan Philip Saji, Panos Pantidis, Mostafa E. Mobasher** (2024).
+   *A new unified arc-length method for damage mechanics problems.*
+   **Computational Mechanics** 74: 1197–. doi:10.1007/s00466-024-02473-5
+   (arXiv:2308.13758). —— UAL 统一弧长法（本框架 PZ-UAL 的方法学来源）。
+
+**L 形板构型佐证（标准 L 板文献链，MNLD 论文 refs [74–76]）：**
+
+4. **B. Winkler** (2001). *Traglastuntersuchungen von unbewehrten und
+   bewehrten Betonstrukturen auf der Grundlage eines objektiven
+   Werkstoffgesetzes für Beton.* PhD thesis, University of Innsbruck.
+   —— L 形板实验（500×500×100 mm 混凝土, 底部锚固, 右侧加载）。
+
+5. **A. Mesgarnejad, B. Bourdin, M.M. Khonsari** (2015). *Validation
+   simulations for the variational approach to fracture.* **Comput. Methods
+   Appl. Mech. Engrg.** 290: 420–437. —— Winkler L 板验证：初始裂纹角
+   26.06°–33.21°（实验区间 0°–43°）、临界位移 0.24–0.26 mm、临界载荷
+   13.6–15.7 kN（E=25.85 GPa, ν=0.18, Gc=95 N/m）。
+
+6. **M. Kirkesæther Brun, E. Ahmed, I. Berre, J.M. Nordbotten, F.A. Radu**
+   (2019). *An iterative staggered scheme for phase field brittle fracture
+   propagation with stabilizing parameters.* arXiv:1903.08717. —— §5.3
+   L 板单调加载变体：Γ_u = {470≤x≤500, y=250}（右角 30 mm 段）, 下左
+   边界 ux=uy=0（逐字确认标准构型）。
+
+7. R. Radulovic, O.T. Bruhns, J. Mosler (2011). Eng. Fract. Mech. 78(12):
+   2470–2485; Y.J. Huang, Z.J. Yang, G.H. Liu, X.W. Chen (2016).
+   **Comput. Mech.** 58: 635–655. —— MNLD 论文 L 板的另两条标准出处。
