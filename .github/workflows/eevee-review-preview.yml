@@ -61,6 +61,7 @@ jobs:
           EGL_PLATFORM: surfaceless
           LP_NUM_THREADS: '4'
         run: |
+          rm -f output/rebuild-debug.log
           timeout --signal=TERM --kill-after=30s 3000s \
             xvfb-run -a -s '-screen 0 1280x720x24' \
             bash -euo pipefail -c '
@@ -71,13 +72,22 @@ jobs:
             output/preview_robot_640x480.png \
             output/preview_robot_frame_001_640x480.png \
             output/preview_robot_frame_144_640x480.png
-          python -u build_scene.py
-          python -u upgrade_animation.py
-          python -u animate_flight.py
-          python -u refine_walk.py
-          python -u audit_flight.py
-          python -u audit_scene.py
+          for script in build_scene.py upgrade_animation.py animate_flight.py refine_walk.py audit_flight.py audit_scene.py; do
+            printf "\\n===== %s =====\\n" "$script" | tee -a output/rebuild-debug.log
+            python -u "$script" 2>&1 | tee -a output/rebuild-debug.log
+          done
           '
+
+      - name: Preserve a failed build log for diagnosis
+        if: failure()
+        run: |
+          if [ -s output/rebuild-debug.log ]; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add output/rebuild-debug.log
+            git commit -m 'Record failed scene rebuild log for diagnosis'
+            git push origin "${GITHUB_REF_NAME}"
+          fi
 
       - name: Render low-resolution EEVEE review frames
         env:
