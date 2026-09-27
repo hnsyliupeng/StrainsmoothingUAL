@@ -1,0 +1,223 @@
+[
+  {
+    "stage": "1 基础环境与地形",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "FAIL_VISUAL",
+      "Evidence": {
+        "terrain_grid": true,
+        "open_source_textured_sources": true,
+        "gn_scatter_count": true,
+        "pine_has_needles_and_bark": true,
+        "no_missing_texture": true,
+        "no_mass_object_duplication": true,
+        "user_requirements_fully_met": false,
+        "low_res_eevee_preview_generated": false
+      },
+      "Verification": "旧版用户视口截图 FAIL：灌木/树木/花草为演示级资产，与真实荒野森林要求不符。本轮仍沿用部分 Proton Scatter 演示植被；更换灰度材质与缩小草叶并不能使其变成写实资产。步骤 1 未通过，严格禁止向后续步骤宣称 PASS。"
+    },
+    "get_scene_info": {
+      "objects": 18,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 0,
+        "Fireflies": 0,
+        "Lights": 0,
+        "Architecture / open-source asset prototypes": 7
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 0,
+      "baked_fireflies": 0,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        1920,
+        1080
+      ]
+    }
+  },
+  {
+    "stage": "2 机器人主体",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "PENDING_VISUAL",
+      "Evidence": {
+        "authored_urdf_visual_meshes": true,
+        "real_joint_hierarchy": true,
+        "imported_detail_vertices": true,
+        "no_generated_box_body": true,
+        "user_requirements_fully_met": false,
+        "low_res_eevee_preview_generated": false
+      },
+      "Verification": "本轮实质性替换了原99件代码拼装机器人：MIT 授权 Alpha 1S URDF 的18个视觉网格、17关节，保留机械层级；站姿/脚底/相机范围仅完成数据检查。尚无真实低分辨率图像证明视觉符合要求，步骤 2 未通过 JEV。"
+    },
+    "get_scene_info": {
+      "objects": 36,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 18,
+        "Fireflies": 0,
+        "Lights": 0,
+        "Architecture / open-source asset prototypes": 7
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 18,
+      "baked_fireflies": 0,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        1920,
+        1080
+      ]
+    }
+  },
+  {
+    "stage": "3 萤火虫物理模拟与烘焙",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "FAIL_VISUAL",
+      "Evidence": {
+        "particle_system": true,
+        "turbulence_force": true,
+        "measured_motion": true,
+        "baked_count": true,
+        "static_vertex_mesh": true,
+        "height_variation": true,
+        "fly_source_diameter": true,
+        "user_requirements_fully_met": false,
+        "low_res_eevee_preview_generated": false
+      },
+      "Verification": "Blender 粒子/湍流/布朗运动及 92 个静态发光实例数据存在；历史截图呈均一白色球点。新版本尚无预览证明该问题已经解决，步骤 3 不通过视觉审查。"
+    },
+    "get_scene_info": {
+      "objects": 40,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 18,
+        "Fireflies": 3,
+        "Lights": 0,
+        "Architecture / open-source asset prototypes": 8
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 18,
+      "baked_fireflies": 1,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        1920,
+        1080
+      ]
+    }
+  },
+  {
+    "stage": "4 微光灯光与基础材质",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "FAIL_VISUAL",
+      "Evidence": {
+        "eevee": true,
+        "preview_le_720p": true,
+        "default_viewport_material_mode": true,
+        "lighting": true,
+        "material_assignments": true,
+        "user_requirements_fully_met": false,
+        "low_res_eevee_preview_generated": false
+      },
+      "Verification": "已配置 EEVEE 640x480 与材质节点，但当前 sandbox 无可用 EGL/GLX 上下文；OSMesa 试验也因 Blender 仍需 EGL/GLX 失败；未生成/目视验证新预览，步骤 4 未通过。"
+    },
+    "get_scene_info": {
+      "objects": 44,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 18,
+        "Fireflies": 3,
+        "Lights": 4,
+        "Architecture / open-source asset prototypes": 8
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 18,
+      "baked_fireflies": 1,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        640,
+        480
+      ]
+    }
+  },
+  {
+    "stage": "5 清理与交付",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "BLOCKED",
+      "Evidence": {
+        "required_collections": true,
+        "blend_saved": true,
+        "static_bake": true,
+        "simulation_hidden": true,
+        "user_requirements_fully_met": false,
+        "low_res_eevee_preview_generated": false
+      },
+      "Verification": "步骤 1–4 未全部通过 JEV；新 .blend 只能称作工作进度，不是合格静态场景交付；无用户要求的低分辨率 EEVEE 预览图。"
+    },
+    "get_scene_info": {
+      "objects": 44,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 18,
+        "Fireflies": 3,
+        "Lights": 4,
+        "Architecture / open-source asset prototypes": 8
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 18,
+      "baked_fireflies": 1,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        640,
+        480
+      ]
+    }
+  }
+]

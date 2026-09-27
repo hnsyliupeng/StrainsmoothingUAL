@@ -1,0 +1,53 @@
+{
+  "kind": "non-rendering data audit; never substitute for visual JEV",
+  "checks": {
+    "eevee_640x480_configured": true,
+    "urdf_visual_meshes_18": true,
+    "robot_visual_vertices_over_100k": true,
+    "robot_camera_frame": true,
+    "foot_world_floor_tolerance_2cm": true,
+    "seven_gn_environment_scatterers": true,
+    "flowering_instances": true,
+    "no_central_tree_trunks": true,
+    "fireflies_static_92": true,
+    "particle_engine_source_retained": true,
+    "active_images_packed": true
+  },
+  "instances": {
+    "Pines | GN scatter": 20,
+    "Dead trunks | GN scatter": 4,
+    "Deciduous | GN scatter": 4,
+    "Stones | GN scatter": 83,
+    "Understory | GN scatter": 636,
+    "Bushes | GN scatter": 63,
+    "Flowering understory | GN scatter": 23,
+    "Baked fireflies | frozen instances": 92
+  },
+  "robot_camera_pixel_positions": {
+    "URDF | base_link": [
+      320.7,
+      250.5
+    ],
+    "URDF | Head_link": [
+      318.2,
+      220.5
+    ],
+    "URDF | l_foot_link": [
+      331.6,
+      332.5
+    ],
+    "URDF | r_foot_link": [
+      303.8,
+      327.8
+    ]
+  },
+  "foot_lowest_world_z_m": {
+    "URDF | l_foot_link": 0.0,
+    "URDF | r_foot_link": 0.0138
+  },
+  "firefly_z_range_m": [
+    0.52,
+    2.82
+  ],
+  "full_visual_review_completed": false
+}
