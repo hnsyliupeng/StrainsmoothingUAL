@@ -19,7 +19,7 @@ def atlas_material(name,folder,stem,cutout=False,mask=None):
     color=nodes.new('ShaderNodeTexImage');color.location=(-480,210)
     color.image=bpy.data.images.load(str(ROOT/'assets'/folder/'Textures'/(stem+('' if folder=='bfjord' else '_BaseMap')+'.png')),check_existing=True)
     color.image.pack();links.new(color.outputs['Color'],bs.inputs['Base Color'])
-    normalpath=ROOT/'assets'/folder/'Textures'/(('FoliageNormal' if stem=='FoliageAtlas' else 'WoodlandNormal' if stem=='WoodlandAtlas' else stem+'_Normal')+'.png')
+    normalpath=ROOT/'assets'/folder/'Textures'/(('FoliageNormal' if stem=='FoliageAtlas' else 'WoodlandNormal' if stem=='WoodlandAtlas' else 'Woodland06Normal' if stem=='Woodland06Atlas' else stem+'_Normal')+'.png')
     if normalpath.exists():
         im=bpy.data.images.load(str(normalpath),check_existing=True);im.colorspace_settings.name='Non-Color';im.pack()
         tex=nodes.new('ShaderNodeTexImage');tex.location=(-480,-90);tex.image=im
@@ -41,6 +41,7 @@ def atlas_material(name,folder,stem,cutout=False,mask=None):
     return m
 
 WOOD=atlas_material('BFjord woodland atlas','bfjord','WoodlandAtlas')
+WOOD06=atlas_material('BFjord woodland 06 atlas / original B variants','bfjord','Woodland06Atlas')
 FOL=atlas_material('BFjord original foliage atlas','bfjord','FoliageAtlas')
 FERN=atlas_material('Poly Haven fern_02','polyhaven','fern_02',cutout=True)
 SHRUB=atlas_material('Poly Haven shrub_03','polyhaven','shrub_03',cutout=True)

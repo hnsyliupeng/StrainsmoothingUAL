@@ -7,6 +7,8 @@
     "robot_camera_frame": true,
     "foot_world_floor_tolerance_2cm": true,
     "fifteen_gn_environment_scatterers": true,
+    "oak_birch_b_variants_have_correct_uv_atlas": true,
+    "tree_scatter_has_random_z_rotation": true,
     "flowering_instances": true,
     "no_central_tree_trunks": true,
     "fireflies_static_92": true,

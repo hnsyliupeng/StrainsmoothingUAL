@@ -61,10 +61,12 @@ mesh=bpy.data.meshes.new('Editable terrain grid');mesh.from_pydata(verts,[],face
 for p in mesh.polygons:p.use_smooth=True
 # Screen-tested source assets retain the actual CC0 UV base maps and normal maps.
 # No former Proton Scatter vegetation is used in this candidate.
-from forest_assets import import_asset, WOOD, FOL, FERN, SHRUB, PINE_BARK, PINE_TWIG, MOSS_ROCK
+from forest_assets import import_asset, WOOD, WOOD06, FOL, FERN, SHRUB, PINE_BARK, PINE_TWIG, MOSS_ROCK
 
 def bf(filename,lod=1,scale=1):
- return import_asset('bfjord',filename,lod,[WOOD if filename in ('MatureOak_A','MatureOak_B','SilverBirch_A','SilverBirch_B','TallMeadowGrass_A') else FOL],SOURCES,filename,scale)
+ # B variants use a separate authored atlas. Mixing atlas revisions destroys UV fidelity.
+ material=WOOD06 if filename in ('MatureOak_B','SilverBirch_B') else WOOD if filename in ('MatureOak_A','SilverBirch_A','TallMeadowGrass_A') else FOL
+ return import_asset('bfjord',filename,lod,[material],SOURCES,filename,scale)
 def ph(filename,materials,lod=1,scale=1):
  return import_asset('polyhaven',filename,lod,materials,SOURCES,filename,scale)
 oak=bf('MatureOak_A');oak2=bf('MatureOak_B');birch=bf('SilverBirch_A');birch2=bf('SilverBirch_B')
@@ -107,7 +109,10 @@ def scatter(label,src,density,seed,min_radius,max_radius,scl,front_clear=False):
  links.new(inp.outputs['Geometry'],dist.inputs['Mesh']);links.new(selection,dist.inputs['Selection'])
  info=ns.new('GeometryNodeObjectInfo');info.transform_space='ORIGINAL';info.location=(-240,-90);info.inputs['Object'].default_value=src;info.inputs['As Instance'].default_value=True
  rand=ns.new('FunctionNodeRandomValue');rand.data_type='FLOAT';rand.inputs['Min'].default_value=scl*.72;rand.inputs['Max'].default_value=scl*1.23;rand.location=(-15,-210)
- inst=ns.new('GeometryNodeInstanceOnPoints');inst.location=(200,70);links.new(dist.outputs['Points'],inst.inputs['Points']);links.new(info.outputs['Geometry'],inst.inputs['Instance']);links.new(rand.outputs['Value'],inst.inputs['Scale']);links.new(inst.outputs['Instances'],out.inputs['Geometry'])
+ # Per-instance rotation avoids copying the same tree silhouette and branch orientation.
+ spin=ns.new('FunctionNodeRandomValue');spin.data_type='FLOAT';spin.inputs['Min'].default_value=-math.pi;spin.inputs['Max'].default_value=math.pi;spin.location=(-15,-370)
+ rotation=ns.new('ShaderNodeCombineXYZ');rotation.location=(65,-375);links.new(spin.outputs['Value'],rotation.inputs['Z'])
+ inst=ns.new('GeometryNodeInstanceOnPoints');inst.location=(200,70);links.new(dist.outputs['Points'],inst.inputs['Points']);links.new(info.outputs['Geometry'],inst.inputs['Instance']);links.new(rand.outputs['Value'],inst.inputs['Scale']);links.new(rotation.outputs['Vector'],inst.inputs['Rotation']);links.new(inst.outputs['Instances'],out.inputs['Geometry'])
  ob=bpy.data.objects.new(label,terrain.data.copy());ENV.objects.link(ob);ob.data.materials.clear();mod=ob.modifiers.new('Geometry Nodes | editable density and exclusion','NODES');mod.node_group=g
  ob['asset_source']=src.name;ob['density_per_m2']=density;ob['exclusion_radius_m']=min_radius;ob['camera_corridor_mask']=front_clear
  return ob
@@ -134,7 +139,7 @@ def info():
 def review(stage,checks,notes):
  passed=all(checks.values());entry={'stage':stage,'hardness':'High','JEV':{'Judgement':'DATA_ONLY' if passed else 'FAIL','Evidence':checks,'Verification':notes},'get_scene_info':info()};REPORT.append(entry);(ROOT/'output'/'JEV_reviews.json').write_text(json.dumps(REPORT,ensure_ascii=False,indent=2));print(json.dumps(entry,ensure_ascii=False));
  if not passed:raise RuntimeError('JEV failed: '+stage)
-review('1 基础环境与地形',{'terrain_grid':len(mesh.vertices)==2401,'cc0_source_meshes':len(sources)==15 and all(x.data.uv_layers for x in sources),'gn_scatter_count':len(info()['geometry_nodes'])==15,'real_color_maps':forest_color.packed_file is not None and all(n.image and n.image.packed_file for m in [WOOD,FOL,FERN,SHRUB,PINE_BARK,PINE_TWIG,MOSS_ROCK] for n in m.node_tree.nodes if n.type=='TEX_IMAGE'),'original_foliage_only':all('assets/' in x['asset_file'] for x in sources)},'15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。')
+review('1 基础环境与地形',{'terrain_grid':len(mesh.vertices)==2401,'cc0_source_meshes':len(sources)==15 and all(x.data.uv_layers for x in sources),'gn_scatter_count':len(info()['geometry_nodes'])==15,'real_color_maps':forest_color.packed_file is not None and all(n.image and n.image.packed_file for m in [WOOD,WOOD06,FOL,FERN,SHRUB,PINE_BARK,PINE_TWIG,MOSS_ROCK] for n in m.node_tree.nodes if n.type=='TEX_IMAGE'),'original_foliage_only':all('assets/' in x['asset_file'] for x in sources)},'15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。')
 # Robot is now an imported measured real-servo-axis URDF mesh assembly, not
 # 99 generated boxes/bolts. Its 20 authored STL visual links are editable.
 from robot_asset import build_robot

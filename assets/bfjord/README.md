@@ -7,3 +7,5 @@ The generating Python source and C# integration are MIT-licensed. No reference i
 `FoliageDetail.blend` is an editable local source/review artifact, generated from the checked FBX reimports. `Review/exported-lods.png` shows three LODs per species at consistent metre scale. Individual detail renders are independently framed and are not size comparisons. All are actual Blender CPU Cycles renders, not Unity screenshots.
 
 The runtime asset inputs and machine-readable export/reimport evidence are in the sibling asset-catalog's `Assets/BFjord/OriginalFoliage` folder. Model and image bytes total approximately 2.7 MiB; this does not measure Unity GPU residency or device performance.
+
+The B variants (`MatureOak_B`, `SilverBirch_B`) use the 2K Woodland06Atlas/Normal, not the 1K WoodlandAtlas/Normal for A variants. Both atlas generations are packed into the candidate .blend.

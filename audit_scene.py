@@ -28,6 +28,17 @@ checks={
  'robot_camera_frame':all(0<x<640 and 0<y<480 for x,y in frame_positions.values()),
  'foot_world_floor_tolerance_2cm':all(abs(z)<.02 for z in feet_base.values()),
  'fifteen_gn_environment_scatterers':len([o for o in bpy.data.collections['Environment'].objects if any(m.type=='NODES' for m in o.modifiers)])==15,
+ 'oak_birch_b_variants_have_correct_uv_atlas':all(
+     any(n.type=='TEX_IMAGE' and n.image and n.image.name.startswith('Woodland06Atlas') and n.image.packed_file
+         for n in bpy.data.objects['Source | '+name].data.materials[0].node_tree.nodes)
+     for name in ('MatureOak_B','SilverBirch_B')),
+ 'tree_scatter_has_random_z_rotation':all(
+     any(n.bl_idname=='FunctionNodeRandomValue' and
+         any(link.to_node.bl_idname=='ShaderNodeCombineXYZ' and link.to_socket.name=='Z'
+             for link in o.modifiers[0].node_group.links if link.from_node==n)
+         for n in o.modifiers[0].node_group.nodes)
+     for o in bpy.data.collections['Environment'].objects
+     if o.name in ('Oaks A | GN scatter','Oaks B | GN scatter','Birches A | GN scatter','Birches B | GN scatter')), 
  'flowering_instances':counts.get('Flowering rose plants | GN scatter',0)>=20,
  'no_central_tree_trunks':all(not (abs(i.matrix_world.translation.x)<3.8 and -8<i.matrix_world.translation.y<5) for i in D.object_instances if i.is_instance and i.parent.original.name in {'Oaks A | GN scatter','Oaks B | GN scatter','Birches A | GN scatter','Birches B | GN scatter','Pine saplings | GN scatter'}),
  'fireflies_static_92':counts.get(flies.name)==len(flies.data.vertices)==92,
