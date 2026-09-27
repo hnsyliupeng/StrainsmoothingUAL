@@ -18,7 +18,12 @@ REPORT = ROOT / 'output' / 'JEV_reviews.json'
 if not bpy.data.filepath or Path(bpy.data.filepath).resolve() != BLEND.resolve():
     bpy.ops.wm.open_mainfile(filepath=str(BLEND))
 scene = bpy.context.scene
-scene.frame_set(75)
+import sys
+requested = int(next((arg.split('=',1)[1] for arg in sys.argv if arg.startswith('--frame=')), '75'))
+assert requested in (1,75,144), 'Only approved structure-review frames 1, 75, 144'
+scene.frame_set(requested)
+if requested != 75:
+    PREVIEW = ROOT / 'output' / f'preview_frame_{requested:03d}_640x480.png'
 assert scene.render.engine == 'BLENDER_EEVEE_NEXT', 'Refusing non-EEVEE engine'
 w = round(scene.render.resolution_x * scene.render.resolution_percentage / 100)
 h = round(scene.render.resolution_y * scene.render.resolution_percentage / 100)
