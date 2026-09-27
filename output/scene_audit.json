@@ -1,0 +1,110 @@
+{
+  "kind": "non-rendering structural audit, not visual JEV",
+  "checks": {
+    "preview_eevee_640x480_configured": true,
+    "camera_subject_in_frame": true,
+    "feet_contact_terrain_tolerance_2cm": true,
+    "seven_geometry_nodes_environment_scatterers": true,
+    "flowering_groundcover_instances": true,
+    "no_central_tree_trunk": true,
+    "default_material_viewport": true,
+    "static_firefly_mesh_instances": true,
+    "firefly_height_layers": true,
+    "self_contained_source_meshes": true,
+    "original_simulation_retained": true
+  },
+  "instances": {
+    "Pines | GN scatter": 20,
+    "Dead trunks | GN scatter": 4,
+    "Deciduous | GN scatter": 4,
+    "Stones | GN scatter": 83,
+    "Understory | GN scatter": 975,
+    "Bushes | GN scatter": 63,
+    "Flowering understory | GN scatter": 17,
+    "L shoulder to elbow data harness": 1,
+    "L hip-to-ankle cable": 1,
+    "R shoulder to elbow data harness": 1,
+    "R hip-to-ankle cable": 1,
+    "Spine battery umbilical -0.41": 1,
+    "Spine battery umbilical +0.41": 1,
+    "Baked fireflies | frozen instances": 92
+  },
+  "camera_pixel_positions": {
+    "Head sensor housing": [
+      317.3,
+      165.7
+    ],
+    "Torso | pressure sealed frame": [
+      320.0,
+      216.4
+    ],
+    "L foot sole": [
+      283.8,
+      336.3
+    ],
+    "R foot sole": [
+      350.0,
+      327.9
+    ]
+  },
+  "feet_ground_errors_m": {
+    "L foot sole": 0.0,
+    "R foot sole": 0.0
+  },
+  "fly_z_m": [
+    0.52,
+    2.82
+  ],
+  "source_materials": {
+    "Source | redbud blossom": [
+      "Redbud blossom | muted dusky pink"
+    ],
+    "Source | standing dead pine": [
+      "Bark | photographic"
+    ],
+    "Source | textured deciduous": [
+      "Broadleaf | photographic alpha",
+      "Bark | photographic"
+    ],
+    "Source | textured ground grass": [
+      "Grass | alpha blade"
+    ],
+    "Source | textured natural rock": [
+      "Stone | photographic"
+    ],
+    "Source | textured pine": [
+      "Pine | photographic alpha branch",
+      "Bark | photographic"
+    ],
+    "Source | textured understory bush": [
+      "Bush | alpha foliage"
+    ]
+  },
+  "source_images_with_users": [
+    [
+      "t_bush.png",
+      1
+    ],
+    [
+      "t_grass.png",
+      1
+    ],
+    [
+      "t_leaves_1.png",
+      1
+    ],
+    [
+      "t_pine_branch.png",
+      1
+    ],
+    [
+      "t_rock.jpg",
+      1
+    ],
+    [
+      "t_tree_bark.png",
+      1
+    ]
+  ],
+  "full_visual_review_completed": false
+}
