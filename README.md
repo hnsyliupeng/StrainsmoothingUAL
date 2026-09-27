@@ -12,13 +12,13 @@
 ## Remaining issues / strict status
 
 - Feet clear the terrain but a lifted foot may still hover up to **17.3 cm**: *convincing foot planting is NOT approved*. This is logged in `output/flight_audit.json`.
-- A physically sized 5.1 cm firefly is only about 3 px across in the main 640px overview; the included anatomical close-up camera is for inspecting wings and abdomen separately. Do not claim the main overview shows their anatomy.
+- A physically sized 5.1 cm firefly is only about 3 px across in the main 640px overview; the anatomical close-up camera now follows one real baked insect and keeps it near pixel (320,240) at frames 1,75,144. Use `--camera=firefly --frame=75` with `render_lowres_preview.py` on a working EEVEE host to inspect wings and abdomen. Do not claim the main overview shows their anatomy.
 - **No preview PNG was generated or reviewed here.** `output/JEV_reviews.json` marks every stage `BLOCKED_PENDING_VISUAL`.
 
 ## Files and reproducibility
 
 - [Editable Blender 4.5 file](output/Twilight_Wilderness_Robot.blend)
-- [Evaluated 3D flight and chase audit](output/flight_audit.json) — 15 data checks, not a visual review
+- [Evaluated 3D flight and chase audit](output/flight_audit.json) — 16 data checks, not a visual review
 - [Staged JEV report](output/JEV_reviews.json)
 - No `output/preview_640x480.png` exists yet.
 

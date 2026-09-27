@@ -22,7 +22,11 @@ import sys
 requested = int(next((arg.split('=',1)[1] for arg in sys.argv if arg.startswith('--frame=')), '75'))
 assert requested in (1,75,144), 'Only approved structure-review frames 1, 75, 144'
 scene.frame_set(requested)
-if requested != 75:
+closeup = '--camera=firefly' in sys.argv
+if closeup:
+    scene.camera = bpy.data.objects['Camera | firefly anatomical inspection']
+    PREVIEW = ROOT / 'output' / f'preview_firefly_{requested:03d}_640x480.png'
+if requested != 75 and not closeup:
     PREVIEW = ROOT / 'output' / f'preview_frame_{requested:03d}_640x480.png'
 assert scene.render.engine == 'BLENDER_EEVEE_NEXT', 'Refusing non-EEVEE engine'
 w = round(scene.render.resolution_x * scene.render.resolution_percentage / 100)

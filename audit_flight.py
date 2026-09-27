@@ -51,6 +51,16 @@ pine=bpy.data.objects['Source | pine_sapling_small_b']
 pine_dim=[max(v.co[k] for v in pine.data.vertices)-min(v.co[k] for v in pine.data.vertices) for k in range(3)]
 fly_dim=[max(v.co[k] for v in fly.data.vertices)-min(v.co[k] for v in fly.data.vertices) for k in range(3)]
 project=world_to_camera_view(s,s.camera,Vector((3.7,3.8,-.38)))
+inspection=bpy.data.objects['Camera | firefly anatomical inspection']
+hero=inspection['tracked_particle_index']
+hero_pixels={}
+for f in (1,75,144):
+    s.frame_set(f)
+    keys=points.data.shape_keys.key_blocks
+    p=keys[0].data[hero].co.copy()
+    for key in keys[1:]:p+=(key.data[hero].co-keys[0].data[hero].co)*key.value
+    projection=world_to_camera_view(s,inspection,p)
+    hero_pixels[f]=[round(projection.x*640),round((1-projection.y)*480)]
 checks={
  'terrain_broad_relief_over_2m':land['height_range_m']>2,
  'actual_lake_water_mesh_above_submerged_terrain':len(water.data.polygons)>20 and all(abs(v.co.z-water['water_level_z'])<.0001 for v in water.data.vertices),
@@ -66,6 +76,7 @@ checks={
  'robot_keeps_ahead_flight_within_1_7m':all(data['distance_body_to_flying_centroid_xy_m']<1.7 for data in frames.values()),
  'sampled_feet_do_not_enter_landscape':min(foot_clearance)>-.025,
  'lake_and_glow_compositor_saved':any(n.bl_idname=='CompositorNodeGlare' for n in s.node_tree.nodes),
+ 'animated_insect_closeup_actually_tracks_one_baked_particle':all(240<x<400 and 160<y<320 for x,y in hero_pixels.values()),
  'render_is_eevee_640x480':s.render.engine=='BLENDER_EEVEE_NEXT' and (s.render.resolution_x,s.render.resolution_y)==(640,480),
 }
 report={'kind':'actual evaluated geometric motion; NOT a visual render review',
@@ -76,6 +87,7 @@ report={'kind':'actual evaluated geometric motion; NOT a visual render review',
         'unresolved_walk_contact':max(foot_clearance)>.04,
         'lake_face_count':len(water.data.polygons),'terrain_height_range_m':land['height_range_m'],
         'lake_preview_pixel':[round(project.x*640),round((1-project.y)*480)],
+        'tracked_firefly_pixel_by_frame':hero_pixels,
         'preview_png_available':(ROOT/'output/preview_640x480.png').exists(),
         'full_visual_review_completed':False}
 (ROOT/'output/flight_audit.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')

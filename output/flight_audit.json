@@ -15,6 +15,7 @@
     "robot_keeps_ahead_flight_within_1_7m": true,
     "sampled_feet_do_not_enter_landscape": true,
     "lake_and_glow_compositor_saved": true,
+    "animated_insect_closeup_actually_tracks_one_baked_particle": true,
     "render_is_eevee_640x480": true
   },
   "frames": {
@@ -135,6 +136,20 @@
     521,
     283
   ],
+  "tracked_firefly_pixel_by_frame": {
+    "1": [
+      320,
+      240
+    ],
+    "75": [
+      322,
+      247
+    ],
+    "144": [
+      320,
+      240
+    ]
+  },
   "preview_png_available": false,
   "full_visual_review_completed": false
 }

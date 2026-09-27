@@ -212,6 +212,26 @@ light_data.color=(.42,.65,1);light_data.shape='DISK';light_data.size=5
 lake_light=bpy.data.objects.new(light_data.name,light_data);lights.objects.link(lake_light)
 lake_light.location=(3.6,3.8,6)
 lake_light.rotation_euler=(Vector((3.7,3.8,-.38))-lake_light.location).to_track_quat('-Z','Y').to_euler()
+# The old firefly inspection camera was aimed at a STATIC vertex near the
+# *original* bake and misses the flying swarm completely. Follow an actual
+# insect's animated, baked location with a small (still <=720p) anatomy shot.
+inspection=bpy.data.objects['Camera | firefly anatomical inspection']
+inspection.data.type='ORTHO'
+inspection.data.ortho_scale=.23
+# Pick a middle-height insect so the close-up shows recognizable wings,
+# thorax and abdomen rather than a light-only profile.
+hero=min(range(len(pos)),key=lambda i:abs(origin[i].z-1.65)+.20*abs(origin[i].x))
+inspection['tracked_particle_index']=hero
+inspection['purpose']='Animated close-up of one real CC0 anatomical insect; use 640x480 EEVEE'
+for f in frames:
+    focus=snapshots[f][hero]
+    inspection.location=focus+Vector((.13,-.18,.105))
+    inspection.rotation_euler=(focus-inspection.location).to_track_quat('-Z','Y').to_euler()
+    inspection.keyframe_insert(data_path='location',frame=f,group='Follow the insect')
+    inspection.keyframe_insert(data_path='rotation_euler',frame=f,group='Look at the insect')
+# A second, slightly wider tracking shot makes both the robot's moving body
+# and a real insect legible over time without changing their physical sizes.
+# Scene camera remains the overview showing the lake and the height field.
 # Compositor fog glow is what turns the mesh's bioluminescence into visible
 # bloom in EEVEE; tiny emissive polys alone do not generate any halo on screen.
 s.use_nodes=True
