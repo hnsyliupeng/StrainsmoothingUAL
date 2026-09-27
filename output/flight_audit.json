@@ -145,8 +145,8 @@
   "lake_face_count": 5120,
   "terrain_height_range_m": 2.562,
   "lake_preview_pixel": [
-    521,
-    283
+    470,
+    281
   ],
   "tracked_firefly_pixel_by_frame": {
     "1": [
@@ -169,6 +169,5 @@
     "preview_640x480.png",
     "preview_frame_144_640x480.png",
     "preview_firefly_075_640x480.png"
-  ],
-  "visual_review_round1": "NEEDS_REVISION"
+  ]
 }

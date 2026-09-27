@@ -25,18 +25,18 @@
     "evaluated_arm_animation_moves_mesh": true
   },
   "instances": {
-    "Oaks A | GN scatter": 18,
+    "Oaks A | GN scatter": 16,
     "Oaks B | GN scatter": 8,
-    "Birches A | GN scatter": 17,
+    "Birches A | GN scatter": 14,
     "Birches B | GN scatter": 10,
-    "Pine saplings | GN scatter": 24,
+    "Pine saplings | GN scatter": 23,
     "Moss rocks A | GN scatter": 36,
     "Moss rocks B | GN scatter": 36,
     "Meadow grass | GN scatter": 520,
     "Coastal grass | GN scatter": 439,
-    "Ferns A | GN scatter": 194,
-    "Ferns B | GN scatter": 157,
-    "Shrubs | GN scatter": 201,
+    "Ferns A | GN scatter": 176,
+    "Ferns B | GN scatter": 143,
+    "Shrubs | GN scatter": 187,
     "Sorrel ground cover | GN scatter": 220,
     "Flowering rose plants | GN scatter": 15,
     "Fallen log | GN scatter": 10,
@@ -44,20 +44,20 @@
   },
   "robot_camera_pixel_positions": {
     "URDF | base_link": [
-      212.1,
-      239.7
+      171.2,
+      245.8
     ],
     "URDF | Head_link": [
-      212.2,
-      214.4
+      171.6,
+      220.4
     ],
     "URDF | l_foot_link": [
-      214.6,
-      309.8
+      175.7,
+      315.8
     ],
     "URDF | r_foot_link": [
-      204.2,
-      300.5
+      163.1,
+      307.0
     ]
   },
   "foot_lowest_world_z_m": {
