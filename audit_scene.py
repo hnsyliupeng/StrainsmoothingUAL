@@ -8,7 +8,9 @@ s=bpy.context.scene;camera=s.camera
 D=bpy.context.evaluated_depsgraph_get()
 counts=dict(collections.Counter(i.parent.original.name for i in D.object_instances if i.is_instance))
 flies=bpy.data.objects['Baked fireflies | frozen instances']; coords=[v.co for v in flies.data.vertices]
-robot=list(bpy.data.collections['Robot'].objects)
+robot=[o for o in bpy.data.collections['Robot'].objects if o.type=='MESH']
+rig=bpy.data.objects['Robot armature | 144-frame scanning and step pose']
+insect=bpy.data.objects['Firefly | original CC0 insect mesh | source']
 feet=[bpy.data.objects[f'URDF | {side}_foot_link'] for side in ('l','r')]
 def corners(o):return [o.matrix_world@Vector(c) for c in o.bound_box]
 feet_base={o.name:round(min(p.z for p in corners(o)),4) for o in feet}
@@ -24,6 +26,10 @@ source=bpy.data.objects['Source | RoseThicket_A']
 checks={
  'eevee_640x480_configured':s.render.engine=='BLENDER_EEVEE_NEXT' and (w,h)==(640,480),
  'urdf_visual_meshes_18':len(robot)==18 and all(o.get('asset_source') for o in robot),
+ 'bone_rig_17_servos_plus_root':rig.type=='ARMATURE' and len(rig.data.bones)==18 and s.frame_end>=120,
+ 'rigged_robot_links':all(any(m.type=='ARMATURE' and m.object==rig for m in o.modifiers) and o.vertex_groups.get(o['urdf_link']) for o in robot),
+ 'authored_insect_anatomy':len(insect.data.vertices)>=900 and len(insect.data.materials)==5 and all(any(p.material_index==i for p in insect.data.polygons) for i in range(5)) and counts.get(flies.name)==len(flies.data.vertices),
+ 'insect_glow_and_wings':insect.data.materials[1].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value>0 and all(m is not None for m in insect.data.materials),
  'robot_visual_vertices_over_100k':sum(len(o.data.vertices) for o in robot)>100000,
  'robot_camera_frame':all(0<x<640 and 0<y<480 for x,y in frame_positions.values()),
  'foot_world_floor_tolerance_2cm':all(abs(z)<.02 for z in feet_base.values()),
@@ -43,12 +49,21 @@ checks={
  'no_central_tree_trunks':all(not (abs(i.matrix_world.translation.x)<3.8 and -8<i.matrix_world.translation.y<5) for i in D.object_instances if i.is_instance and i.parent.original.name in {'Oaks A | GN scatter','Oaks B | GN scatter','Birches A | GN scatter','Birches B | GN scatter','Pine saplings | GN scatter'}),
  'fireflies_static_92':counts.get(flies.name)==len(flies.data.vertices)==92,
  'particle_engine_source_retained':len(bpy.data.objects['Simulation emitter | hidden after bake'].particle_systems)>0,
- 'active_material_textures_packed':all(n.image and n.image.packed_file for m in bpy.data.materials if m.use_nodes and m.users for n in m.node_tree.nodes if n.type=='TEX_IMAGE'),
+ 'active_material_textures_packed':all(n.image and n.image.packed_file and all(n.image.size) for m in bpy.data.materials if m.use_nodes and m.users for n in m.node_tree.nodes if n.type=='TEX_IMAGE'),
+ 'all_image_references_packed':all(i.packed_file for i in bpy.data.images if i.type=='IMAGE' and i.users),
 }
+# Assert actual evaluated vertex motion, not merely the presence of action keys.
+def posed_vertex(obj,frame):
+ s.frame_set(frame);ev=obj.evaluated_get(bpy.context.evaluated_depsgraph_get());me=ev.to_mesh()
+ try:return ev.matrix_world @ me.vertices[0].co
+ finally:ev.to_mesh_clear()
+motion=(posed_vertex(bpy.data.objects['URDF | l_forearm_link'],1)-posed_vertex(bpy.data.objects['URDF | l_forearm_link'],73)).length
+checks['evaluated_arm_animation_moves_mesh']=motion>.01
+s.frame_set(75)
 result={'kind':'non-rendering data audit; never substitute for visual JEV', 'checks':checks,
  'instances':counts,'robot_camera_pixel_positions':frame_positions,'foot_lowest_world_z_m':feet_base,
  'firefly_z_range_m':[round(min(p.z for p in coords),2),round(max(p.z for p in coords),2)],
- 'full_visual_review_completed':False}
+ 'animation_test_displacement_m':round(motion,4),'frame_range':[s.frame_start,s.frame_end],'insect_mesh_vertices':len(insect.data.vertices), 'full_visual_review_completed':False}
 (ROOT/'output'/'scene_audit.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
 print(json.dumps(result,ensure_ascii=False,indent=2))
 if not all(checks.values()):raise RuntimeError('Data audit failed')

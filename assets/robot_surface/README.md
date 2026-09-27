@@ -1,0 +1,3 @@
+# Robot PBR source
+
+AmbientCG [MetalPlates006](https://ambientcg.com/view?id=MetalPlates006), [CC0](https://docs.ambientcg.com/license/), mirror retrieved from [FelicePollano/Boom](https://github.com/FelicePollano/Boom/tree/main/src/Textures/MetalPlates006_1K-JPG). Color, metalness and roughness 1K images are packed into the .blend; mapped with Generated/box projection on original imported URDF STL shell geometry (no fake UV claim). The source repository's NormalGL file was an LFS pointer, so no normal map is claimed. Graphite actuator material is a labeled non-PBR uniform material; robot realism remains a visual JEV failure until rendered and inspected.

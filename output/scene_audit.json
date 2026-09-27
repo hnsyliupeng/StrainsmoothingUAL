@@ -3,6 +3,10 @@
   "checks": {
     "eevee_640x480_configured": true,
     "urdf_visual_meshes_18": true,
+    "bone_rig_17_servos_plus_root": true,
+    "rigged_robot_links": true,
+    "authored_insect_anatomy": true,
+    "insect_glow_and_wings": true,
     "robot_visual_vertices_over_100k": true,
     "robot_camera_frame": true,
     "foot_world_floor_tolerance_2cm": true,
@@ -13,7 +17,9 @@
     "no_central_tree_trunks": true,
     "fireflies_static_92": true,
     "particle_engine_source_retained": true,
-    "active_material_textures_packed": true
+    "active_material_textures_packed": true,
+    "all_image_references_packed": true,
+    "evaluated_arm_animation_moves_mesh": true
   },
   "instances": {
     "Oaks A | GN scatter": 7,
@@ -43,21 +49,27 @@
       220.5
     ],
     "URDF | l_foot_link": [
-      331.6,
-      332.5
+      331.4,
+      333.2
     ],
     "URDF | r_foot_link": [
-      303.8,
-      327.8
+      303.9,
+      327.6
     ]
   },
   "foot_lowest_world_z_m": {
-    "URDF | l_foot_link": 0.0,
-    "URDF | r_foot_link": 0.0138
+    "URDF | l_foot_link": -0.0029,
+    "URDF | r_foot_link": 0.0009
   },
   "firefly_z_range_m": [
     0.52,
     2.82
   ],
+  "animation_test_displacement_m": 0.0498,
+  "frame_range": [
+    1,
+    144
+  ],
+  "insect_mesh_vertices": 970,
   "full_visual_review_completed": false
 }

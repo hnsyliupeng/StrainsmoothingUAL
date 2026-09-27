@@ -1,0 +1,56 @@
+# Blender 3.3.1 MTL File: 'firefly.blend'
+# www.blender.org
+
+newmtl yellow
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Kd 0.700000 0.200000 0.100000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd ./assets/textures/yellow.png ./assets/textures/yellow.png
+
+newmtl ailes
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Kd 0.700000 0.200000 0.100000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd ./assets/textures/ailes.png ./assets/textures/ailes.png
+
+newmtl black
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Kd 0.700000 0.200000 0.100000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd ./assets/textures/black.png ./assets/textures/black.png
+
+newmtl none
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum ./assets/textures/none.png ./assets/textures/none.png
+
+newmtl tete
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.700000 0.200000 0.100000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd ./assets/textures/tete.png ./assets/textures/tete.png
