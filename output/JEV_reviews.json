@@ -1,0 +1,234 @@
+[
+  {
+    "stage": "1 基础环境与地形",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "FAIL_VISUAL",
+      "Evidence": {
+        "terrain_grid": true,
+        "open_source_textured_sources": true,
+        "gn_scatter_count": true,
+        "pine_has_needles_and_bark": true,
+        "no_missing_texture": true,
+        "no_mass_object_duplication": true,
+        "new_visual_evidence_available": false,
+        "user_screenshot_review_passed": false,
+        "low_resolution_eevee_preview_delivered": false
+      },
+      "Verification": "用户最新截图：草地是重复的尖叶卡片，树木轮廓仍粗糙，花朵不具可信的茎叶/群落结构；资产与场景尺度未达到写实要求。原自动面数/实例数检查不能替代此审查。",
+      "visual_evidence": "User-supplied Blender screenshots in chat, most recent showing box-bodied robot, simple grass cards, pale faceted rocks, flat-looking foliage and white-dot fireflies."
+    },
+    "get_scene_info": {
+      "objects": 18,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 0,
+        "Fireflies": 0,
+        "Lights": 0,
+        "Architecture / open-source asset prototypes": 7
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 0,
+      "baked_fireflies": 0,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        1920,
+        1080
+      ]
+    }
+  },
+  {
+    "stage": "2 机器人主体",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "FAIL_VISUAL",
+      "Evidence": {
+        "multi_part_actuation": true,
+        "head_and_optics": true,
+        "bilateral_pistons": true,
+        "power_data_harnesses": true,
+        "both_feet": true,
+        "new_visual_evidence_available": false,
+        "user_screenshot_review_passed": false,
+        "low_resolution_eevee_preview_delivered": false
+      },
+      "Verification": "用户最新截图：主体机器人仍呈方盒躯干、近似积木的手臂和关节；增加螺栓/连杆数量未建立可信的工业机械结构。",
+      "visual_evidence": "User-supplied Blender screenshots in chat, most recent showing box-bodied robot, simple grass cards, pale faceted rocks, flat-looking foliage and white-dot fireflies."
+    },
+    "get_scene_info": {
+      "objects": 117,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 99,
+        "Fireflies": 0,
+        "Lights": 0,
+        "Architecture / open-source asset prototypes": 7
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 99,
+      "baked_fireflies": 0,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        1920,
+        1080
+      ]
+    }
+  },
+  {
+    "stage": "3 萤火虫物理模拟与烘焙",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "PENDING_VISUAL",
+      "Evidence": {
+        "particle_system": true,
+        "turbulence_force": true,
+        "measured_motion": true,
+        "baked_count": true,
+        "static_vertex_mesh": true,
+        "height_variation": true,
+        "fly_source_diameter": true,
+        "new_visual_evidence_available": false,
+        "user_screenshot_review_passed": false,
+        "low_resolution_eevee_preview_delivered": false
+      },
+      "Verification": "物理模拟和92个静态萤火虫的数字检查存在，但画面中萤火虫呈均一白色球点；发光外观与自然分布未通过视觉确认。",
+      "visual_evidence": "User-supplied Blender screenshots in chat, most recent showing box-bodied robot, simple grass cards, pale faceted rocks, flat-looking foliage and white-dot fireflies."
+    },
+    "get_scene_info": {
+      "objects": 121,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 99,
+        "Fireflies": 3,
+        "Lights": 0,
+        "Architecture / open-source asset prototypes": 8
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 99,
+      "baked_fireflies": 1,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        1920,
+        1080
+      ]
+    }
+  },
+  {
+    "stage": "4 微光灯光与基础材质",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "FAIL_VISUAL",
+      "Evidence": {
+        "eevee": true,
+        "preview_le_720p": true,
+        "default_viewport_material_mode": true,
+        "lighting": true,
+        "material_assignments": true,
+        "new_visual_evidence_available": false,
+        "user_screenshot_review_passed": false,
+        "low_resolution_eevee_preview_delivered": false
+      },
+      "Verification": "用户最新截图：石头、地面和植物材质没有达到真实质感，且现有配色/灯光未呈现要求的微光夜间氛围；没有符合要求的EEVEE预览图。",
+      "visual_evidence": "User-supplied Blender screenshots in chat, most recent showing box-bodied robot, simple grass cards, pale faceted rocks, flat-looking foliage and white-dot fireflies."
+    },
+    "get_scene_info": {
+      "objects": 125,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 99,
+        "Fireflies": 3,
+        "Lights": 4,
+        "Architecture / open-source asset prototypes": 8
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 99,
+      "baked_fireflies": 1,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        640,
+        480
+      ]
+    }
+  },
+  {
+    "stage": "5 清理与交付",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "BLOCKED",
+      "Evidence": {
+        "required_collections": true,
+        "blend_saved": true,
+        "static_bake": true,
+        "simulation_hidden": true,
+        "new_visual_evidence_available": false,
+        "user_screenshot_review_passed": false,
+        "low_resolution_eevee_preview_delivered": false
+      },
+      "Verification": "前面环境、机器人与材质 JEV 未通过，按用户要求不得宣告清理交付完成；现有 .blend 仅作为失败样本保留。",
+      "visual_evidence": "User-supplied Blender screenshots in chat, most recent showing box-bodied robot, simple grass cards, pale faceted rocks, flat-looking foliage and white-dot fireflies."
+    },
+    "get_scene_info": {
+      "objects": 125,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 99,
+        "Fireflies": 3,
+        "Lights": 4,
+        "Architecture / open-source asset prototypes": 8
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 99,
+      "baked_fireflies": 1,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        640,
+        480
+      ]
+    }
+  }
+]
