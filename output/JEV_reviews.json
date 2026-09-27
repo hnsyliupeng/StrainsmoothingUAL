@@ -3,7 +3,7 @@
     "stage": "1 基础环境与地形",
     "hardness": "High",
     "JEV": {
-      "Judgement": "PENDING_VISUAL",
+      "Judgement": "PENDING_HUMAN_REVIEW",
       "Evidence": {
         "terrain_grid": true,
         "terrain_height_range_over_2m": true,
@@ -17,9 +17,18 @@
         "new_candidate_eevee_preview_available": false,
         "preserved_pine_bark_twig_face_indices": true,
         "woodland_log_uses_correct_atlas": true,
-        "current_candidate_visual_review_completed": false
+        "current_candidate_visual_review_completed": false,
+        "eevee_preview_640x480_generated": true,
+        "eevee_preview_taa_samples": 8,
+        "preview_image_files": [
+          "preview_640x480.png",
+          "preview_firefly_075_640x480.png",
+          "preview_frame_001_640x480.png",
+          "preview_frame_144_640x480.png"
+        ],
+        "full_visual_review_completed": false
       },
-      "Verification": "15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 历史候选曾被用户截图否定；当前候选已更换完整144帧物理烘焙、发光与骨骼运动结构，但本次EEVEE预览尚未成功生成/目视审查，因此仍待人工JEV。 新候选的真实rig、物理逐帧烘焙与EEVEE设置已结构审计；没有成功的实际渲染图，因此绝不把数据断言当作视觉通过。"
+      "Verification": "15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 历史候选曾被用户截图否定；当前候选已更换完整144帧物理烘焙、发光与骨骼运动结构，但本次EEVEE预览尚未成功生成/目视审查，因此仍待人工JEV。 新候选的真实rig、物理逐帧烘焙与EEVEE设置已结构审计；没有成功的实际渲染图，因此绝不把数据断言当作视觉通过。 已生成PNG头校验的640×480 EEVEE预览（TAA 8样本）：preview_640x480.png, preview_firefly_075_640x480.png, preview_frame_001_640x480.png, preview_frame_144_640x480.png；图像尚未目视审查，未自动批准。"
     },
     "get_scene_info": {
       "objects": 89,
@@ -66,7 +75,7 @@
     "stage": "2 机器人主体",
     "hardness": "High",
     "JEV": {
-      "Judgement": "PENDING_VISUAL",
+      "Judgement": "PENDING_HUMAN_REVIEW",
       "Evidence": {
         "authored_urdf_visual_meshes": true,
         "real_joint_hierarchy": true,
@@ -92,9 +101,18 @@
           0.007961407048818592,
           0.031068712618001232
         ],
-        "max_ik_endpoint_error_m": 4.629746419748092e-05
+        "max_ik_endpoint_error_m": 4.629746419748092e-05,
+        "eevee_preview_640x480_generated": true,
+        "eevee_preview_taa_samples": 8,
+        "preview_image_files": [
+          "preview_640x480.png",
+          "preview_firefly_075_640x480.png",
+          "preview_frame_001_640x480.png",
+          "preview_frame_144_640x480.png"
+        ],
+        "full_visual_review_completed": false
       },
-      "Verification": "机械主体来自 MIT 授权 UBTECH Alpha 1S 数字孪生 17关节 URDF（人工测量舵机轴），20 个导入视觉网格；仍需低分辨率目视检查站姿、尺寸与地面接触。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 历史候选曾被用户截图否定；当前候选已更换完整144帧物理烘焙、发光与骨骼运动结构，但本次EEVEE预览尚未成功生成/目视审查，因此仍待人工JEV。 新候选的真实rig、物理逐帧烘焙与EEVEE设置已结构审计；没有成功的实际渲染图，因此绝不把数据断言当作视觉通过。"
+      "Verification": "机械主体来自 MIT 授权 UBTECH Alpha 1S 数字孪生 17关节 URDF（人工测量舵机轴），20 个导入视觉网格；仍需低分辨率目视检查站姿、尺寸与地面接触。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 历史候选曾被用户截图否定；当前候选已更换完整144帧物理烘焙、发光与骨骼运动结构，但本次EEVEE预览尚未成功生成/目视审查，因此仍待人工JEV。 新候选的真实rig、物理逐帧烘焙与EEVEE设置已结构审计；没有成功的实际渲染图，因此绝不把数据断言当作视觉通过。 已生成PNG头校验的640×480 EEVEE预览（TAA 8样本）：preview_640x480.png, preview_firefly_075_640x480.png, preview_frame_001_640x480.png, preview_frame_144_640x480.png；图像尚未目视审查，未自动批准。"
     },
     "get_scene_info": {
       "objects": 89,
@@ -141,7 +159,7 @@
     "stage": "3 萤火虫物理模拟与烘焙",
     "hardness": "High",
     "JEV": {
-      "Judgement": "PENDING_VISUAL",
+      "Judgement": "PENDING_HUMAN_REVIEW",
       "Evidence": {
         "particle_system": true,
         "turbulence_force": true,
@@ -161,9 +179,18 @@
         "blender_newton_frames_baked": 144,
         "physics_baked_firefly_instances": 107,
         "custom_flight_integrator_removed": true,
-        "real_newton_wind_turbulence_brownian": true
+        "real_newton_wind_turbulence_brownian": true,
+        "eevee_preview_640x480_generated": true,
+        "eevee_preview_taa_samples": 8,
+        "preview_image_files": [
+          "preview_640x480.png",
+          "preview_firefly_075_640x480.png",
+          "preview_frame_001_640x480.png",
+          "preview_frame_144_640x480.png"
+        ],
+        "full_visual_review_completed": false
       },
-      "Verification": "真实 Blender NEWTON 粒子 + Brownian + turbulence + 有方向风力，逐帧 1–144 连续求值。筛出全程在地面上方且在场景飞行域的 107 只萤火虫；群体质心飞行 3.66 m，逐只路径总位移 391.5 m。每帧作为 shape key 烘焙进 .blend，GN 继续实例化真实 CC0 萤火虫模型。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 历史候选曾被用户截图否定；当前候选已更换完整144帧物理烘焙、发光与骨骼运动结构，但本次EEVEE预览尚未成功生成/目视审查，因此仍待人工JEV。 新候选的真实rig、物理逐帧烘焙与EEVEE设置已结构审计；没有成功的实际渲染图，因此绝不把数据断言当作视觉通过。"
+      "Verification": "真实 Blender NEWTON 粒子 + Brownian + turbulence + 有方向风力，逐帧 1–144 连续求值。筛出全程在地面上方且在场景飞行域的 107 只萤火虫；群体质心飞行 3.66 m，逐只路径总位移 391.5 m。每帧作为 shape key 烘焙进 .blend，GN 继续实例化真实 CC0 萤火虫模型。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 历史候选曾被用户截图否定；当前候选已更换完整144帧物理烘焙、发光与骨骼运动结构，但本次EEVEE预览尚未成功生成/目视审查，因此仍待人工JEV。 新候选的真实rig、物理逐帧烘焙与EEVEE设置已结构审计；没有成功的实际渲染图，因此绝不把数据断言当作视觉通过。 已生成PNG头校验的640×480 EEVEE预览（TAA 8样本）：preview_640x480.png, preview_firefly_075_640x480.png, preview_frame_001_640x480.png, preview_frame_144_640x480.png；图像尚未目视审查，未自动批准。"
     },
     "get_scene_info": {
       "objects": 89,
@@ -210,7 +237,7 @@
     "stage": "4 微光灯光与基础材质",
     "hardness": "High",
     "JEV": {
-      "Judgement": "PENDING_VISUAL",
+      "Judgement": "PENDING_HUMAN_REVIEW",
       "Evidence": {
         "eevee": true,
         "preview_le_720p": true,
@@ -225,9 +252,17 @@
         "saturated_abdomen_emission_strength": 4.8,
         "animated_flight_following_point_lights": 18,
         "high_quality_eevee_fog_glow_enabled": true,
-        "preview_image_files": []
+        "preview_image_files": [
+          "preview_640x480.png",
+          "preview_firefly_075_640x480.png",
+          "preview_frame_001_640x480.png",
+          "preview_frame_144_640x480.png"
+        ],
+        "eevee_preview_640x480_generated": true,
+        "eevee_preview_taa_samples": 8,
+        "full_visual_review_completed": false
       },
-      "Verification": "月光冷主光、弱冷填光、微弱暖色反射；金属、氧化铜、石土与发光材料分离；仅允许 640×480 预览。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 历史候选曾被用户截图否定；当前候选已更换完整144帧物理烘焙、发光与骨骼运动结构，但本次EEVEE预览尚未成功生成/目视审查，因此仍待人工JEV。 新候选的真实rig、物理逐帧烘焙与EEVEE设置已结构审计；没有成功的实际渲染图，因此绝不把数据断言当作视觉通过。"
+      "Verification": "月光冷主光、弱冷填光、微弱暖色反射；金属、氧化铜、石土与发光材料分离；仅允许 640×480 预览。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 历史候选曾被用户截图否定；当前候选已更换完整144帧物理烘焙、发光与骨骼运动结构，但本次EEVEE预览尚未成功生成/目视审查，因此仍待人工JEV。 新候选的真实rig、物理逐帧烘焙与EEVEE设置已结构审计；没有成功的实际渲染图，因此绝不把数据断言当作视觉通过。 已生成PNG头校验的640×480 EEVEE预览（TAA 8样本）：preview_640x480.png, preview_firefly_075_640x480.png, preview_frame_001_640x480.png, preview_frame_144_640x480.png；图像尚未目视审查，未自动批准。"
     },
     "get_scene_info": {
       "objects": 89,
@@ -274,7 +309,7 @@
     "stage": "5 清理与交付",
     "hardness": "High",
     "JEV": {
-      "Judgement": "PENDING_VISUAL",
+      "Judgement": "PENDING_HUMAN_REVIEW",
       "Evidence": {
         "required_collections": true,
         "blend_saved": true,
@@ -286,9 +321,18 @@
         "current_candidate_visual_review_completed": false,
         "editable_blend_saved": true,
         "preview_generated_and_visually_approved": false,
-        "visual_approval_blocked_by_headless_eevee_context": true
+        "visual_approval_blocked_by_headless_eevee_context": true,
+        "eevee_preview_640x480_generated": true,
+        "eevee_preview_taa_samples": 8,
+        "preview_image_files": [
+          "preview_640x480.png",
+          "preview_firefly_075_640x480.png",
+          "preview_frame_001_640x480.png",
+          "preview_frame_144_640x480.png"
+        ],
+        "full_visual_review_completed": false
       },
-      "Verification": "保留隐藏模拟源以便追溯，静态实例作为最终展示；资产内嵌到 .blend，外部 FBX 仅供重建脚本使用。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 历史候选曾被用户截图否定；当前候选已更换完整144帧物理烘焙、发光与骨骼运动结构，但本次EEVEE预览尚未成功生成/目视审查，因此仍待人工JEV。 新候选的真实rig、物理逐帧烘焙与EEVEE设置已结构审计；没有成功的实际渲染图，因此绝不把数据断言当作视觉通过。"
+      "Verification": "保留隐藏模拟源以便追溯，静态实例作为最终展示；资产内嵌到 .blend，外部 FBX 仅供重建脚本使用。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 历史候选曾被用户截图否定；当前候选已更换完整144帧物理烘焙、发光与骨骼运动结构，但本次EEVEE预览尚未成功生成/目视审查，因此仍待人工JEV。 新候选的真实rig、物理逐帧烘焙与EEVEE设置已结构审计；没有成功的实际渲染图，因此绝不把数据断言当作视觉通过。 已生成PNG头校验的640×480 EEVEE预览（TAA 8样本）：preview_640x480.png, preview_firefly_075_640x480.png, preview_frame_001_640x480.png, preview_frame_144_640x480.png；图像尚未目视审查，未自动批准。"
     },
     "get_scene_info": {
       "objects": 89,
