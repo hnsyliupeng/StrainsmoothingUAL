@@ -1,0 +1,72 @@
+{
+  "kind": "non-rendering structural audit, not visual JEV",
+  "checks": {
+    "preview_eevee_640x480_configured": true,
+    "camera_subject_in_frame": true,
+    "feet_contact_terrain_tolerance_2cm": true,
+    "six_geometry_nodes_environment_scatterers": true,
+    "static_firefly_mesh_instances": true,
+    "firefly_height_layers": true,
+    "self_contained_source_meshes": true,
+    "original_simulation_retained": true
+  },
+  "instances": {
+    "Pines | GN scatter": 34,
+    "Dead trunks | GN scatter": 15,
+    "Broadleaf silhouettes | GN scatter": 6,
+    "Stones | GN scatter": 142,
+    "Understory | GN scatter": 1318,
+    "Bushes | GN scatter": 108,
+    "Baked fireflies | frozen instances": 92
+  },
+  "camera_pixel_positions": {
+    "Head sensor housing": [
+      317.3,
+      165.7
+    ],
+    "Torso | pressure sealed frame": [
+      320.0,
+      216.4
+    ],
+    "L foot sole": [
+      283.8,
+      336.3
+    ],
+    "R foot sole": [
+      350.0,
+      327.9
+    ]
+  },
+  "feet_ground_errors_m": {
+    "L foot sole": 0.0,
+    "R foot sole": 0.0
+  },
+  "fly_z_m": [
+    0.52,
+    2.82
+  ],
+  "source_materials": {
+    "CC0 source | SM_DeadPineTree": [
+      "Pine bark"
+    ],
+    "CC0 source | SM_Pine_Tree": [
+      "Pine bark",
+      "Needles | slate pine"
+    ],
+    "CC0 source | SM_Tree_Rounded": [
+      "Pine bark",
+      "Needles | slate pine"
+    ],
+    "Kenney source | faceted stone": [
+      "Wet stone"
+    ],
+    "Kenney source | understory bush": [
+      "Needles | slate pine"
+    ],
+    "Kenney source | woodland grass": [
+      "Understory moss"
+    ]
+  },
+  "source_images_with_users": [],
+  "full_visual_review_completed": false
+}
