@@ -169,7 +169,7 @@ def scatter(label,src,density,seed,min_radius,max_radius,scl,front_clear=False):
   lake_band=ns.new('ShaderNodeMath');lake_band.operation='MULTIPLY';links.new(lake_band_a.outputs[0],lake_band.inputs[0]);links.new(lake_yhi.outputs[0],lake_band.inputs[1])
   clear_union=ns.new('ShaderNodeMath');clear_union.operation='MAXIMUM';links.new(between.outputs[0],clear_union.inputs[0]);links.new(lake_band.outputs[0],clear_union.inputs[1])
   not_center=ns.new('ShaderNodeMath');not_center.operation='SUBTRACT';not_center.inputs[0].default_value=1;not_center.location=(300,-520);links.new(clear_union.outputs[0],not_center.inputs[1])
-  mask=ns.new('ShaderNodeMath');mask.operation='MULTIPLY';mask.location=(350,-180);links.new(outside.outputs[0],mask.inputs[0]);links.new(not_center.outputs[0],mask.inputs[1]);selection=mask.outputs[0]
+  mask=ns.new('ShaderNodeMath');mask.operation='MULTIPLY';mask.location=(350,-180);links.new(selection,mask.inputs[0]);links.new(not_center.outputs[0],mask.inputs[1]);selection=mask.outputs[0]
  # Mask submerged lake area for every Geometry Nodes vegetation scatter.
  dx=ns.new('ShaderNodeMath');dx.operation='SUBTRACT';dx.inputs[1].default_value=LAKE_CENTER[0];links.new(sep.outputs['X'],dx.inputs[0])
  dy=ns.new('ShaderNodeMath');dy.operation='SUBTRACT';dy.inputs[1].default_value=LAKE_CENTER[1];links.new(sep.outputs['Y'],dy.inputs[0])
@@ -194,16 +194,16 @@ scatter('Oaks B | GN scatter',oak2,.013,42,5.6,15,.92,True)
 scatter('Birches A | GN scatter',birch,.018,19,5.4,15,.84,True)
 scatter('Birches B | GN scatter',birch2,.011,26,5.5,15,.88,True)
 scatter('Pine saplings | GN scatter',pine,.034,5,4.8,15,1,True)
-scatter('Moss rocks A | GN scatter',rock,.047,37,2.6,15,1)
-scatter('Moss rocks B | GN scatter',rock2,.048,38,3,15,1)
+scatter('Moss rocks A | GN scatter',rock,.047,37,2.6,15,1,True)
+scatter('Moss rocks B | GN scatter',rock2,.048,38,3,15,1,True)
 scatter('Meadow grass | GN scatter',grass,.58,91,2.8,15,1)
 scatter('Coastal grass | GN scatter',shortgrass,.48,81,2.5,15,1)
 scatter('Ferns A | GN scatter',fern,.25,93,2.5,15,1,True)
 scatter('Ferns B | GN scatter',fern2,.20,96,2.8,15,1,True)
 scatter('Shrubs | GN scatter',shrub,.26,47,3.2,15,1,True)
 scatter('Sorrel ground cover | GN scatter',sorrel,.26,34,2.1,15,1)
-scatter('Flowering rose plants | GN scatter',rose,.10,68,1.85,8.5,1)
-scatter('Fallen log | GN scatter',log,.008,35,5.5,15,1)
+scatter('Flowering rose plants | GN scatter',rose,.10,68,1.85,8.5,1,True)
+scatter('Fallen log | GN scatter',log,.008,35,5.5,15,1,True)
 # Sparse foreground moss rocks are the same authored asset, not mesh primitives.
 for idx,(x,y,sc) in enumerate([(-2.9,-1.0,.65),(2.7,1.7,.65)]):
  obj=bpy.data.objects.new('Foreground mossy rock %02d'%idx,rock.data);ENV.objects.link(obj);obj.location=(x,y,ground_z(x,y));obj.scale=(sc,sc,sc)

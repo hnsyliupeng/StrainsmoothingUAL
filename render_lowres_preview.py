@@ -1,7 +1,7 @@
 """Render <=720p EEVEE review frames for human visual inspection.
 
 Run with Blender 4.5 + working EGL/GLX, e.g.:
-  blender -b output/Twilight_Wilderness_Robot.blend --python render_lowres_preview.py -- --frames=1,75,144 --include-firefly
+  blender -b output/Twilight_Wilderness_Robot.blend --python render_lowres_preview.py -- --frames=1,75,144 --include-firefly --include-robot
 Or use bpy 4.5 in a graphical/Xvfb session. This script refuses high-resolution
 or non-EEVEE renders. It lowers TAA samples for fast structural previews only;
 it does not save those temporary render settings back into the editable blend.
@@ -30,6 +30,7 @@ else:
     frames = [int(single_frame or 75)]
 assert frames and all(f in (1, 75, 144) for f in frames), 'Approved review frames are 1, 75, 144'
 include_firefly = '--camera=firefly' in sys.argv or '--include-firefly' in sys.argv
+include_robot = '--camera=robot' in sys.argv or '--include-robot' in sys.argv
 sample_arg = next((arg.split('=', 1)[1] for arg in sys.argv if arg.startswith('--samples=')), '8')
 samples = int(sample_arg)
 assert 1 <= samples <= 16, 'Review renders are limited to 1–16 EEVEE TAA samples'
@@ -45,9 +46,13 @@ scene.render.image_settings.file_format = 'PNG'
 scene.render.use_persistent_data = True
 scene.eevee.taa_render_samples = samples
 inspection_camera = bpy.data.objects.get('Camera | firefly anatomical inspection')
+robot_camera = bpy.data.objects.get('Camera | robot rig inspection')
 assert not include_firefly or inspection_camera is not None, 'Missing animated firefly close-up camera'
+assert not include_robot or robot_camera is not None, 'Missing animated robot IK inspection camera'
 
-def path_for(frame, closeup=False):
+def path_for(frame, closeup=False, robot_closeup=False):
+    if robot_closeup:
+        return ROOT / 'output' / f'preview_robot_frame_{frame:03d}_640x480.png' if frame != 75 else ROOT / 'output' / 'preview_robot_640x480.png'
     if closeup:
         return ROOT / 'output' / f'preview_firefly_{frame:03d}_640x480.png'
     if frame == 75:
@@ -73,12 +78,12 @@ def record_pending_visual_review(path):
         entry['JEV']['Verification'] = entry['JEV']['Verification'].split(' 已生成PNG头校验的640×480 EEVEE预览')[0] + note
     REPORT.write_text(json.dumps(report, ensure_ascii=False, indent=2))
 
-def render_review(frame, closeup=False):
-    scene.camera = inspection_camera if closeup else bpy.data.objects['Camera | forest clearing']
+def render_review(frame, closeup=False, robot_closeup=False):
+    scene.camera = inspection_camera if closeup else robot_camera if robot_closeup else bpy.data.objects['Camera | forest clearing']
     scene.frame_set(frame)
-    target = path_for(frame, closeup)
+    target = path_for(frame, closeup, robot_closeup)
     scene.render.filepath = str(target)
-    print(f'RENDER START {target.name} frame={frame} closeup={closeup} size={w}x{h} samples={samples}', flush=True)
+    print(f'RENDER START {target.name} frame={frame} closeup={closeup} robot_closeup={robot_closeup} size={w}x{h} samples={samples}', flush=True)
     bpy.ops.render.render(write_still=True)
     verify_png(target)
     record_pending_visual_review(target)
@@ -88,6 +93,9 @@ for frame in frames:
     render_review(frame)
 if include_firefly:
     render_review(75, closeup=True)
+if include_robot:
+    for frame in frames:
+        render_review(frame, robot_closeup=True)
 
 # Leave the saved file untouched and restore an informative scene state in memory.
 scene.camera = bpy.data.objects['Camera | forest clearing']

@@ -40,25 +40,25 @@ assert (max(v.co.y for v in insect.data.vertices)-min(v.co.y for v in insect.dat
 abdomen=insect.data.materials[1].node_tree.nodes.get('Principled BSDF')
 # Saturated yellow-green bioluminescence stays chromatic through AgX instead of
 # clipping into the tiny white pinpricks rejected in the last screenshot.
-abdomen.inputs['Emission Color'].default_value=(.72,1.0,.075,1)
-abdomen.inputs['Emission Strength'].default_value=4.8
-abdomen.inputs['Base Color'].default_value=(.40,.58,.045,1)
+abdomen.inputs['Emission Color'].default_value=(.30,.90,.025,1)
+abdomen.inputs['Emission Strength'].default_value=4.2
+abdomen.inputs['Base Color'].default_value=(.24,.48,.018,1)
 # A restrained, translucent aura remains near the authentic ~5 cm insect scale;
 # the EEVEE compositor adds the soft outer bloom without a giant green sphere.
 halo_mat=bpy.data.materials.new('Firefly | soft yellow-green 7cm bioluminescent aura')
 halo_mat.use_nodes=True
 bs=halo_mat.node_tree.nodes.get('Principled BSDF')
-bs.inputs['Base Color'].default_value=(.28,.62,.025,1)
+bs.inputs['Base Color'].default_value=(.24,.56,.02,1)
 bs.inputs['Emission Color'].default_value=(.65,1.0,.045,1)
-bs.inputs['Emission Strength'].default_value=.8
-bs.inputs['Alpha'].default_value=.04
+bs.inputs['Emission Strength'].default_value=.4
+bs.inputs['Alpha'].default_value=.025
 halo_mat.surface_render_method='BLENDED'
 bpy.ops.mesh.primitive_uv_sphere_add(segments=16,ring_count=12)
 halo=bpy.context.object
 for c in list(halo.users_collection):c.objects.unlink(halo)
 sources.objects.link(halo)
 halo.name='Firefly | soft 7cm abdomen aura prototype'
-halo.data.transform(Matrix.Translation(Vector((0,-.012,0))) @ Matrix.Diagonal((.035,.030,.028,1)))
+halo.data.transform(Matrix.Translation(Vector((0,-.012,0))) @ Matrix.Diagonal((.024,.021,.020,1)))
 halo.data.materials.append(halo_mat)
 halo.location=(94,0,-30);halo.hide_render=True;halo.hide_set(True)
 # Extend the ORIGINAL insect GN node tree with a second instance on the SAME
@@ -105,12 +105,12 @@ light_count=18
 for index in range(light_count):
     flyindex=round(index*(len(pos)-1)/max(1,light_count-1))
     data=bpy.data.lights.new('Bioluminescence | physical flight-following %02d'%index,'POINT')
-    data.energy=4.2;data.color=(.48,1.0,.075);data.shadow_soft_size=.07;data.use_shadow=False
+    data.energy=2.4;data.color=(.35,1.0,.045);data.shadow_soft_size=.055;data.use_shadow=False
     light=bpy.data.objects.new(data.name,data);flies.objects.link(light)
     for f in frames:
         p=snapshots[f][flyindex]
         light.location=p+Vector((0,-.012,0));light.keyframe_insert(data_path='location',frame=f)
-        data.energy=3.2+1.2*math.sin(f*.13+phase[flyindex])**2
+        data.energy=1.7+.7*math.sin(f*.13+phase[flyindex])**2
         data.keyframe_insert(data_path='energy',frame=f)
     if light.animation_data and light.animation_data.action:
         for curve in light.animation_data.action.fcurves:
@@ -148,6 +148,24 @@ for f in frames:
         pb.keyframe_insert(data_path='rotation_quaternion',frame=f,group='Counter-swing arms during IK walk')
 rig['flight_follow_version']='baked Newton flock + root translation + URDF-axis foot IK walk'
 rig['flight_chase_lag_m']=1.35
+# A separate animated inspection camera makes the constrained leg chain and
+# foot plants large enough to inspect in the same <=720p diagnostic preview.
+robot_camera=bpy.data.objects.get('Camera | robot rig inspection')
+assert robot_camera and robot_camera.type=='CAMERA'
+robot_camera.data.type='ORTHO'
+robot_camera.data.ortho_scale=2.9
+robot_camera['purpose']='Animated close-up of the actual URDF armature and IK-driven walking feet'
+robot_camera_offset=Vector((3.2,-4.2,2.6))
+for f in frames:
+    s.frame_set(f)
+    focus=rig.matrix_world.translation.copy()+Vector((0,0,1.0))
+    robot_camera.location=focus+robot_camera_offset
+    robot_camera.rotation_euler=(focus-robot_camera.location).to_track_quat('-Z','Y').to_euler()
+    robot_camera.keyframe_insert(data_path='location',frame=f,group='Follow moving URDF robot')
+    robot_camera.keyframe_insert(data_path='rotation_euler',frame=f,group='Inspect moving URDF robot')
+if robot_camera.animation_data and robot_camera.animation_data.action:
+    for curve in robot_camera.animation_data.action.fcurves:
+        for key in curve.keyframe_points:key.interpolation='LINEAR'
 # Linear interpolation prevents root and gesture curves from easing/overshooting.
 for fc in rig.animation_data.action.fcurves:
     for key in fc.keyframe_points:key.interpolation='LINEAR'

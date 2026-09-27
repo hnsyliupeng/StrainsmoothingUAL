@@ -311,7 +311,7 @@ for entry in reviews:
     entry['JEV']['Judgement'] = 'PENDING_VISUAL'
     entry['JEV']['Evidence']['current_candidate_visual_review_completed'] = False
     entry['JEV']['Verification'] += ' 新候选的真实rig、物理逐帧烘焙与EEVEE设置已结构审计；没有成功的实际渲染图，因此绝不把数据断言当作视觉通过。'
-    entry['Next_step_plan'] = '修复可用的头less EEVEE软件GL上下文，生成640×480预览并逐帧人工审查；之后修复截图问题并完成最终JEV。'
+    entry['Next_step_plan'] = '审查新生成的640×480 EEVEE图像；若湖面、机器人步态或萤火虫光仍不清晰则继续修改并重审。'
 reviews[1]['JEV']['Evidence'].update({
     'real_armature_constraints': len(IKs) == 2,
     'urdf_limited_ik_chain_length': 4,
@@ -328,7 +328,7 @@ reviews[2]['JEV']['Evidence'].update({
     'real_newton_wind_turbulence_brownian': True,
 })
 reviews[3]['JEV']['Evidence'].update({
-    'saturated_abdomen_emission_strength': 4.8,
+    'saturated_abdomen_emission_strength': bpy.data.objects['Firefly | original CC0 insect mesh | source'].data.materials[1].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value,
     'animated_flight_following_point_lights': len([o for o in bpy.data.collections['Fireflies'].objects if o.type == 'LIGHT']),
     'high_quality_eevee_fog_glow_enabled': scene.use_nodes and scene.render.use_compositing,
     'preview_image_files': [],
@@ -336,7 +336,7 @@ reviews[3]['JEV']['Evidence'].update({
 reviews[4]['JEV']['Evidence'].update({
     'editable_blend_saved': BLEND.exists(),
     'preview_generated_and_visually_approved': False,
-    'visual_approval_blocked_by_headless_eevee_context': True,
+    'visual_review_status': 'PENDING_EEVEE_IMAGE_REVIEW',
 })
 report_path.write_text(json.dumps(reviews, ensure_ascii=False, indent=2) + '\n')
 print('URDF-LIMITED IK WALK', json.dumps(summary, ensure_ascii=False))

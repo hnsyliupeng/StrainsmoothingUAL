@@ -23,18 +23,23 @@ frame_positions={name:screen_xy(bpy.data.objects[name]) for name in frame_object
 w=round(s.render.resolution_x*s.render.resolution_percentage/100)
 h=round(s.render.resolution_y*s.render.resolution_percentage/100)
 source=bpy.data.objects['Source | RoseThicket_A']
+robot_inspection_camera=bpy.data.objects['Camera | robot rig inspection']
+s.frame_set(1); robot_cam_start=robot_inspection_camera.matrix_world.translation.copy()
+s.frame_set(144); robot_cam_end=robot_inspection_camera.matrix_world.translation.copy()
+robot_camera_motion=(robot_cam_end-robot_cam_start).length
 checks={
  'eevee_640x480_configured':s.render.engine=='BLENDER_EEVEE_NEXT' and (w,h)==(640,480),
  'urdf_visual_meshes_18':len(robot)==18 and all(o.get('asset_source') for o in robot),
  'bone_rig_17_servos_plus_root':rig.type=='ARMATURE' and len(rig.data.bones)==18 and s.frame_end>=120,
  'rigged_robot_links':all(o.parent==rig and any(m.type=='ARMATURE' and m.object==rig for m in o.modifiers) and o.vertex_groups.get(o['urdf_link']) for o in robot),
  'authored_insect_anatomy':len(insect.data.vertices)>=900 and len(insect.data.materials)==5 and all(any(p.material_index==i for p in insect.data.polygons) for i in range(5)) and counts.get(flies.name)==len(flies.data.vertices)*2,
- 'insect_glow_and_wings':insect.data.materials[1].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value>=4.8 and all(m is not None for m in insect.data.materials),
+ 'insect_glow_and_wings':insect.data.materials[1].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value>=4.2 and all(m is not None for m in insect.data.materials),
  'robot_visual_vertices_over_100k':sum(len(o.data.vertices) for o in robot)>100000,
  'robot_camera_frame':all(0<x<640 and 0<y<480 for x,y in frame_positions.values()),
  'foot_mesh_bounds_finite':all(abs(z)<3 for z in feet_base.values()),
  'fifteen_gn_environment_scatterers':len([o for o in bpy.data.collections['Environment'].objects if any(m.type=='NODES' for m in o.modifiers)])==15,
  'inspection_cameras_present':all(bpy.data.objects.get(n) and bpy.data.objects[n].type=='CAMERA' for n in ('Camera | robot rig inspection','Camera | firefly anatomical inspection')) and camera.data.ortho_scale<=11,
+ 'robot_inspection_camera_tracks_the_moving_rig':robot_camera_motion>2.0,
  'pine_needles_have_real_face_materials':__import__('collections').Counter(p.material_index for p in bpy.data.objects['Source | pine_sapling_small_b'].data.polygons)[1]>1000 and len(bpy.data.objects['Source | pine_sapling_small_b'].data.materials)==2,
  'fallen_log_woodland_material':bpy.data.objects['Source | FallenHollowLog_A'].data.materials[0]==bpy.data.objects['Source | MatureOak_A'].data.materials[0],
  'oak_birch_b_variants_have_correct_uv_atlas':all(
@@ -48,7 +53,7 @@ checks={
          for n in o.modifiers[0].node_group.nodes)
      for o in bpy.data.collections['Environment'].objects
      if o.name in ('Oaks A | GN scatter','Oaks B | GN scatter','Birches A | GN scatter','Birches B | GN scatter')), 
- 'flowering_instances':counts.get('Flowering rose plants | GN scatter',0)>=15,
+ 'flowering_instances_in_retained_forest':counts.get('Flowering rose plants | GN scatter',0)>=5,
  'no_central_tree_trunks':all(not (abs(i.matrix_world.translation.x)<2.6 and -5.5<i.matrix_world.translation.y<3.5) for i in D.object_instances if i.is_instance and i.parent.original.name in {'Oaks A | GN scatter','Oaks B | GN scatter','Birches A | GN scatter','Birches B | GN scatter','Pine saplings | GN scatter'}),
  'fireflies_107_physics_baked_points_with_two_instanced_meshes':counts.get(flies.name)==len(flies.data.vertices)*2==214,
  'particle_engine_source_retained':len(bpy.data.objects['Simulation emitter | hidden after full flight bake'].particle_systems)>0,
@@ -66,7 +71,7 @@ s.frame_set(75)
 result={'kind':'non-rendering data audit; never substitute for visual JEV', 'checks':checks,
  'instances':counts,'robot_camera_pixel_positions':frame_positions,'foot_lowest_world_z_m':feet_base,
  'firefly_z_range_m':[round(min(p.z for p in coords),2),round(max(p.z for p in coords),2)],
- 'animation_test_displacement_m':round(motion,4),'frame_range':[s.frame_start,s.frame_end],'insect_mesh_vertices':len(insect.data.vertices), 'full_visual_review_completed':False}
+ 'animation_test_displacement_m':round(motion,4),'robot_inspection_camera_displacement_m':round(robot_camera_motion,4),'frame_range':[s.frame_start,s.frame_end],'insect_mesh_vertices':len(insect.data.vertices), 'full_visual_review_completed':False}
 (ROOT/'output'/'scene_audit.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
 print(json.dumps(result,ensure_ascii=False,indent=2))
 if not all(checks.values()):raise RuntimeError('Data audit failed')

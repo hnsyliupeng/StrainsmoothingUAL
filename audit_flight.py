@@ -69,7 +69,7 @@ checks={
  'lake_center_in_preview_framing':0<project.x<1 and 0<project.y<1,
  'up_axis_fixed_pine':pine_dim[2]>pine_dim[1]*1.3,
  'insect_wings_body_head_preserved':len(fly.data.vertices)>900 and len({p.material_index for p in fly.data.polygons})==5 and fly_dim[1]>fly_dim[2]*1.3,
- 'saturated_emissive_abdomen':fly.data.materials[1].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value>=4.8,
+ 'saturated_emissive_abdomen':fly.data.materials[1].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value>=4.2,
  'emissive_insect_and_aura_instances_at_every_sample':all(data['baked_insect_and_halo_instances']==2*len(points.data.vertices) for data in frames.values()),
  'genuine_newton_particle_simulation_baked_all_frames':'NEWTON' in points.get('physics','') and points.get('simulation_frames',0)==144 and len(points.data.shape_keys.key_blocks)>=140,
  'baked_swarm_changes_world_position_gt_2m':(fly_end-fly_start).length>2,

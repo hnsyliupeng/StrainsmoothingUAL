@@ -67,7 +67,10 @@ jobs:
           rm -f output/preview_640x480.png \
             output/preview_frame_001_640x480.png \
             output/preview_frame_144_640x480.png \
-            output/preview_firefly_075_640x480.png
+            output/preview_firefly_075_640x480.png \
+            output/preview_robot_640x480.png \
+            output/preview_robot_frame_001_640x480.png \
+            output/preview_robot_frame_144_640x480.png
           python -u build_scene.py
           python -u upgrade_animation.py
           python -u animate_flight.py
@@ -86,14 +89,14 @@ jobs:
           # Four TAA samples keep this a quick structural review, never a final render.
           timeout --signal=TERM --kill-after=30s 3300s \
             xvfb-run -a -s '-screen 0 1280x720x24' \
-            python -u render_lowres_preview.py --frames=1,75,144 --include-firefly --samples=4
+            python -u render_lowres_preview.py --frames=1,75,144 --include-firefly --include-robot --samples=4
           python - <<'PY'
           import json
           from pathlib import Path
           p=Path('output/flight_audit.json')
           d=json.loads(p.read_text())
           d['preview_png_available']=Path('output/preview_640x480.png').is_file()
-          d['preview_files']=[n for n in ('preview_frame_001_640x480.png','preview_640x480.png','preview_frame_144_640x480.png','preview_firefly_075_640x480.png') if (Path('output')/n).is_file()]
+          d['preview_files']=[n for n in ('preview_frame_001_640x480.png','preview_640x480.png','preview_frame_144_640x480.png','preview_firefly_075_640x480.png','preview_robot_frame_001_640x480.png','preview_robot_640x480.png','preview_robot_frame_144_640x480.png') if (Path('output')/n).is_file()]
           d['full_visual_review_completed']=False
           p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
           PY
@@ -109,7 +112,10 @@ jobs:
             output/preview_frame_001_640x480.png \
             output/preview_640x480.png \
             output/preview_frame_144_640x480.png \
-            output/preview_firefly_075_640x480.png; do
+            output/preview_firefly_075_640x480.png \
+            output/preview_robot_frame_001_640x480.png \
+            output/preview_robot_640x480.png \
+            output/preview_robot_frame_144_640x480.png; do
             if [ -s "$image" ]; then git add "$image"; fi
           done
           if git diff --cached --quiet; then
