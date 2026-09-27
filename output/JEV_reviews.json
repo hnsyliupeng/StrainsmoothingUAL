@@ -1,0 +1,257 @@
+[
+  {
+    "stage": "1 基础环境与地形",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "PENDING_VISUAL",
+      "Evidence": {
+        "terrain_grid": true,
+        "cc0_source_meshes": true,
+        "gn_scatter_count": true,
+        "real_color_maps": true,
+        "original_foliage_only": true,
+        "new_visual_evidence_available": false
+      },
+      "Verification": "15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。"
+    },
+    "get_scene_info": {
+      "objects": 33,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 18,
+        "Robot": 0,
+        "Fireflies": 0,
+        "Lights": 0,
+        "Architecture / open-source asset prototypes": 15
+      },
+      "geometry_nodes": [
+        "Oaks A | GN scatter",
+        "Oaks B | GN scatter",
+        "Birches A | GN scatter",
+        "Birches B | GN scatter",
+        "Pine saplings | GN scatter",
+        "Moss rocks A | GN scatter",
+        "Moss rocks B | GN scatter",
+        "Meadow grass | GN scatter",
+        "Coastal grass | GN scatter",
+        "Ferns A | GN scatter",
+        "Ferns B | GN scatter",
+        "Shrubs | GN scatter",
+        "Sorrel ground cover | GN scatter",
+        "Flowering rose plants | GN scatter",
+        "Fallen log | GN scatter"
+      ],
+      "robot_parts": 0,
+      "baked_fireflies": 0,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        1920,
+        1080
+      ]
+    }
+  },
+  {
+    "stage": "2 机器人主体",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "PENDING_VISUAL",
+      "Evidence": {
+        "authored_urdf_visual_meshes": true,
+        "real_joint_hierarchy": true,
+        "imported_detail_vertices": true,
+        "no_generated_box_body": true,
+        "new_visual_evidence_available": false
+      },
+      "Verification": "机械主体来自 MIT 授权 UBTECH Alpha 1S 数字孪生 17关节 URDF（人工测量舵机轴），20 个导入视觉网格；仍需低分辨率目视检查站姿、尺寸与地面接触。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。"
+    },
+    "get_scene_info": {
+      "objects": 51,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 18,
+        "Robot": 18,
+        "Fireflies": 0,
+        "Lights": 0,
+        "Architecture / open-source asset prototypes": 15
+      },
+      "geometry_nodes": [
+        "Oaks A | GN scatter",
+        "Oaks B | GN scatter",
+        "Birches A | GN scatter",
+        "Birches B | GN scatter",
+        "Pine saplings | GN scatter",
+        "Moss rocks A | GN scatter",
+        "Moss rocks B | GN scatter",
+        "Meadow grass | GN scatter",
+        "Coastal grass | GN scatter",
+        "Ferns A | GN scatter",
+        "Ferns B | GN scatter",
+        "Shrubs | GN scatter",
+        "Sorrel ground cover | GN scatter",
+        "Flowering rose plants | GN scatter",
+        "Fallen log | GN scatter"
+      ],
+      "robot_parts": 18,
+      "baked_fireflies": 0,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        1920,
+        1080
+      ]
+    }
+  },
+  {
+    "stage": "3 萤火虫物理模拟与烘焙",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "PENDING_VISUAL",
+      "Evidence": {
+        "particle_system": true,
+        "turbulence_force": true,
+        "measured_motion": true,
+        "baked_count": true,
+        "static_vertex_mesh": true,
+        "height_variation": true,
+        "fly_source_diameter": true,
+        "new_visual_evidence_available": false
+      },
+      "Verification": "物理引擎粒子帧 1–75 连续求值；48→75 帧共有粒子位移总和 0.61 m；第 75 帧筛选并烘焙 92 个静态点，GN 引用内嵌发光源，渲染不依赖粒子缓存。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。"
+    },
+    "get_scene_info": {
+      "objects": 55,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 18,
+        "Robot": 18,
+        "Fireflies": 3,
+        "Lights": 0,
+        "Architecture / open-source asset prototypes": 16
+      },
+      "geometry_nodes": [
+        "Oaks A | GN scatter",
+        "Oaks B | GN scatter",
+        "Birches A | GN scatter",
+        "Birches B | GN scatter",
+        "Pine saplings | GN scatter",
+        "Moss rocks A | GN scatter",
+        "Moss rocks B | GN scatter",
+        "Meadow grass | GN scatter",
+        "Coastal grass | GN scatter",
+        "Ferns A | GN scatter",
+        "Ferns B | GN scatter",
+        "Shrubs | GN scatter",
+        "Sorrel ground cover | GN scatter",
+        "Flowering rose plants | GN scatter",
+        "Fallen log | GN scatter"
+      ],
+      "robot_parts": 18,
+      "baked_fireflies": 1,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        1920,
+        1080
+      ]
+    }
+  },
+  {
+    "stage": "4 微光灯光与基础材质",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "PENDING_VISUAL",
+      "Evidence": {
+        "eevee": true,
+        "preview_le_720p": true,
+        "default_viewport_material_mode": true,
+        "lighting": true,
+        "material_assignments": true,
+        "new_visual_evidence_available": false
+      },
+      "Verification": "月光冷主光、弱冷填光、微弱暖色反射；金属、氧化铜、石土与发光材料分离；仅允许 640×480 预览。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。"
+    },
+    "get_scene_info": {
+      "objects": 59,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 18,
+        "Robot": 18,
+        "Fireflies": 3,
+        "Lights": 4,
+        "Architecture / open-source asset prototypes": 16
+      },
+      "geometry_nodes": [
+        "Oaks A | GN scatter",
+        "Oaks B | GN scatter",
+        "Birches A | GN scatter",
+        "Birches B | GN scatter",
+        "Pine saplings | GN scatter",
+        "Moss rocks A | GN scatter",
+        "Moss rocks B | GN scatter",
+        "Meadow grass | GN scatter",
+        "Coastal grass | GN scatter",
+        "Ferns A | GN scatter",
+        "Ferns B | GN scatter",
+        "Shrubs | GN scatter",
+        "Sorrel ground cover | GN scatter",
+        "Flowering rose plants | GN scatter",
+        "Fallen log | GN scatter"
+      ],
+      "robot_parts": 18,
+      "baked_fireflies": 1,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        640,
+        480
+      ]
+    }
+  },
+  {
+    "stage": "5 清理与交付",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "PENDING_VISUAL",
+      "Evidence": {
+        "required_collections": true,
+        "blend_saved": true,
+        "static_bake": true,
+        "simulation_hidden": true,
+        "new_visual_evidence_available": false
+      },
+      "Verification": "保留隐藏模拟源以便追溯，静态实例作为最终展示；资产内嵌到 .blend，外部 FBX 仅供重建脚本使用。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。"
+    },
+    "get_scene_info": {
+      "objects": 59,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 18,
+        "Robot": 18,
+        "Fireflies": 3,
+        "Lights": 4,
+        "Architecture / open-source asset prototypes": 16
+      },
+      "geometry_nodes": [
+        "Oaks A | GN scatter",
+        "Oaks B | GN scatter",
+        "Birches A | GN scatter",
+        "Birches B | GN scatter",
+        "Pine saplings | GN scatter",
+        "Moss rocks A | GN scatter",
+        "Moss rocks B | GN scatter",
+        "Meadow grass | GN scatter",
+        "Coastal grass | GN scatter",
+        "Ferns A | GN scatter",
+        "Ferns B | GN scatter",
+        "Shrubs | GN scatter",
+        "Sorrel ground cover | GN scatter",
+        "Flowering rose plants | GN scatter",
+        "Fallen log | GN scatter"
+      ],
+      "robot_parts": 18,
+      "baked_fireflies": 1,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        640,
+        480
+      ]
+    }
+  }
+]

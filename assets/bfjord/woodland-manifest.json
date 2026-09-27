@@ -1,0 +1,200 @@
+{
+  "assets": [
+    {
+      "boundsBlenderZUp": [
+        [
+          -4.193809986114502,
+          -4.44921875,
+          -0.007196810096502304
+        ],
+        [
+          4.0642595291137695,
+          3.5899264812469482,
+          7.986636161804199
+        ]
+      ],
+      "id": "MatureOak_A",
+      "model": "Models/MatureOak_A.fbx",
+      "sha256": "2de0a484d929240ef268c44c019c949d4f76ba5eda23c127bed10db8b8d19986",
+      "sourceSha256": "e973c6bddf47197713bf57a298a57aa45b7a85a98dfa95ffdeadf70eaba01528",
+      "triangles": [
+        76800,
+        26694,
+        10332
+      ]
+    },
+    {
+      "boundsBlenderZUp": [
+        [
+          -3.157940626144409,
+          -3.22316312789917,
+          -0.0038587450981140137
+        ],
+        [
+          3.7521142959594727,
+          3.424600839614868,
+          11.071786880493164
+        ]
+      ],
+      "id": "SilverBirch_A",
+      "model": "Models/SilverBirch_A.fbx",
+      "sha256": "7f9126c5096daaaccac0567b0e946bfc00a58c1717e8762716c7abfd1fe16a21",
+      "sourceSha256": "540c6dae391de873694789888804401bed075f754aa69be2b127f7266c905ece",
+      "triangles": [
+        64368,
+        31980,
+        12360
+      ]
+    },
+    {
+      "boundsBlenderZUp": [
+        [
+          -2.5671212673187256,
+          -1.4377788305282593,
+          0.0
+        ],
+        [
+          2.5696794986724854,
+          1.3941301107406616,
+          0.989710807800293
+        ]
+      ],
+      "id": "FallenHollowLog_A",
+      "model": "Models/FallenHollowLog_A.fbx",
+      "sha256": "b0c7f2d154fa351ed2c530cb9741fd287dad0476d2754d1dd314dcf4c8062165",
+      "sourceSha256": "245f02276e4de5578c57a67e7ce7b33893838df023ce029731874487b74008fe",
+      "triangles": [
+        1340,
+        868,
+        580
+      ]
+    },
+    {
+      "boundsBlenderZUp": [
+        [
+          -0.7521669864654541,
+          -0.655685544013977,
+          -0.0006408506305888295
+        ],
+        [
+          0.6921453475952148,
+          0.7304214239120483,
+          1.4131088256835938
+        ]
+      ],
+      "id": "TallMeadowGrass_A",
+      "model": "Models/TallMeadowGrass_A.fbx",
+      "sha256": "a72fffd4454fc49e5dd7d6b62bdfab0a11817670fd9d6c01984313f6e73e64fd",
+      "sourceSha256": "a24f5de71d2b2a5071db215d20044ff658147cac0a47eef6c9871aad83ce6ecf",
+      "triangles": [
+        4944,
+        2028,
+        614
+      ]
+    }
+  ],
+  "exportReimportChecks": [
+    {
+      "finiteTangents": true,
+      "id": "MatureOak_A",
+      "lod": 0,
+      "nondegenerate": true,
+      "triangles": 76800,
+      "uv": true
+    },
+    {
+      "finiteTangents": true,
+      "id": "MatureOak_A",
+      "lod": 1,
+      "nondegenerate": true,
+      "triangles": 26694,
+      "uv": true
+    },
+    {
+      "finiteTangents": true,
+      "id": "MatureOak_A",
+      "lod": 2,
+      "nondegenerate": true,
+      "triangles": 10332,
+      "uv": true
+    },
+    {
+      "finiteTangents": true,
+      "id": "SilverBirch_A",
+      "lod": 0,
+      "nondegenerate": true,
+      "triangles": 64368,
+      "uv": true
+    },
+    {
+      "finiteTangents": true,
+      "id": "SilverBirch_A",
+      "lod": 1,
+      "nondegenerate": true,
+      "triangles": 31980,
+      "uv": true
+    },
+    {
+      "finiteTangents": true,
+      "id": "SilverBirch_A",
+      "lod": 2,
+      "nondegenerate": true,
+      "triangles": 12360,
+      "uv": true
+    },
+    {
+      "finiteTangents": true,
+      "id": "FallenHollowLog_A",
+      "lod": 0,
+      "nondegenerate": true,
+      "triangles": 1340,
+      "uv": true
+    },
+    {
+      "finiteTangents": true,
+      "id": "FallenHollowLog_A",
+      "lod": 1,
+      "nondegenerate": true,
+      "triangles": 868,
+      "uv": true
+    },
+    {
+      "finiteTangents": true,
+      "id": "FallenHollowLog_A",
+      "lod": 2,
+      "nondegenerate": true,
+      "triangles": 580,
+      "uv": true
+    },
+    {
+      "finiteTangents": true,
+      "id": "TallMeadowGrass_A",
+      "lod": 0,
+      "nondegenerate": true,
+      "triangles": 4944,
+      "uv": true
+    },
+    {
+      "finiteTangents": true,
+      "id": "TallMeadowGrass_A",
+      "lod": 1,
+      "nondegenerate": true,
+      "triangles": 2028,
+      "uv": true
+    },
+    {
+      "finiteTangents": true,
+      "id": "TallMeadowGrass_A",
+      "lod": 2,
+      "nondegenerate": true,
+      "triangles": 614,
+      "uv": true
+    }
+  ],
+  "generatorLicense": "MIT",
+  "license": "CC0-1.0",
+  "pivot": "ground contact, Z-up authoring / Unity Y-up export",
+  "revision": "woodland-05",
+  "schemaVersion": 1,
+  "units": "metres"
+}

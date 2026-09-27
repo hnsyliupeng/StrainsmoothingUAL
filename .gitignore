@@ -1,0 +1,20 @@
+*.blend1
+__pycache__/
+core
+# Upstream asset-review reference images are not the requested scene preview.
+assets/bfjord/Review/
+# Retain only tested source assets in the tracked rebuild, not abandoned prototypes.
+assets/proton_scatter/
+assets/plugins/
+assets/SM_*.fbx
+assets/CC0Tree_LICENSE
+assets/Open-Golf_LICENSE
+assets/kenney_*.obj
+assets/grass.mtl
+assets/plant_bush.mtl
+assets/rock_smallA.mtl
+assets/alpha1s/*.jpg
+assets/bfjord/Models/MeadowDaisy_A.fbx
+assets/bfjord/Textures/Woodland06*.png
+assets/bfjord/Textures/WoodlandMask.png
+assets/bfjord/woodland06-manifest.json

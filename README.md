@@ -1,1 +1,13 @@
-# StrainsmoothingUAL
+# Twilight Wilderness Robot — editable Blender candidate
+
+**Not visually approved.** The scene was rebuilt from open CC0 FBX asset meshes and their own base-color/normal textures, but no Blender EEVEE preview could be rendered in this sandbox (missing EGL/GLX). The user's previously rejected results are not presented as final or as proof of realism. Do not perform a high-resolution render before visual approval.
+
+## Candidate scene and reproducibility
+
+- Scene: `output/Twilight_Wilderness_Robot.blend` (Blender 4.5.14, 640×480 EEVEE configuration, textures packed). The 15 source asset objects and original UVs remain editable, and 15 Geometry Nodes scatters instance them. Trees: BFjord CC0 authored oak/birch models; pine saplings, ferns, shrubs, mossy rocks: Poly Haven CC0 derivatives. Grasses, flowering rose thickets, and logs are BFjord CC0. Ground uses the actual Poly Haven Forest Floor base-color and normal maps. See `assets/bfjord/README.md` and `assets/polyhaven/README.md` for provenance. The stylized MeadowDaisy_A was not used. Old Proton Scatter plant models are not used.
+- Robot: 18 editable, imported visual STL links of the MIT UBTECH Alpha 1S URDF digital twin, with its measured 17-joint layout. **Mechanical silhouette and scale still need visual confirmation.**
+- Fireflies: Blender Newton particle system with Brownian motion and turbulence force was evaluated sequentially to frame 75; 92 selected particle coordinates were frozen as editable static mesh vertices and rendered via GN instancing of a tiny emissive sphere. Source physics emitter and force are retained hidden.
+- Rebuild in an environment with bpy 4.5 and `xacro`: `python3 build_scene.py` (this sandbox needs `LD_LIBRARY_PATH=/tmp/bpy-libs`). Run `python3 audit_scene.py` for structural-only validation. The audit passes 11 data tests, but **does not establish visual quality**.
+- Render **only** ≤720p with `blender -b output/Twilight_Wilderness_Robot.blend --python render_lowres_preview.py` in a graphical OpenGL/EGL/GLX-enabled environment. The script refuses sizes other than 640×480 and all non-EEVEE engines. Examine the output before accepting any JEV step. No preview image exists yet.
+
+The step-wise `output/JEV_reviews.json` contains all five high-hardness data reviews and scene structures. They remain **PENDING_VISUAL**, because an EEVEE attempt here aborted with `Couldn't find current GLX or EGL context`. The final confirmation phrase is withheld pending actual scene preview and human review. The former link was not downloadable; the candidate `.blend` has not yet been uploaded to a publicly tested URL. No remote delivery is claimed.

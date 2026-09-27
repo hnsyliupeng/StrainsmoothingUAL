@@ -1,0 +1,216 @@
+{
+  "assets": [
+    {
+      "boundsBlenderZUp": [
+        [
+          -0.6064170002937317,
+          -0.6340054273605347,
+          -0.002147720428183675
+        ],
+        [
+          0.5924094915390015,
+          0.6189818978309631,
+          1.13926362991333
+        ]
+      ],
+      "id": "RoseThicket_A",
+      "lodCount": 3,
+      "model": "Models/RoseThicket_A.fbx",
+      "sha256": "1214f3ca25910691604902b17e343023c2a9ae184fda7aabf4a95d78530ef188",
+      "sourceSha256": "ef4e341b64ca34ab8354cb9e27cfb807b1e3e25a2c4601652a4475a272d9a70f",
+      "triangles": [
+        7596,
+        2856,
+        1198
+      ]
+    },
+    {
+      "boundsBlenderZUp": [
+        [
+          -0.29162535071372986,
+          -0.28180670738220215,
+          -0.0007501462823711336
+        ],
+        [
+          0.33783581852912903,
+          0.23205868899822235,
+          0.69415283203125
+        ]
+      ],
+      "id": "MeadowDaisy_A",
+      "lodCount": 3,
+      "model": "Models/MeadowDaisy_A.fbx",
+      "sha256": "1b76883f1e75d8e7f43a9ea5c79effa79b1b788ad03fb588c017edd4fa05e2f1",
+      "sourceSha256": "0dc58eb1711ea716cf3652ee298ee17187bd391135538b65dfb4ac785bdb0a00",
+      "triangles": [
+        3224,
+        1341,
+        444
+      ]
+    },
+    {
+      "boundsBlenderZUp": [
+        [
+          -0.2974384129047394,
+          -0.19786113500595093,
+          -0.0002009585004998371
+        ],
+        [
+          0.2988794445991516,
+          0.24637629091739655,
+          0.1995813548564911
+        ]
+      ],
+      "id": "WoodSorrel_A",
+      "lodCount": 3,
+      "model": "Models/WoodSorrel_A.fbx",
+      "sha256": "c9a8809a059ee9171992ea537fb61569a65a0253174b06c7b90232ae81852253",
+      "sourceSha256": "ef8073d6318f48c5e60e35e96a5a6ebc50e4d7d32bc2e69fb7196c02575fb8e5",
+      "triangles": [
+        1632,
+        921,
+        442
+      ]
+    },
+    {
+      "boundsBlenderZUp": [
+        [
+          -0.5103375911712646,
+          -0.4929143190383911,
+          -0.0005095998640172184
+        ],
+        [
+          0.5975424647331238,
+          0.531696617603302,
+          1.1349680423736572
+        ]
+      ],
+      "id": "CoastalGrass_A",
+      "lodCount": 3,
+      "model": "Models/CoastalGrass_A.fbx",
+      "sha256": "c8009a93e4d9f5bd473305d21d8fc15acea3e0e29cca6539c948431048965456",
+      "sourceSha256": "43b6959a4129fc4b9a96fc31916371aee628403782311bed83074b787a860a96",
+      "triangles": [
+        2740,
+        1226,
+        470
+      ]
+    }
+  ],
+  "atlas": "Textures/FoliageAtlas.png",
+  "exportReimportChecks": [
+    {
+      "finite": true,
+      "finiteTangents": true,
+      "id": "RoseThicket_A",
+      "lod": 0,
+      "nondegenerate": true,
+      "triangles": 7596,
+      "uv": true
+    },
+    {
+      "finite": true,
+      "finiteTangents": true,
+      "id": "RoseThicket_A",
+      "lod": 1,
+      "nondegenerate": true,
+      "triangles": 2856,
+      "uv": true
+    },
+    {
+      "finite": true,
+      "finiteTangents": true,
+      "id": "RoseThicket_A",
+      "lod": 2,
+      "nondegenerate": true,
+      "triangles": 1198,
+      "uv": true
+    },
+    {
+      "finite": true,
+      "finiteTangents": true,
+      "id": "MeadowDaisy_A",
+      "lod": 0,
+      "nondegenerate": true,
+      "triangles": 3224,
+      "uv": true
+    },
+    {
+      "finite": true,
+      "finiteTangents": true,
+      "id": "MeadowDaisy_A",
+      "lod": 1,
+      "nondegenerate": true,
+      "triangles": 1341,
+      "uv": true
+    },
+    {
+      "finite": true,
+      "finiteTangents": true,
+      "id": "MeadowDaisy_A",
+      "lod": 2,
+      "nondegenerate": true,
+      "triangles": 444,
+      "uv": true
+    },
+    {
+      "finite": true,
+      "finiteTangents": true,
+      "id": "WoodSorrel_A",
+      "lod": 0,
+      "nondegenerate": true,
+      "triangles": 1632,
+      "uv": true
+    },
+    {
+      "finite": true,
+      "finiteTangents": true,
+      "id": "WoodSorrel_A",
+      "lod": 1,
+      "nondegenerate": true,
+      "triangles": 921,
+      "uv": true
+    },
+    {
+      "finite": true,
+      "finiteTangents": true,
+      "id": "WoodSorrel_A",
+      "lod": 2,
+      "nondegenerate": true,
+      "triangles": 442,
+      "uv": true
+    },
+    {
+      "finite": true,
+      "finiteTangents": true,
+      "id": "CoastalGrass_A",
+      "lod": 0,
+      "nondegenerate": true,
+      "triangles": 2740,
+      "uv": true
+    },
+    {
+      "finite": true,
+      "finiteTangents": true,
+      "id": "CoastalGrass_A",
+      "lod": 1,
+      "nondegenerate": true,
+      "triangles": 1226,
+      "uv": true
+    },
+    {
+      "finite": true,
+      "finiteTangents": true,
+      "id": "CoastalGrass_A",
+      "lod": 2,
+      "nondegenerate": true,
+      "triangles": 470,
+      "uv": true
+    }
+  ],
+  "generatorLicense": "MIT",
+  "license": "CC0-1.0",
+  "normal": "Textures/FoliageNormal.png",
+  "schemaVersion": 1,
+  "units": "metres"
+}
