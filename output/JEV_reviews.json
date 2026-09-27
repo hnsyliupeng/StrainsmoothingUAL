@@ -3,7 +3,7 @@
     "stage": "1 基础环境与地形",
     "hardness": "High",
     "JEV": {
-      "Judgement": "BLOCKED_PENDING_VISUAL",
+      "Judgement": "PENDING_HUMAN_REVIEW",
       "Evidence": {
         "terrain_grid": true,
         "terrain_height_range_over_2m": true,
@@ -17,9 +17,18 @@
         "new_scene_eevee_preview_available": false,
         "preserved_pine_bark_twig_face_indices": true,
         "woodland_log_uses_correct_atlas": true,
-        "current_blend_eevee_render_inspected": false
+        "current_blend_eevee_render_inspected": false,
+        "eevee_preview_640x480_generated": true,
+        "eevee_preview_taa_samples": 8,
+        "preview_image_files": [
+          "preview_640x480.png",
+          "preview_firefly_075_640x480.png",
+          "preview_frame_001_640x480.png",
+          "preview_frame_144_640x480.png"
+        ],
+        "full_visual_review_completed": false
       },
-      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。"
+      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。 已生成PNG头校验的640×480 EEVEE预览（TAA 8样本）：preview_640x480.png, preview_firefly_075_640x480.png, preview_frame_001_640x480.png, preview_frame_144_640x480.png；图像尚未目视审查，未自动批准。"
     },
     "get_scene_info": {
       "objects": 34,
@@ -67,7 +76,7 @@
     "stage": "2 机器人主体",
     "hardness": "High",
     "JEV": {
-      "Judgement": "BLOCKED_PENDING_VISUAL",
+      "Judgement": "PENDING_HUMAN_REVIEW",
       "Evidence": {
         "authored_urdf_visual_meshes": true,
         "real_joint_hierarchy": true,
@@ -81,9 +90,18 @@
         "surface_pbr_map_count": 3,
         "main_camera_ortho_scale_m": 10.199999809265137,
         "current_blend_eevee_render_inspected": false,
-        "all_frame_geometric_contact": true
+        "all_frame_geometric_contact": true,
+        "eevee_preview_640x480_generated": true,
+        "eevee_preview_taa_samples": 8,
+        "preview_image_files": [
+          "preview_640x480.png",
+          "preview_firefly_075_640x480.png",
+          "preview_frame_001_640x480.png",
+          "preview_frame_144_640x480.png"
+        ],
+        "full_visual_review_completed": false
       },
-      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。"
+      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。 已生成PNG头校验的640×480 EEVEE预览（TAA 8样本）：preview_640x480.png, preview_firefly_075_640x480.png, preview_frame_001_640x480.png, preview_frame_144_640x480.png；图像尚未目视审查，未自动批准。"
     },
     "get_scene_info": {
       "objects": 64,
@@ -139,7 +157,7 @@
     "stage": "3 萤火虫物理模拟与烘焙",
     "hardness": "High",
     "JEV": {
-      "Judgement": "BLOCKED_PENDING_VISUAL",
+      "Judgement": "PENDING_HUMAN_REVIEW",
       "Evidence": {
         "particle_system": true,
         "turbulence_force": true,
@@ -153,9 +171,18 @@
         "new_scene_eevee_preview_available": false,
         "original_insect_material_face_groups": 5,
         "physics_baked_insect_instances": 92,
-        "current_blend_eevee_render_inspected": false
+        "current_blend_eevee_render_inspected": false,
+        "eevee_preview_640x480_generated": true,
+        "eevee_preview_taa_samples": 8,
+        "preview_image_files": [
+          "preview_640x480.png",
+          "preview_firefly_075_640x480.png",
+          "preview_frame_001_640x480.png",
+          "preview_frame_144_640x480.png"
+        ],
+        "full_visual_review_completed": false
       },
-      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。"
+      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。 已生成PNG头校验的640×480 EEVEE预览（TAA 8样本）：preview_640x480.png, preview_firefly_075_640x480.png, preview_frame_001_640x480.png, preview_frame_144_640x480.png；图像尚未目视审查，未自动批准。"
     },
     "get_scene_info": {
       "objects": 64,
@@ -211,7 +238,7 @@
     "stage": "4 微光灯光与基础材质",
     "hardness": "High",
     "JEV": {
-      "Judgement": "BLOCKED_PENDING_VISUAL",
+      "Judgement": "PENDING_HUMAN_REVIEW",
       "Evidence": {
         "eevee": true,
         "preview_le_720p": true,
@@ -222,9 +249,18 @@
         "user_screenshot_rejected_original_scene": true,
         "new_scene_eevee_preview_available": false,
         "two_optional_anatomy_and_rig_inspection_cameras": true,
-        "current_blend_eevee_render_inspected": false
+        "current_blend_eevee_render_inspected": false,
+        "eevee_preview_640x480_generated": true,
+        "eevee_preview_taa_samples": 8,
+        "preview_image_files": [
+          "preview_640x480.png",
+          "preview_firefly_075_640x480.png",
+          "preview_frame_001_640x480.png",
+          "preview_frame_144_640x480.png"
+        ],
+        "full_visual_review_completed": false
       },
-      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。"
+      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。 已生成PNG头校验的640×480 EEVEE预览（TAA 8样本）：preview_640x480.png, preview_firefly_075_640x480.png, preview_frame_001_640x480.png, preview_frame_144_640x480.png；图像尚未目视审查，未自动批准。"
     },
     "get_scene_info": {
       "objects": 64,
@@ -280,7 +316,7 @@
     "stage": "5 清理与交付",
     "hardness": "High",
     "JEV": {
-      "Judgement": "BLOCKED_PENDING_VISUAL",
+      "Judgement": "PENDING_HUMAN_REVIEW",
       "Evidence": {
         "required_collections": true,
         "blend_saved": true,
@@ -289,9 +325,18 @@
         "new_visual_evidence_available": false,
         "user_screenshot_rejected_original_scene": true,
         "new_scene_eevee_preview_available": false,
-        "current_blend_eevee_render_inspected": false
+        "current_blend_eevee_render_inspected": false,
+        "eevee_preview_640x480_generated": true,
+        "eevee_preview_taa_samples": 8,
+        "preview_image_files": [
+          "preview_640x480.png",
+          "preview_firefly_075_640x480.png",
+          "preview_frame_001_640x480.png",
+          "preview_frame_144_640x480.png"
+        ],
+        "full_visual_review_completed": false
       },
-      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。"
+      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。 已生成PNG头校验的640×480 EEVEE预览（TAA 8样本）：preview_640x480.png, preview_firefly_075_640x480.png, preview_frame_001_640x480.png, preview_frame_144_640x480.png；图像尚未目视审查，未自动批准。"
     },
     "get_scene_info": {
       "objects": 64,
