@@ -162,6 +162,13 @@
       240
     ]
   },
-  "preview_png_available": false,
-  "full_visual_review_completed": false
+  "preview_png_available": true,
+  "full_visual_review_completed": false,
+  "preview_files": [
+    "preview_frame_001_640x480.png",
+    "preview_640x480.png",
+    "preview_frame_144_640x480.png",
+    "preview_firefly_075_640x480.png"
+  ],
+  "visual_review_round1": "NEEDS_REVISION"
 }

@@ -31,10 +31,10 @@ uv=soil_nodes.new('ShaderNodeTexCoord');mapping=soil_nodes.new('ShaderNodeVector
 soil_links.new(uv.outputs['Generated'],mapping.inputs[0])
 color_tex=soil_nodes.new('ShaderNodeTexImage');color_tex.image=forest_color
 soil_links.new(mapping.outputs['Vector'],color_tex.inputs['Vector'])
-# Keep the real Poly Haven leaf litter color/UV detail, but grade it toward
-# damp forest umber so twilight lighting cannot wash the clearing to gray-white.
+# Keep the real Poly Haven leaf-litter map and lift its darker channels so
+# the twilight preview retains readable soil detail without losing its palette.
 ground_grade=soil_nodes.new('ShaderNodeMixRGB');ground_grade.blend_type='MULTIPLY'
-ground_grade.inputs['Fac'].default_value=1.0;ground_grade.inputs['Color2'].default_value=(.62,.70,.52,1)
+ground_grade.inputs['Fac'].default_value=1.0;ground_grade.inputs['Color2'].default_value=(.78,.82,.66,1)
 soil_links.new(color_tex.outputs['Color'],ground_grade.inputs['Color1'])
 soil_links.new(ground_grade.outputs['Color'],soil_nodes.get('Principled BSDF').inputs['Base Color'])
 normal_tex=soil_nodes.new('ShaderNodeTexImage');normal_tex.image=forest_normal
@@ -149,15 +149,26 @@ def scatter(label,src,density,seed,min_radius,max_radius,scl,front_clear=False):
   inside=ns.new('ShaderNodeMath');inside.operation='LESS_THAN';inside.inputs[1].default_value=max_radius;links.new(radius.outputs['Value'],inside.inputs[0])
   annulus=ns.new('ShaderNodeMath');annulus.operation='MULTIPLY';links.new(outside.outputs[0],annulus.inputs[0]);links.new(inside.outputs[0],annulus.inputs[1]);selection=annulus.outputs[0]
  if front_clear:
-  # A compact world-space walk corridor protects the robot/swarm, while
-  # denser tree scatter reaches the camera frame edges and restores a forest.
+  # Keep a compact walking corridor around the animated robot, plus a second
+  # camera-to-lake sightline. The previous tree mask left the water behind an
+  # almost-black foreground canopy even though the lake center was in frame.
   abx=ns.new('ShaderNodeMath');abx.operation='ABSOLUTE';abx.location=(-420,-460);links.new(sep.outputs['X'],abx.inputs[0])
   xinside=ns.new('ShaderNodeMath');xinside.operation='LESS_THAN';xinside.inputs[1].default_value=2.6;xinside.location=(-230,-460);links.new(abx.outputs[0],xinside.inputs[0])
   ylow=ns.new('ShaderNodeMath');ylow.operation='GREATER_THAN';ylow.inputs[1].default_value=-5.5;ylow.location=(-230,-590);links.new(sep.outputs['Y'],ylow.inputs[0])
   yhigh=ns.new('ShaderNodeMath');yhigh.operation='LESS_THAN';yhigh.inputs[1].default_value=3.5;yhigh.location=(-230,-710);links.new(sep.outputs['Y'],yhigh.inputs[0])
   corridor=ns.new('ShaderNodeMath');corridor.operation='MULTIPLY';corridor.location=(-10,-520);links.new(xinside.outputs[0],corridor.inputs[0]);links.new(ylow.outputs[0],corridor.inputs[1])
   between=ns.new('ShaderNodeMath');between.operation='MULTIPLY';between.location=(155,-520);links.new(corridor.outputs[0],between.inputs[0]);links.new(yhigh.outputs[0],between.inputs[1])
-  not_center=ns.new('ShaderNodeMath');not_center.operation='SUBTRACT';not_center.inputs[0].default_value=1;not_center.location=(300,-520);links.new(between.outputs[0],not_center.inputs[1])
+  # A broad clear band along the camera approach to the lake: x=1.3..7.7,
+  # y=-8.5..3.6. Trees beyond the far bank remain to frame the water.
+  lake_dx=ns.new('ShaderNodeMath');lake_dx.operation='SUBTRACT';lake_dx.inputs[1].default_value=4.5;links.new(sep.outputs['X'],lake_dx.inputs[0])
+  lake_abs=ns.new('ShaderNodeMath');lake_abs.operation='ABSOLUTE';links.new(lake_dx.outputs[0],lake_abs.inputs[0])
+  lake_x=ns.new('ShaderNodeMath');lake_x.operation='LESS_THAN';lake_x.inputs[1].default_value=3.2;links.new(lake_abs.outputs[0],lake_x.inputs[0])
+  lake_ylo=ns.new('ShaderNodeMath');lake_ylo.operation='GREATER_THAN';lake_ylo.inputs[1].default_value=-8.5;links.new(sep.outputs['Y'],lake_ylo.inputs[0])
+  lake_yhi=ns.new('ShaderNodeMath');lake_yhi.operation='LESS_THAN';lake_yhi.inputs[1].default_value=3.6;links.new(sep.outputs['Y'],lake_yhi.inputs[0])
+  lake_band_a=ns.new('ShaderNodeMath');lake_band_a.operation='MULTIPLY';links.new(lake_x.outputs[0],lake_band_a.inputs[0]);links.new(lake_ylo.outputs[0],lake_band_a.inputs[1])
+  lake_band=ns.new('ShaderNodeMath');lake_band.operation='MULTIPLY';links.new(lake_band_a.outputs[0],lake_band.inputs[0]);links.new(lake_yhi.outputs[0],lake_band.inputs[1])
+  clear_union=ns.new('ShaderNodeMath');clear_union.operation='MAXIMUM';links.new(between.outputs[0],clear_union.inputs[0]);links.new(lake_band.outputs[0],clear_union.inputs[1])
+  not_center=ns.new('ShaderNodeMath');not_center.operation='SUBTRACT';not_center.inputs[0].default_value=1;not_center.location=(300,-520);links.new(clear_union.outputs[0],not_center.inputs[1])
   mask=ns.new('ShaderNodeMath');mask.operation='MULTIPLY';mask.location=(350,-180);links.new(outside.outputs[0],mask.inputs[0]);links.new(not_center.outputs[0],mask.inputs[1]);selection=mask.outputs[0]
  # Mask submerged lake area for every Geometry Nodes vegetation scatter.
  dx=ns.new('ShaderNodeMath');dx.operation='SUBTRACT';dx.inputs[1].default_value=LAKE_CENTER[0];links.new(sep.outputs['X'],dx.inputs[0])
@@ -187,9 +198,9 @@ scatter('Moss rocks A | GN scatter',rock,.047,37,2.6,15,1)
 scatter('Moss rocks B | GN scatter',rock2,.048,38,3,15,1)
 scatter('Meadow grass | GN scatter',grass,.58,91,2.8,15,1)
 scatter('Coastal grass | GN scatter',shortgrass,.48,81,2.5,15,1)
-scatter('Ferns A | GN scatter',fern,.25,93,2.5,15,1)
-scatter('Ferns B | GN scatter',fern2,.20,96,2.8,15,1)
-scatter('Shrubs | GN scatter',shrub,.26,47,3.2,15,1)
+scatter('Ferns A | GN scatter',fern,.25,93,2.5,15,1,True)
+scatter('Ferns B | GN scatter',fern2,.20,96,2.8,15,1,True)
+scatter('Shrubs | GN scatter',shrub,.26,47,3.2,15,1,True)
 scatter('Sorrel ground cover | GN scatter',sorrel,.26,34,2.1,15,1)
 scatter('Flowering rose plants | GN scatter',rose,.10,68,1.85,8.5,1)
 scatter('Fallen log | GN scatter',log,.008,35,5.5,15,1)
@@ -291,15 +302,15 @@ baked['centroid_frame_001']=list(centroid[1]);baked['centroid_frame_144']=list(c
 baked['flock_travel_m']=flock_travel;baked['particle_path_distance_sum_m']=movement
 review('3 萤火虫物理模拟与烘焙',{'particle_system':len(emitter.particle_systems)>0,'turbulence_force':force.field.type=='TURBULENCE','directional_wind':wind.field.type=='WIND','all_144_physics_samples':len(raw_samples)==144,'measured_flock_travel_over_1m':flock_travel>1.0,'baked_count':len(particle_ids)>=80,'animated_bake_shape_keys':len(pts.shape_keys.key_blocks)>=140,'terrain_clearance':all(p.z>particle_ground_height(p.x,p.y)+.19 for sample in raw_samples.values() for i in particle_ids for p in (sample[i],)),'firefly_source_diameter':max(v.co.x for v in bulb_source.data.vertices)-min(v.co.x for v in bulb_source.data.vertices)<.1},f'真实 Blender NEWTON 粒子 + Brownian + turbulence + 有方向风力，逐帧 1–144 连续求值。筛出全程在地面上方且在场景飞行域的 {len(particle_ids)} 只萤火虫；群体质心飞行 {flock_travel:.2f} m，逐只路径总位移 {movement:.1f} m。每帧作为 shape key 烘焙进 .blend，GN 继续实例化真实 CC0 萤火虫模型。')
 # Lighting / camera, conservative preview settings.
-world=bpy.data.worlds.new('Twilight ambient') if not bpy.data.worlds else bpy.data.worlds[0];scene.world=world;world.use_nodes=True;world.node_tree.nodes['Background'].inputs['Color'].default_value=(.065,.095,.14,1);world.node_tree.nodes['Background'].inputs['Strength'].default_value=.25
+world=bpy.data.worlds.new('Twilight ambient') if not bpy.data.worlds else bpy.data.worlds[0];scene.world=world;world.use_nodes=True;world.node_tree.nodes['Background'].inputs['Color'].default_value=(.075,.11,.16,1);world.node_tree.nodes['Background'].inputs['Strength'].default_value=.50
 def area(name,loc,power,color,size,target):
  bpy.ops.object.light_add(type='AREA',location=loc);o=move(bpy.context.object,LIGHTS);o.name=name;o.data.energy=power;o.data.color=color;o.data.shape='DISK';o.data.size=size;o.rotation_euler=(Vector(target)-o.location).to_track_quat('-Z','Y').to_euler()
-area('Cold moonlight | broad rim',(2,3,8),520,(.34,.52,.78),8,(0,0,1))
-area('Soft sky fill',(-4,-2,5),255,(.38,.54,.64),8,(0,0,1.4))
-area('Faint amber bounce',(0,-3,3),55,(1,.40,.20),4,(0,0,1.4))
-bpy.ops.object.camera_add(location=(5.2,-8.2,4.15));cam=move(bpy.context.object,LIGHTS);cam.name='Camera | forest clearing';cam.rotation_euler=(Vector((0,0,1.46))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=10.2;scene.camera=cam;cam.location=(4.9,-8.3,5.7);cam.rotation_euler=(Vector((1.25,1.25,1.05))-cam.location).to_track_quat('-Z','Y').to_euler()
+area('Cold moonlight | broad rim',(2,3,8),650,(.34,.52,.78),8,(0,0,1))
+area('Soft sky fill',(-4,-2,5),500,(.48,.62,.72),8,(0,0,1.4))
+area('Faint amber bounce',(0,-3,3),85,(1,.44,.24),4,(0,0,1.4))
+bpy.ops.object.camera_add(location=(5.2,-8.2,4.15));cam=move(bpy.context.object,LIGHTS);cam.name='Camera | forest clearing';cam.rotation_euler=(Vector((0,0,1.46))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=11.0;scene.camera=cam;cam.location=(4.9,-8.3,5.7);cam.rotation_euler=(Vector((1.75,2.0,.85))-cam.location).to_track_quat('-Z','Y').to_euler()
 scene.render.engine='BLENDER_EEVEE_NEXT';scene.render.resolution_x=640;scene.render.resolution_y=480;scene.render.resolution_percentage=100;scene.render.image_settings.file_format='PNG';scene.render.filepath=str(ROOT/'output'/'preview_640x480.png');scene.render.film_transparent=False
-scene.view_settings.view_transform='AgX';scene.render.image_settings.color_mode='RGBA'
+scene.view_settings.view_transform='AgX';scene.view_settings.exposure=.35;scene.render.image_settings.color_mode='RGBA'
 scene.frame_set(75)
 for screen in bpy.data.screens:
  for area_view in screen.areas:

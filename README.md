@@ -1,36 +1,34 @@
-# Twilight Wilderness Robot — editable candidate, **not visually approved**
+# Twilight Wilderness Robot — **not visually approved**
 
-The current `.blend` is structurally rebuilt, but the user’s earlier screenshot remains a rejection and this candidate has **not** been visually approved. Its old preview PNGs were deleted because they depict the rejected, pre-rebuild scene. No high-resolution render has been made. Automated audits below are evidence about scene data and motion only; they are not visual JEV approval.
+The first real EEVEE review of this candidate is complete, and it **failed visual acceptance**. The four 640 × 480 frames are still in `output/`, but they show the pre-revision candidate and will be replaced by the next build. No high-resolution render has been made. `output/visual_review_round1.json` records the image-based findings.
 
-## Current candidate
+## Round 1: what the images actually showed
 
-- **Forest and lake:** editable 30 m height-field terrain on a 128 × 128 grid (16,641 vertices; 2.562 m relief). Fifteen CC0 source meshes feed editable Geometry Nodes scatters. Tree framing exclusions were narrowed and plant scatter density increased to address the sparse clearing in the rejected screenshot. The water is an editable 5,120-face mesh whose shore is built from 256 binary-searched intersections against the analytic terrain height field, rather than the old coarse polygon clipping. Ground color retains the packed Poly Haven forest-floor map but is graded darker for twilight. These changes still need an EEVEE image review.
-- **Fireflies:** `build_scene.py` runs Blender’s actual NEWTON particle system with Brownian motion, a directional WIND field and turbulence, sampling all 144 frames. 107 continuously airborne particles are baked into 144 relative shape keys on an editable vertex mesh; Geometry Nodes instance the CC0 anatomical firefly and a translucent aura at those moving points. The measured flock centroid travels **3.658 m** (aggregate individual path distance **391.45 m**). `animate_flight.py` no longer invents a second flight integrator: the robot follows the measured baked centroid, about 1.433 m behind it. The source emitter and force fields are retained hidden for provenance.
-- **Bioluminescence:** the anatomical abdomen has saturated yellow-green emission (strength 4.8), a translucent 12 cm aura, 18 animated flight-following point lights, and an EEVEE compositor FOG_GLOW node. Those are implementation details—not proof the glow reads well at 640 × 480; that must be judged from the rendered image.
-- **Robot and gait:** the 18-link UBTECH Alpha 1S URDF armature retains real STL link meshes. Both legs now have four-link ankle/sole IK constraints, animated world-space foot targets and knee pole targets, with the leg action curves removed. URDF axis locks and angular limits constrain each leg DOF. Evaluated sole-mesh stance clearance across frames 1–144 is **0.80–3.11 cm**; the all-phase range is **−0.24–5.04 cm** (the raised part is the authored swing arc). Maximum IK endpoint error is **0.000047 m**. The visible body follows the physical flock for 3.652 m with direction dot product 1.0. These measurements do not establish that the gait looks natural.
-- **Lighting and presentation:** the ground grading, twilight exposure and forest framing were changed after inspecting the rejected screenshot. The only approved review format is EEVEE at **640 × 480** (or another size no larger than 720p).
+- The glowing yellow-green insects are now clearly visible in the overview; their physics-baked paths are not being confused with static markers.
+- The lake is still hidden by a near-black foreground canopy. The robot is small, underlit and partially hidden by plants, so the foot plants and gait are not visually legible.
+- The close-up shows an oversized green sphere dominating the real insect, and the abdomen is close to white clipping. This is not acceptable glow presentation.
+- The forest/ground contrast is too high. Geometry/data audits do not override these visual failures.
 
-## Visual-review blocker — approval is still pending
+A corrective revision has been applied to the **build sources** and the EEVEE workflow is rebuilding the `.blend` before generating the next review set:
 
-`output/JEV_reviews.json` marks all five stages `PENDING_VISUAL`. No current-candidate preview exists. I attempted the ≤720p EEVEE preview locally; the sandbox has no GPU device and its software EGL/llvmpipe path is too old for Blender 4.5 EEVEE (it reports OpenGL 3.1; forcing a 4.5 profile still segfaults even on a minimal EEVEE scene). I will not substitute Cycles, Workbench, a data-only audit, or the old rejected PNGs and call that a visual review.
+1. Reframe the overview to include both the lake and the moving robot; add a GN exclusion corridor between the camera and lake and clear ferns/shrubs from that corridor and the robot walk path.
+2. Raise ambient/fill illumination and lighten the packed forest-floor grading, while preserving the twilight palette.
+3. Shrink the anatomical firefly aura from 12 cm to near the insect’s scale, reduce its opacity/emission and temper the flight-following lights. The abdomen emission and compositor bloom remain.
 
-On a working Blender 4.5 host with a compatible OpenGL/EGL/GLX context, generate only low-resolution review frames:
+Until those new images are inspected, the scene stays **NEEDS_REVISION**. The new working preview must remain EEVEE at 640 × 480 (or another size no greater than 720p). The workflow uses four TAA samples for diagnostic review, not final rendering.
 
-```bash
-blender -b output/Twilight_Wilderness_Robot.blend \
-  --python render_lowres_preview.py -- \
-  --frames=1,75,144 --include-firefly --samples=4
-```
+## Editable structure
 
-Review the three overview frames and the animated anatomical close-up. If any of the user-reported issues remain (stiff gait, imperceptible glow, jagged shore, or floating dark geometry), fix them and repeat the JEV. **No visual sign-off has been recorded.**
+- Forest and lake use a 30 m editable terrain grid, 15 Geometry Nodes scatters fed by CC0 asset meshes, and an editable 5,120-face water mesh. The lake edge is sampled at 256 directions against the analytic terrain height field.
+- The fireflies are Blender NEWTON particles with Brownian motion, directional WIND and turbulence, evaluated for 144 frames and stored as relative mesh shape keys. The current data audit records 107 airborne insects, 3.658 m flock travel and a 391.45 m sum of individual paths. Geometry Nodes instance the CC0 insect and aura on those baked paths.
+- The robot retains the 18-link UBTECH Alpha 1S URDF/STL hierarchy. Its leg actions are solved by real 4-link ankle/sole IK constraints with pole targets, URDF axis locks/limits and evaluated sole-clearance checks. These facts describe structure, not a visual pass.
 
 ## Files
 
-- Editable candidate: `output/Twilight_Wilderness_Robot.blend` (43,401,354 bytes; 41.4 MiB)
-- Staged JEV: `output/JEV_reviews.json` (all five stages remain `PENDING_VISUAL`)
-- Independent non-rendering scene/data audit: `output/scene_audit.json` (22 checks pass; explicitly not visual approval)
-- Physical flock / chase data audit: `output/flight_audit.json`
-- Two-leg URDF IK and sole-contact audit: `output/robot_ik_audit.json`
-- Build stages: `build_scene.py` → `upgrade_animation.py` → `animate_flight.py` → `refine_walk.py` → `audit_flight.py`
+- Editable Blender candidate (round 1 until the rebuild workflow finishes): `output/Twilight_Wilderness_Robot.blend`
+- Latest stage report: `output/JEV_reviews.json`
+- Actual round-1 image findings: `output/visual_review_round1.json`
+- Scene, physics/flight and IK data audits: `output/scene_audit.json`, `output/flight_audit.json`, `output/robot_ik_audit.json`
+- Rebuild stages: `build_scene.py` → `upgrade_animation.py` → `animate_flight.py` → `refine_walk.py` → `audit_flight.py` → `audit_scene.py`
 
-Do not treat the `.blend` as visually approved or ready for high-resolution rendering until the required ≤720p EEVEE review is completed.
+Do not treat the `.blend` as visually approved or ready for high-resolution rendering until the rebuilt EEVEE previews pass an actual image review.

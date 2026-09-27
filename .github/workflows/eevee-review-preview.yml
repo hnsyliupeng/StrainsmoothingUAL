@@ -6,6 +6,16 @@ on:
       - arena/01a0e0d3-strainsmoothingual
     paths:
       - .github/workflows/eevee-review-preview.yml
+      - build_scene.py
+      - upgrade_animation.py
+      - animate_flight.py
+      - refine_walk.py
+      - audit_flight.py
+      - audit_scene.py
+      - terrain_profile.py
+      - robot_asset.py
+      - forest_assets.py
+      - assets/**
       - output/Twilight_Wilderness_Robot.blend
       - render_lowres_preview.py
   workflow_dispatch:
@@ -18,10 +28,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  render:
-    name: Render approved 640x480 EEVEE review frames
+  rebuild-and-review:
+    name: Rebuild scene and render 640x480 EEVEE review frames
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 90
     steps:
       - name: Check out the session branch
         uses: actions/checkout@v4
@@ -34,7 +44,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install headless Mesa software OpenGL
+      - name: Install headless Mesa software OpenGL and scene dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
@@ -44,26 +54,57 @@ jobs:
             libxkbcommon-x11-0 libsm6 libice6 libxext6
           python -m pip install --disable-pip-version-check bpy==4.5.14 pillow xacro
 
-      - name: Render the approved EEVEE preview sizes
+      - name: Rebuild the editable candidate and run non-rendering audits
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
           GALLIUM_DRIVER: llvmpipe
           EGL_PLATFORM: surfaceless
           LP_NUM_THREADS: '4'
         run: |
-          # Use a single Blender Python process so EEVEE and its software
-          # context/data persist across review frames. Eight TAA samples are
-          # intentionally limited to diagnostic previews, not final renders.
-          timeout --signal=TERM --kill-after=30s 1500s \
+          timeout --signal=TERM --kill-after=30s 3000s \
             xvfb-run -a -s '-screen 0 1280x720x24' \
-            python -u render_lowres_preview.py --frames=1,75,144 --include-firefly --samples=8
+            bash -euo pipefail -c '
+          rm -f output/preview_640x480.png \
+            output/preview_frame_001_640x480.png \
+            output/preview_frame_144_640x480.png \
+            output/preview_firefly_075_640x480.png
+          python -u build_scene.py
+          python -u upgrade_animation.py
+          python -u animate_flight.py
+          python -u refine_walk.py
+          python -u audit_flight.py
+          python -u audit_scene.py
+          '
 
-      - name: Publish any completed low-resolution review images
-        if: always()
+      - name: Render low-resolution EEVEE review frames
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+          GALLIUM_DRIVER: llvmpipe
+          EGL_PLATFORM: surfaceless
+          LP_NUM_THREADS: '4'
+        run: |
+          # Four TAA samples keep this a quick structural review, never a final render.
+          timeout --signal=TERM --kill-after=30s 3300s \
+            xvfb-run -a -s '-screen 0 1280x720x24' \
+            python -u render_lowres_preview.py --frames=1,75,144 --include-firefly --samples=4
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('output/flight_audit.json')
+          d=json.loads(p.read_text())
+          d['preview_png_available']=Path('output/preview_640x480.png').is_file()
+          d['preview_files']=[n for n in ('preview_frame_001_640x480.png','preview_640x480.png','preview_frame_144_640x480.png','preview_firefly_075_640x480.png') if (Path('output')/n).is_file()]
+          d['full_visual_review_completed']=False
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+          PY
+
+      - name: Publish the rebuilt scene, audits, and completed previews
+        if: success()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add output/JEV_reviews.json 2>/dev/null || true
+          git add -u output/ 2>/dev/null || true
+          git add output/Twilight_Wilderness_Robot.blend output/*.json 2>/dev/null || true
           for image in \
             output/preview_frame_001_640x480.png \
             output/preview_640x480.png \
@@ -72,8 +113,8 @@ jobs:
             if [ -s "$image" ]; then git add "$image"; fi
           done
           if git diff --cached --quiet; then
-            echo 'No preview PNGs completed in this run.'
+            echo 'No scene, audit, or preview changes to publish.'
             exit 0
           fi
-          git commit -m 'Add completed 640x480 EEVEE review previews'
+          git commit -m 'Rebuild woodland candidate and add EEVEE review previews'
           git push origin "${GITHUB_REF_NAME}"

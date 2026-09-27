@@ -43,22 +43,22 @@ abdomen=insect.data.materials[1].node_tree.nodes.get('Principled BSDF')
 abdomen.inputs['Emission Color'].default_value=(.72,1.0,.075,1)
 abdomen.inputs['Emission Strength'].default_value=4.8
 abdomen.inputs['Base Color'].default_value=(.40,.58,.045,1)
-# An enlarged, translucent aura around the true abdomen catches the compositor
-# glow; the authentic ~5 cm insect anatomy remains separately visible.
-halo_mat=bpy.data.materials.new('Firefly | soft yellow-green 12cm bioluminescent aura')
+# A restrained, translucent aura remains near the authentic ~5 cm insect scale;
+# the EEVEE compositor adds the soft outer bloom without a giant green sphere.
+halo_mat=bpy.data.materials.new('Firefly | soft yellow-green 7cm bioluminescent aura')
 halo_mat.use_nodes=True
 bs=halo_mat.node_tree.nodes.get('Principled BSDF')
-bs.inputs['Base Color'].default_value=(.35,.76,.025,1)
+bs.inputs['Base Color'].default_value=(.28,.62,.025,1)
 bs.inputs['Emission Color'].default_value=(.65,1.0,.045,1)
-bs.inputs['Emission Strength'].default_value=2.8
-bs.inputs['Alpha'].default_value=.075
+bs.inputs['Emission Strength'].default_value=.8
+bs.inputs['Alpha'].default_value=.04
 halo_mat.surface_render_method='BLENDED'
 bpy.ops.mesh.primitive_uv_sphere_add(segments=16,ring_count=12)
 halo=bpy.context.object
 for c in list(halo.users_collection):c.objects.unlink(halo)
 sources.objects.link(halo)
-halo.name='Firefly | soft 12cm abdomen aura prototype'
-halo.data.transform(Matrix.Translation(Vector((0,-.012,0))) @ Matrix.Diagonal((.062,.052,.045,1)))
+halo.name='Firefly | soft 7cm abdomen aura prototype'
+halo.data.transform(Matrix.Translation(Vector((0,-.012,0))) @ Matrix.Diagonal((.035,.030,.028,1)))
 halo.data.materials.append(halo_mat)
 halo.location=(94,0,-30);halo.hide_render=True;halo.hide_set(True)
 # Extend the ORIGINAL insect GN node tree with a second instance on the SAME
@@ -105,12 +105,12 @@ light_count=18
 for index in range(light_count):
     flyindex=round(index*(len(pos)-1)/max(1,light_count-1))
     data=bpy.data.lights.new('Bioluminescence | physical flight-following %02d'%index,'POINT')
-    data.energy=6.5;data.color=(.62,1.0,.10);data.shadow_soft_size=.09;data.use_shadow=False
+    data.energy=4.2;data.color=(.48,1.0,.075);data.shadow_soft_size=.07;data.use_shadow=False
     light=bpy.data.objects.new(data.name,data);flies.objects.link(light)
     for f in frames:
         p=snapshots[f][flyindex]
         light.location=p+Vector((0,-.012,0));light.keyframe_insert(data_path='location',frame=f)
-        data.energy=5.5+2.2*math.sin(f*.13+phase[flyindex])**2
+        data.energy=3.2+1.2*math.sin(f*.13+phase[flyindex])**2
         data.keyframe_insert(data_path='energy',frame=f)
     if light.animation_data and light.animation_data.action:
         for curve in light.animation_data.action.fcurves:
@@ -192,7 +192,7 @@ s.use_nodes=True
 nodes=s.node_tree.nodes;nodes.clear();links=s.node_tree.links
 rl=nodes.new('CompositorNodeRLayers');rl.location=(-350,0)
 glare=nodes.new('CompositorNodeGlare');glare.glare_type='FOG_GLOW';glare.quality='HIGH'
-glare.inputs['Threshold'].default_value=.80;glare.inputs['Strength'].default_value=1.25;glare.inputs['Size'].default_value=.92
+glare.inputs['Threshold'].default_value=.80;glare.inputs['Strength'].default_value=.95;glare.inputs['Size'].default_value=.92
 glare.location=(-70,0)
 s.render.use_compositing=True
 out=nodes.new('CompositorNodeComposite');out.location=(250,0)

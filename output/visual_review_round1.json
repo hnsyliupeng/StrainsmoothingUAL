@@ -1,0 +1,52 @@
+{
+  "candidate_commit": "f22d14d931eceb74ab83ad8b253fa74bb1b40ee5",
+  "preview_commit": "7ab28d3",
+  "renderer": "EEVEE Next, 640x480, TAA 8 samples",
+  "reviewer": "Arena agent visual inspection of generated PNGs",
+  "reviewed_files": [
+    "output/preview_frame_001_640x480.png",
+    "output/preview_640x480.png",
+    "output/preview_frame_144_640x480.png",
+    "output/preview_firefly_075_640x480.png"
+  ],
+  "full_visual_review_completed": true,
+  "overall_judgement": "NEEDS_REVISION — not visually approved",
+  "findings": {
+    "environment_and_terrain": {
+      "judgement": "FAIL",
+      "observations": [
+        "The lake is not visibly legible in the overview, despite its center projecting inside the camera frame; dense dark canopy blocks the right half of the image.",
+        "The clearing and tree line have excessive contrast; large areas of foliage collapse to near-black, and foreground vegetation still competes with the robot.",
+        "The smoother shoreline mesh cannot be visually verified because the water surface is occluded in these frames."
+      ]
+    },
+    "robot_and_walk": {
+      "judgement": "FAIL — visual readability",
+      "observations": [
+        "The robot silhouette is small and underlit; its lower body and feet blend into dark foliage and ground clutter.",
+        "The three overviews show changing poses, but do not make the foot plants and natural walking gait clear enough for acceptance. The numeric IK audit is not a substitute."
+      ]
+    },
+    "fireflies": {
+      "judgement": "PARTIAL — overview glow visible; close-up needs revision",
+      "observations": [
+        "The overview now contains unmistakably luminous yellow-green points, unlike the prior pale-pinprick rejection.",
+        "The 640x480 anatomical close-up is dominated by an oversized, opaque-looking lime aura; it overwhelms the insect, and the abdomen clips toward white."
+      ]
+    },
+    "lighting_and_materials": {
+      "judgement": "FAIL — high-contrast and occluded",
+      "observations": [
+        "The scene reads much darker than a legible twilight forest; the lake and robot do not separate clearly from the canopy/ground."
+      ]
+    }
+  },
+  "next_revision": [
+    "Reframe the overview to center both the moving robot/flock and the lake; create a camera-to-lake sightline free of tall tree/fern/shrub instances while retaining dense forest at the frame edges.",
+    "Lift ambient and camera-facing fill and slightly brighten the packed ground grading; keep the twilight palette but recover detail in the canopy and robot shell.",
+    "Clear tall understory from the robot's walking corridor so the feet and IK gait can be inspected in all three frames.",
+    "Reduce the anatomical aura from 12cm to roughly insect scale, lower its alpha/emission and tame point-light clipping; keep the abdomen emissive and EEVEE FOG_GLOW for visible but controlled bloom."
+  ],
+  "high_resolution_render_made": false,
+  "visual_approval": false
+}
