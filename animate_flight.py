@@ -1,10 +1,11 @@
-"""Convert the real particle bake into a 144-frame moving, self-contained flight.
+"""Stage 3 JEV continuation: follow a physically simulated, fully baked flock.
 
-Run AFTER build_scene.py and upgrade_animation.py. This is a deterministic
-Newton/drag/steering integrator initialized at Blender's frame-75 particle
-positions. Its sampled positions are baked as animated shape-key coordinates
-on the GN point cloud: rendering NEVER requires the live emitter or Python.
-The articulated visual robot follows the moving swarm in world space.
+Run AFTER build_scene.py and upgrade_animation.py. build_scene.py runs Blender's
+NEWTON particles, Brownian motion, directional wind, and turbulence at every
+frame, then stores all evaluated positions as editable shape keys in the .blend.
+This script reads that cache (it does not invent or re-integrate motion), makes
+anatomical fireflies glow, animates real light sources, and keys the robot root
+to the moving flock centroid. Leg articulation is solved later by refine_walk.py.
 """
 import bpy
 import math
@@ -22,12 +23,12 @@ flies=bpy.data.collections['Fireflies']
 lights=bpy.data.collections['Lights']
 sources=bpy.data.collections['Architecture / open-source asset prototypes']
 robot=bpy.data.collections['Robot']
-points=bpy.data.objects['Baked fireflies | frozen instances']
+points=bpy.data.objects['Baked fireflies | 144-frame physical particle cache']
 insect=bpy.data.objects['Firefly | original CC0 insect mesh | source']
 rig=bpy.data.objects['Robot armature | 144-frame scanning and step pose']
 assert len(points.data.vertices)>80 and len(insect.data.vertices)>900
 # If re-running from an upgraded file, refuse to duplicate animated assets.
-assert points.data.shape_keys is None and not rig.get('flight_follow_version'), 'Rebuild baseline before applying the flight bake twice'
+assert points.data.shape_keys and len(points.data.shape_keys.key_blocks) >= 140 and not rig.get('flight_follow_version'), 'Rebuild baseline before applying the flight follow twice'
 for obj in robot.objects:
     if obj.type!='MESH':continue
     rest=obj.matrix_world.copy()
@@ -37,23 +38,27 @@ for obj in robot.objects:
 # upgrade_animation.py already rotates source body Z into horizontal Y.
 assert (max(v.co.y for v in insect.data.vertices)-min(v.co.y for v in insect.data.vertices)) > (max(v.co.z for v in insect.data.vertices)-min(v.co.z for v in insect.data.vertices))
 abdomen=insect.data.materials[1].node_tree.nodes.get('Principled BSDF')
-abdomen.inputs['Emission Color'].default_value=(1.0,.56,.07,1)
-abdomen.inputs['Emission Strength'].default_value=18
-# A small halo at the abdomen, not a huge featureless sphere over the wings.
-halo_mat=bpy.data.materials.new('Firefly | atmospheric amber halo')
+# Saturated yellow-green bioluminescence stays chromatic through AgX instead of
+# clipping into the tiny white pinpricks rejected in the last screenshot.
+abdomen.inputs['Emission Color'].default_value=(.72,1.0,.075,1)
+abdomen.inputs['Emission Strength'].default_value=4.8
+abdomen.inputs['Base Color'].default_value=(.40,.58,.045,1)
+# An enlarged, translucent aura around the true abdomen catches the compositor
+# glow; the authentic ~5 cm insect anatomy remains separately visible.
+halo_mat=bpy.data.materials.new('Firefly | soft yellow-green 12cm bioluminescent aura')
 halo_mat.use_nodes=True
 bs=halo_mat.node_tree.nodes.get('Principled BSDF')
-bs.inputs['Base Color'].default_value=(1,.44,.035,1)
-bs.inputs['Emission Color'].default_value=(1,.56,.08,1)
-bs.inputs['Emission Strength'].default_value=7
-bs.inputs['Alpha'].default_value=.20
+bs.inputs['Base Color'].default_value=(.35,.76,.025,1)
+bs.inputs['Emission Color'].default_value=(.65,1.0,.045,1)
+bs.inputs['Emission Strength'].default_value=2.8
+bs.inputs['Alpha'].default_value=.075
 halo_mat.surface_render_method='BLENDED'
-bpy.ops.mesh.primitive_uv_sphere_add(segments=12,ring_count=8)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=16,ring_count=12)
 halo=bpy.context.object
 for c in list(halo.users_collection):c.objects.unlink(halo)
 sources.objects.link(halo)
-halo.name='Firefly | 3cm abdomen halo prototype'
-halo.data.transform(Matrix.Translation(Vector((0,-.012,0))) @ Matrix.Diagonal((.027,.023,.020,1)))
+halo.name='Firefly | soft 12cm abdomen aura prototype'
+halo.data.transform(Matrix.Translation(Vector((0,-.012,0))) @ Matrix.Diagonal((.062,.052,.045,1)))
 halo.data.materials.append(halo_mat)
 halo.location=(94,0,-30);halo.hide_render=True;halo.hide_set(True)
 # Extend the ORIGINAL insect GN node tree with a second instance on the SAME
@@ -71,134 +76,83 @@ join=g.nodes.new('GeometryNodeJoinGeometry')
 g.links.new(instance.outputs['Instances'],join.inputs['Geometry'])
 g.links.new(halo_instance.outputs['Instances'],join.inputs['Geometry'])
 g.links.new(join.outputs['Geometry'],out.inputs['Geometry'])
-# Newton flight: aerial propulsion toward camera, drag, turbulence, and
-# restoring acceleration to each insect's preferred altitude. Start from
-# actual evaluated Blender NEWTON + turbulence particle positions at frame 75.
+# Read the actual per-frame positions sampled from Blender's NEWTON particle
+# dependency graph; no second/custom integrator and no undeclared motion formula.
 seed=random.Random(61239)
-pos=[v.co.copy() for v in points.data.vertices]
-origin=[p.copy() for p in pos]
-velocity=[Vector((seed.uniform(.04,.16),seed.uniform(-.12,-.02),seed.uniform(-.035,.035))) for p in pos]
-phase=[seed.uniform(0,2*math.pi) for _ in pos]
-# Travel ~3m while retaining a natural spread; 24 fps, 144 frames.
-start_velocity=Vector((.22,-.53,0))
-dt=1/24
+frames=list(range(s.frame_start,s.frame_end+1))
+shape_keys=points.data.shape_keys.key_blocks
 snapshots={}
 centers={}
-for f in range(1,145):
-    if f>1:
-        for i,p in enumerate(pos):
-            v=velocity[i]
-            t=f*dt
-            propulsion=Vector((start_velocity.x-v.x,start_velocity.y-v.y,-v.z))*2.1
-            gust=Vector((.18*math.sin(1.8*t+phase[i]),.11*math.cos(2.2*t+phase[i]),
-                         .25*math.sin(2.6*t+phase[i])))
-            # Soft tether retains a flock without making its 92 paths identical.
-            tether=Vector((origin[i].x-p.x+.22*t,origin[i].y-p.y-.53*t,0))*.19
-            vertical=(origin[i].z-p.z)*.85
-            acceleration=propulsion+gust+tether+Vector((0,0,vertical))
-            v+=acceleration*dt
-            p+=v*dt
-            floor=height(p.x,p.y)+.45
-            if p.z<floor:p.z=floor;v.z=max(0.,-v.z*.35)
-            p.z=min(p.z,3.6)
-    if f==1 or (f-1)%8==0 or f==144:
-        snapshots[f]=[p.copy() for p in pos]
-        centers[f]=sum(pos,Vector())/len(pos)
-# Store every sample *as geometry*; shape key interpolation is linear and
-# therefore the flight plays in a normal .blend without script or particle cache.
-points.shape_key_add(name='Basis',from_mix=False)
-frames=sorted(snapshots)
-for n,f in enumerate(frames):
-    key=points.shape_key_add(name='Flight physics bake | frame %03d'%f,from_mix=False)
-    for i,co in enumerate(snapshots[f]):key.data[i].co=co
-    key.value=0
-    for adjacent in (n-1,n,n+1):
-        if 0<=adjacent<len(frames):
-            key.value=1 if adjacent==n else 0
-            key.keyframe_insert(data_path='value',frame=frames[adjacent])
-    key.value=0
-# Enforce linear interpolation between adjacent baked states (no overshoot).
+for f in frames:
+    key=shape_keys.get('Blender NEWTON bake | frame %03d'%f)
+    if key is None:raise RuntimeError(f'Missing physical particle bake at frame {f}')
+    snapshots[f]=[key.data[i].co.copy() for i in range(len(points.data.vertices))]
+    centers[f]=sum(snapshots[f],Vector())/len(snapshots[f])
+pos=snapshots[1]
+origin=[p.copy() for p in pos]
+phase=[seed.uniform(0,2*math.pi) for _ in pos]
+# Preserve the complete one-frame-per-key physical geometry bake in the .blend.
 shape_action=points.data.shape_keys.animation_data.action
 if shape_action:
-    for fc in shape_action.fcurves:
-        for k in fc.keyframe_points:k.interpolation='LINEAR'
-points['bake_method']='Blender NEWTON particle frames 1-75 -> frame-75 point cloud -> Newton drag/steering flight -> sampled animated shape keys over frames 1-144'
+    for curve in shape_action.fcurves:
+        for key in curve.keyframe_points:key.interpolation='LINEAR'
+points['bake_method']='Genuine Blender NEWTON + Brownian + directional wind + turbulence, evaluated and baked each frame 1–144 into geometry shape keys; GN instances the authored CC0 insect'
 points['flight_baked_frames']=str(frames)
-points['source_particle_physics']=points.get('physics','NEWTON + Brownian + turbulence')
-# Place actual light objects at selected simulated insects each baked frame.
-# Unlike emissive materials alone, these lights illuminate nearby robot shells.
-for index in range(8):
-    flyindex=min(len(pos)-1,index*11)
-    data=bpy.data.lights.new('Bioluminescence | flight-following %02d'%index,'POINT')
-    data.energy=22;data.color=(1,.56,.10);data.shadow_soft_size=.12
+points['source_particle_physics']=points.get('physics','Blender NEWTON + Brownian + turbulence + wind')
+# Real animated point lights illuminate nearby shells in addition to emissive
+# insect abdomens and the soft compositor halo. All lights follow simulated flies.
+light_count=18
+for index in range(light_count):
+    flyindex=round(index*(len(pos)-1)/max(1,light_count-1))
+    data=bpy.data.lights.new('Bioluminescence | physical flight-following %02d'%index,'POINT')
+    data.energy=6.5;data.color=(.62,1.0,.10);data.shadow_soft_size=.09;data.use_shadow=False
     light=bpy.data.objects.new(data.name,data);flies.objects.link(light)
     for f in frames:
         p=snapshots[f][flyindex]
-        light.location=p;light.keyframe_insert(data_path='location',frame=f)
-        data.energy=19+5*math.sin(f*.13+phase[flyindex])**2
+        light.location=p+Vector((0,-.012,0));light.keyframe_insert(data_path='location',frame=f)
+        data.energy=5.5+2.2*math.sin(f*.13+phase[flyindex])**2
         data.keyframe_insert(data_path='energy',frame=f)
-# Follow the instantaneous baked flight centroid, offset behind moving swarm.
-# The original robot's front points along -Y, so yaw follows world velocity.
+    if light.animation_data and light.animation_data.action:
+        for curve in light.animation_data.action.fcurves:
+            for key in curve.keyframe_points:key.interpolation='LINEAR'
+# The robot follows the moving NEWTON flock centroid with a 1.43 m chase lag.
+# Its front points along local -Y, so its yaw follows the measured swarm velocity.
 for f in frames:
     c=centers[f]
-    ahead=centers[frames[min(len(frames)-1,frames.index(f)+1)]]
-    direction=(ahead-c).xy
-    direction.normalize()
+    next_frame=min(s.frame_end,f+1)
+    prev_frame=max(s.frame_start,f-1)
+    direction=(centers[next_frame]-centers[prev_frame]).xy
+    if direction.length>1e-6:direction.normalize()
+    else:direction=Vector((.22,-.53))
     behind=Vector((-.48,1.35,0))
     x,y=c.x+behind.x,c.y+behind.y
     rig.location=(x,y,height(x,y))
     rig.rotation_euler.z=math.atan2(direction.x,-direction.y)
-    rig.keyframe_insert(data_path='location',frame=f,group='Robot follows moving flight centroid')
-    rig.keyframe_insert(data_path='rotation_euler',frame=f,group='Robot turns toward moving swarm')
-# Keep independent supplier bones animated; add alternating local hip and
-# opposing arm phase to make the real forward walk read, not a stationary jog.
-pose_names=('l_knee_link','r_knee_link','l_arm_link','r_arm_link')
+    rig.keyframe_insert(data_path='location',frame=f,group='Robot follows measured NEWTON flock centroid')
+    rig.keyframe_insert(data_path='rotation_euler',frame=f,group='Robot turns toward simulated insects')
+# Counter-swing the authored arms; the legs are solved by the URDF-limited IK
+# targets in refine_walk.py, never by independent knee-angle offsets.
+pose_names=('l_arm_link','r_arm_link')
 original_pose={}
 for f in frames:
     s.frame_set(f)
     original_pose[f]={name:rig.pose.bones[name].rotation_quaternion.copy() for name in pose_names}
 for f in frames:
     s.frame_set(f)
-    phase_walk=2*math.pi*(f-1)/40
+    phase_walk=2*math.pi*(f-1)/30
     for name in pose_names:
-        b=rig.pose.bones[name]
-        leg=1 if name.startswith('l_') else -1
-        swing=.19*math.sin(phase_walk)*leg
-        if 'arm' in name:swing*=-.7
-        b.rotation_quaternion=original_pose[f][name] @ Quaternion(Vector((0,1,0)),swing)
-        b.keyframe_insert(data_path='rotation_quaternion',frame=f,group='Alternating joint walk')
-# Solve evaluated sole/terrain separation at every eight-frame sample.
-feet=[bpy.data.objects['URDF | %s_foot_link'%side] for side in ('l','r')]
-right_links=('r_knee_link','r_ankle_link','r_foot_link')
-servo_axis=Vector((0,1,0))
-# Baseline right leg is shorter in the supplied STL pose. Correct at the
-# anatomical joints, then set global clearance from actual sole geometry.
-right_original={}
-for f in frames:
-    s.frame_set(f)
-    right_original[f]={name:rig.pose.bones[name].rotation_quaternion.copy() for name in right_links}
-for f in frames:
-    s.frame_set(f)
-    for name,angle in zip(right_links,(.20,.40,-.30)):
         pb=rig.pose.bones[name]
-        pb.rotation_quaternion=right_original[f][name] @ Quaternion(servo_axis,angle)
-        pb.keyframe_insert(data_path='rotation_quaternion',frame=f,group='Right leg sole contact')
-
-def lowest_clearance(foot):
-    ev=foot.evaluated_get(bpy.context.evaluated_depsgraph_get())
-    me=ev.to_mesh()
-    try:
-        return min((lambda p:p.z-height(p.x,p.y))(ev.matrix_world@v.co) for v in me.vertices)
-    finally:ev.to_mesh_clear()
-for f in frames:
-    s.frame_set(f)
-    correction=max(0,.009-min(lowest_clearance(foot) for foot in feet))
-    rig.location.z+=correction
-    rig.keyframe_insert(data_path='location',frame=f,group='Measured two-sole terrain clearance')
-rig['flight_follow_version']='baked Newton flock + root translation + real articulated walk'
+        side=1 if name.startswith('l_') else -1
+        swing=-.18*math.sin(phase_walk)*side
+        pb.rotation_quaternion=original_pose[f][name] @ Quaternion(Vector((0,1,0)),swing)
+        pb.keyframe_insert(data_path='rotation_quaternion',frame=f,group='Counter-swing arms during IK walk')
+rig['flight_follow_version']='baked Newton flock + root translation + URDF-axis foot IK walk'
 rig['flight_chase_lag_m']=1.35
+# Linear interpolation prevents root and gesture curves from easing/overshooting.
+for fc in rig.animation_data.action.fcurves:
+    for key in fc.keyframe_points:key.interpolation='LINEAR'
 # Make lake water visibly glossy and break up its normal on a real surface.
-lake=bpy.data.objects['Lake | water inside excavated basin']
+lake=bpy.data.objects['Lake | radial waterline inside excavated basin']
 water=lake.data.materials[0]
 ns=water.node_tree.nodes;links=water.node_tree.links
 noise=ns.new('ShaderNodeTexNoise');noise.inputs['Scale'].default_value=5.5
@@ -207,7 +161,7 @@ bump=ns.new('ShaderNodeBump');bump.inputs['Strength'].default_value=.12;bump.inp
 links.new(noise.outputs['Fac'],bump.inputs['Height'])
 links.new(bump.outputs['Normal'],ns.get('Principled BSDF').inputs['Normal'])
 # A local broad moon reflection makes the real lake basin legible at twilight.
-light_data=bpy.data.lights.new('Lake | broad moon reflection','AREA');light_data.energy=480
+light_data=bpy.data.lights.new('Lake | broad moon reflection','AREA');light_data.energy=240
 light_data.color=(.42,.65,1);light_data.shape='DISK';light_data.size=5
 lake_light=bpy.data.objects.new(light_data.name,light_data);lights.objects.link(lake_light)
 lake_light.location=(3.6,3.8,6)
@@ -237,8 +191,10 @@ for f in frames:
 s.use_nodes=True
 nodes=s.node_tree.nodes;nodes.clear();links=s.node_tree.links
 rl=nodes.new('CompositorNodeRLayers');rl.location=(-350,0)
-glare=nodes.new('CompositorNodeGlare');glare.glare_type='FOG_GLOW';glare.inputs['Threshold'].default_value=.55;glare.inputs['Strength'].default_value=.75;glare.inputs['Size'].default_value=.75
+glare=nodes.new('CompositorNodeGlare');glare.glare_type='FOG_GLOW';glare.quality='HIGH'
+glare.inputs['Threshold'].default_value=.80;glare.inputs['Strength'].default_value=1.25;glare.inputs['Size'].default_value=.92
 glare.location=(-70,0)
+s.render.use_compositing=True
 out=nodes.new('CompositorNodeComposite');out.location=(250,0)
 links.new(rl.outputs['Image'],glare.inputs['Image'])
 links.new(glare.outputs['Image'],out.inputs['Image'])

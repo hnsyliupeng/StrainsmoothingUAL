@@ -31,7 +31,12 @@ uv=soil_nodes.new('ShaderNodeTexCoord');mapping=soil_nodes.new('ShaderNodeVector
 soil_links.new(uv.outputs['Generated'],mapping.inputs[0])
 color_tex=soil_nodes.new('ShaderNodeTexImage');color_tex.image=forest_color
 soil_links.new(mapping.outputs['Vector'],color_tex.inputs['Vector'])
-soil_links.new(color_tex.outputs['Color'],soil_nodes.get('Principled BSDF').inputs['Base Color'])
+# Keep the real Poly Haven leaf litter color/UV detail, but grade it toward
+# damp forest umber so twilight lighting cannot wash the clearing to gray-white.
+ground_grade=soil_nodes.new('ShaderNodeMixRGB');ground_grade.blend_type='MULTIPLY'
+ground_grade.inputs['Fac'].default_value=1.0;ground_grade.inputs['Color2'].default_value=(.62,.70,.52,1)
+soil_links.new(color_tex.outputs['Color'],ground_grade.inputs['Color1'])
+soil_links.new(ground_grade.outputs['Color'],soil_nodes.get('Principled BSDF').inputs['Base Color'])
 normal_tex=soil_nodes.new('ShaderNodeTexImage');normal_tex.image=forest_normal
 soil_links.new(mapping.outputs['Vector'],normal_tex.inputs['Vector'])
 normal_map=soil_nodes.new('ShaderNodeNormalMap');normal_map.inputs['Strength'].default_value=.65
@@ -50,7 +55,7 @@ def rod(name,a,b,r,material,coll=ROBOT,verts=12):
  bpy.ops.mesh.primitive_cylinder_add(vertices=verts,radius=r,depth=delta.length,location=mid);o=move(bpy.context.object,coll);o.name=name;o.rotation_euler=delta.to_track_quat('Z','Y').to_euler();o.data.materials.append(material);return o
 from terrain_profile import height as ground_z, LAKE_CENTER, LAKE_RADIUS, LAKE_LEVEL
 # Terrain, 30m across. Geometry baked into a simple editable grid.
-n=64;verts=[];faces=[]
+n=128;verts=[];faces=[]
 for j in range(n+1):
  for i in range(n+1):
   x=(i/n-.5)*30;y=(j/n-.5)*30;verts.append((x,y,ground_z(x,y)))
@@ -60,28 +65,50 @@ for j in range(n):
 mesh=bpy.data.meshes.new('Editable terrain grid');mesh.from_pydata(verts,[],faces);mesh.update()
 terrain=bpy.data.objects.new('Terrain | 2.5m relief and excavated lake basin',mesh);ENV.objects.link(terrain);mesh.materials.append(soil)
 terrain['height_range_m']=round(max(v[2] for v in verts)-min(v[2] for v in verts),3)
-# Clip every water polygon to ground below the physical lake level.
 watermat=mat('Lake water | moonlight reflections',(.025,.075,.094),.0,.13)
 wb=watermat.node_tree.nodes.get('Principled BSDF');wb.inputs['IOR'].default_value=1.333
 wb.inputs['Coat Weight'].default_value=.6;wb.inputs['Coat Roughness'].default_value=.08
-waterverts=[];waterfaces=[]
-for face in terrain.data.polygons:
- coords=[terrain.data.vertices[k].co.copy() for k in face.vertices]
- if min(math.hypot(p.x-LAKE_CENTER[0],p.y-LAKE_CENTER[1]) for p in coords)>LAKE_RADIUS+.6:continue
- clipped=[]
- for a,b in zip(coords,coords[1:]+coords[:1]):
-  ina=a.z<=LAKE_LEVEL;inb=b.z<=LAKE_LEVEL
-  if ina:clipped.append((a.x,a.y,LAKE_LEVEL))
-  if ina!=inb:
-   t=(LAKE_LEVEL-a.z)/(b.z-a.z)
-   clipped.append((a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,LAKE_LEVEL))
- if len(clipped)<3:continue
- k=len(waterverts);waterverts.extend(clipped)
- for i in range(1,len(clipped)-1):waterfaces.append((k,k+i,k+i+1))
-assert len(waterfaces)>20
-watermesh=bpy.data.meshes.new('Shoreline clipped to depressed terrain');watermesh.from_pydata(waterverts,[],waterfaces);watermesh.update()
-lake=bpy.data.objects.new('Lake | water inside excavated basin',watermesh);ENV.objects.link(lake);watermesh.materials.append(watermat)
+# Build the actual waterline by solving height(x,y) == LAKE_LEVEL along
+# 256 radial directions. The old per-terrain-triangle clipping inherited the
+# 47 cm terrain grid's jagged polygon silhouette; this dense radial shoreline
+# follows the real height field continuously, while the terrain itself is now
+# a 128 x 128 grid.
+shore_samples=256;water_rings=20
+boundary_radii=[]
+for i in range(shore_samples):
+ angle=2*math.pi*i/shore_samples
+ lo=0.0;hi=LAKE_RADIUS+2.4
+ if ground_z(LAKE_CENTER[0]+hi*math.cos(angle),LAKE_CENTER[1]+hi*math.sin(angle))<=LAKE_LEVEL:
+  raise RuntimeError('Waterline root is not bracketed at angle '+str(i))
+ for _ in range(32):
+  mid=(lo+hi)*.5
+  z=ground_z(LAKE_CENTER[0]+mid*math.cos(angle),LAKE_CENTER[1]+mid*math.sin(angle))
+  if z<=LAKE_LEVEL:lo=mid
+  else:hi=mid
+ boundary_radii.append((lo+hi)*.5)
+waterverts=[(LAKE_CENTER[0],LAKE_CENTER[1],LAKE_LEVEL)]
+for ring in range(1,water_rings+1):
+ t=ring/water_rings
+ for i,radius in enumerate(boundary_radii):
+  angle=2*math.pi*i/shore_samples
+  r=radius*t
+  waterverts.append((LAKE_CENTER[0]+r*math.cos(angle),LAKE_CENTER[1]+r*math.sin(angle),LAKE_LEVEL))
+waterfaces=[]
+for i in range(shore_samples):
+ j=(i+1)%shore_samples
+ waterfaces.append((0,1+i,1+j))
+for ring in range(1,water_rings):
+ inner=1+(ring-1)*shore_samples;outer=1+ring*shore_samples
+ for i in range(shore_samples):
+  j=(i+1)%shore_samples
+  waterfaces.append((inner+i,outer+i,outer+j,inner+j))
+watermesh=bpy.data.meshes.new('Smooth radial shore | 256 physical height intersections')
+watermesh.from_pydata(waterverts,[],waterfaces);watermesh.update()
+for poly in watermesh.polygons:poly.use_smooth=True
+lake=bpy.data.objects.new('Lake | radial waterline inside excavated basin',watermesh);ENV.objects.link(lake);watermesh.materials.append(watermat)
 lake['water_level_z']=LAKE_LEVEL;lake['lake_center_xy']=LAKE_CENTER
+lake['shoreline_radial_samples']=shore_samples;lake['shoreline_algorithm']='256-ray binary intersections of analytic height field with fixed lake water level'
+lake['shoreline_radius_range_m']=[min(boundary_radii),max(boundary_radii)]
 # A soft highlight from moonlight gives the water a readable reflective edge.
 
 for p in mesh.polygons:p.use_smooth=True
@@ -122,12 +149,12 @@ def scatter(label,src,density,seed,min_radius,max_radius,scl,front_clear=False):
   inside=ns.new('ShaderNodeMath');inside.operation='LESS_THAN';inside.inputs[1].default_value=max_radius;links.new(radius.outputs['Value'],inside.inputs[0])
   annulus=ns.new('ShaderNodeMath');annulus.operation='MULTIPLY';links.new(outside.outputs[0],annulus.inputs[0]);links.new(inside.outputs[0],annulus.inputs[1]);selection=annulus.outputs[0]
  if front_clear:
-  # Central camera corridor: y=-8 to +5, x=-3.8 to +3.8.
-  # Preserve trees at far left/right and at the back, never center foreground.
+  # A compact world-space walk corridor protects the robot/swarm, while
+  # denser tree scatter reaches the camera frame edges and restores a forest.
   abx=ns.new('ShaderNodeMath');abx.operation='ABSOLUTE';abx.location=(-420,-460);links.new(sep.outputs['X'],abx.inputs[0])
-  xinside=ns.new('ShaderNodeMath');xinside.operation='LESS_THAN';xinside.inputs[1].default_value=3.8;xinside.location=(-230,-460);links.new(abx.outputs[0],xinside.inputs[0])
-  ylow=ns.new('ShaderNodeMath');ylow.operation='GREATER_THAN';ylow.inputs[1].default_value=-8;ylow.location=(-230,-590);links.new(sep.outputs['Y'],ylow.inputs[0])
-  yhigh=ns.new('ShaderNodeMath');yhigh.operation='LESS_THAN';yhigh.inputs[1].default_value=5;yhigh.location=(-230,-710);links.new(sep.outputs['Y'],yhigh.inputs[0])
+  xinside=ns.new('ShaderNodeMath');xinside.operation='LESS_THAN';xinside.inputs[1].default_value=2.6;xinside.location=(-230,-460);links.new(abx.outputs[0],xinside.inputs[0])
+  ylow=ns.new('ShaderNodeMath');ylow.operation='GREATER_THAN';ylow.inputs[1].default_value=-5.5;ylow.location=(-230,-590);links.new(sep.outputs['Y'],ylow.inputs[0])
+  yhigh=ns.new('ShaderNodeMath');yhigh.operation='LESS_THAN';yhigh.inputs[1].default_value=3.5;yhigh.location=(-230,-710);links.new(sep.outputs['Y'],yhigh.inputs[0])
   corridor=ns.new('ShaderNodeMath');corridor.operation='MULTIPLY';corridor.location=(-10,-520);links.new(xinside.outputs[0],corridor.inputs[0]);links.new(ylow.outputs[0],corridor.inputs[1])
   between=ns.new('ShaderNodeMath');between.operation='MULTIPLY';between.location=(155,-520);links.new(corridor.outputs[0],between.inputs[0]);links.new(yhigh.outputs[0],between.inputs[1])
   not_center=ns.new('ShaderNodeMath');not_center.operation='SUBTRACT';not_center.inputs[0].default_value=1;not_center.location=(300,-520);links.new(between.outputs[0],not_center.inputs[1])
@@ -151,20 +178,20 @@ def scatter(label,src,density,seed,min_radius,max_radius,scl,front_clear=False):
  ob=bpy.data.objects.new(label,terrain.data.copy());ENV.objects.link(ob);ob.data.materials.clear();mod=ob.modifiers.new('Geometry Nodes | editable density and exclusion','NODES');mod.node_group=g
  ob['asset_source']=src.name;ob['density_per_m2']=density;ob['exclusion_radius_m']=min_radius;ob['camera_corridor_mask']=front_clear
  return ob
-scatter('Oaks A | GN scatter',oak,.013,12,5.8,15,1,True)
-scatter('Oaks B | GN scatter',oak2,.008,42,6.5,15,.92,True)
-scatter('Birches A | GN scatter',birch,.012,19,6,15,.84,True)
-scatter('Birches B | GN scatter',birch2,.007,26,6,15,.88,True)
-scatter('Pine saplings | GN scatter',pine,.026,5,5.5,15,1,True)
+scatter('Oaks A | GN scatter',oak,.020,12,5.0,15,1,True)
+scatter('Oaks B | GN scatter',oak2,.013,42,5.6,15,.92,True)
+scatter('Birches A | GN scatter',birch,.018,19,5.4,15,.84,True)
+scatter('Birches B | GN scatter',birch2,.011,26,5.5,15,.88,True)
+scatter('Pine saplings | GN scatter',pine,.034,5,4.8,15,1,True)
 scatter('Moss rocks A | GN scatter',rock,.047,37,2.6,15,1)
 scatter('Moss rocks B | GN scatter',rock2,.048,38,3,15,1)
-scatter('Meadow grass | GN scatter',grass,.39,91,2.8,15,1)
-scatter('Coastal grass | GN scatter',shortgrass,.33,81,2.5,15,1)
-scatter('Ferns A | GN scatter',fern,.18,93,2.5,15,1)
-scatter('Ferns B | GN scatter',fern2,.14,96,2.8,15,1)
-scatter('Shrubs | GN scatter',shrub,.19,47,3.8,15,1)
-scatter('Sorrel ground cover | GN scatter',sorrel,.19,34,2.1,15,1)
-scatter('Flowering rose plants | GN scatter',rose,.085,68,1.85,8.5,1)
+scatter('Meadow grass | GN scatter',grass,.58,91,2.8,15,1)
+scatter('Coastal grass | GN scatter',shortgrass,.48,81,2.5,15,1)
+scatter('Ferns A | GN scatter',fern,.25,93,2.5,15,1)
+scatter('Ferns B | GN scatter',fern2,.20,96,2.8,15,1)
+scatter('Shrubs | GN scatter',shrub,.26,47,3.2,15,1)
+scatter('Sorrel ground cover | GN scatter',sorrel,.26,34,2.1,15,1)
+scatter('Flowering rose plants | GN scatter',rose,.10,68,1.85,8.5,1)
 scatter('Fallen log | GN scatter',log,.008,35,5.5,15,1)
 # Sparse foreground moss rocks are the same authored asset, not mesh primitives.
 for idx,(x,y,sc) in enumerate([(-2.9,-1.0,.65),(2.7,1.7,.65)]):
@@ -172,9 +199,9 @@ for idx,(x,y,sc) in enumerate([(-2.9,-1.0,.65),(2.7,1.7,.65)]):
 def info():
  return {'objects':len(bpy.data.objects),'collections':{c.name:len(c.objects) for c in scene.collection.children_recursive},'geometry_nodes':[o.name for o in ENV.objects if any(m.type=='NODES' for m in o.modifiers)],'robot_parts':len(ROBOT.objects),'baked_fireflies':len([o for o in FLIES.objects if o.name.startswith('Baked')]),'render_engine':scene.render.engine,'render_size':[scene.render.resolution_x,scene.render.resolution_y]}
 def review(stage,checks,notes):
- passed=all(checks.values());entry={'stage':stage,'hardness':'High','JEV':{'Judgement':'DATA_ONLY' if passed else 'FAIL','Evidence':checks,'Verification':notes},'get_scene_info':info()};REPORT.append(entry);(ROOT/'output'/'JEV_reviews.json').write_text(json.dumps(REPORT,ensure_ascii=False,indent=2));print(json.dumps(entry,ensure_ascii=False));
+ passed=all(checks.values());plans={'1 基础环境与地形':'继续搭建受URDF限位的机器人rig，再运行第二轮JEV。','2 机器人主体':'运行真实NEWTON萤火虫逐帧物理烘焙与跟随动画，再运行第三轮JEV。','3 萤火虫物理模拟与烘焙':'加入显著生物发光与林地暮色材质，然后进行640x480 EEVEE预览和第四轮JEV。','4 微光灯光与基础材质':'清理交付候选并实际审查640x480 EEVEE预览；任何截图错误继续修复。','5 清理与交付':'逐帧查看EEVEE预览并完成人工JEV；在视觉确认前保持待审状态。'};entry={'stage':stage,'hardness':'High','JEV':{'Judgement':'DATA_ONLY' if passed else 'FAIL','Evidence':checks,'Verification':notes},'get_scene_info':info(),'Next_step_plan':plans.get(stage,'继续下一结构阶段并记录JEV。')};REPORT.append(entry);(ROOT/'output'/'JEV_reviews.json').write_text(json.dumps(REPORT,ensure_ascii=False,indent=2));print(json.dumps(entry,ensure_ascii=False));
  if not passed:raise RuntimeError('JEV failed: '+stage)
-review('1 基础环境与地形',{'terrain_grid':len(mesh.vertices)==4225,'terrain_height_range_over_2m':terrain['height_range_m']>2,'real_lake_faces':len(watermesh.polygons)>20,'cc0_source_meshes':len(sources)==15 and all(x.data.uv_layers for x in sources),'gn_scatter_count':len(info()['geometry_nodes'])==15,'real_color_maps':forest_color.packed_file is not None and all(n.image and n.image.packed_file for m in [WOOD,WOOD06,FOL,FERN,SHRUB,PINE_BARK,PINE_TWIG,MOSS_ROCK] for n in m.node_tree.nodes if n.type=='TEX_IMAGE'),'original_foliage_only':all('assets/' in x['asset_file'] for x in sources)},'15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。')
+review('1 基础环境与地形',{'terrain_grid':len(mesh.vertices)==16641,'terrain_height_range_over_2m':terrain['height_range_m']>2,'real_lake_faces':len(watermesh.polygons)>20,'cc0_source_meshes':len(sources)==15 and all(x.data.uv_layers for x in sources),'gn_scatter_count':len(info()['geometry_nodes'])==15,'real_color_maps':forest_color.packed_file is not None and all(n.image and n.image.packed_file for m in [WOOD,WOOD06,FOL,FERN,SHRUB,PINE_BARK,PINE_TWIG,MOSS_ROCK] for n in m.node_tree.nodes if n.type=='TEX_IMAGE'),'original_foliage_only':all('assets/' in x['asset_file'] for x in sources)},'15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。')
 # Robot is now an imported measured real-servo-axis URDF mesh assembly, not
 # 99 generated boxes/bolts. Its 20 authored STL visual links are editable.
 from robot_asset import build_robot
@@ -186,41 +213,90 @@ review('2 机器人主体', {
     'imported_detail_vertices':urdf_robot['vertices']>40000,
     'no_generated_box_body':all(o.name.startswith('URDF |') for o in ROBOT.objects),
 }, '机械主体来自 MIT 授权 UBTECH Alpha 1S 数字孪生 17关节 URDF（人工测量舵机轴），20 个导入视觉网格；仍需低分辨率目视检查站姿、尺寸与地面接触。')
-# Physics phase: Blender legacy particle emitter + turbulent force; sample evaluated particle state after simulation.
-# Emitting on a suspended rectangular surface allows distributed flight volumes.
-scene.frame_start=1;scene.frame_end=110
-emitter=cube('Simulation emitter | hidden after bake',(0,0,1.55),(5.8,4.8,.01),dark,FLIES)
+# Physics phase: run Blender's actual NEWTON particles, turbulence, Brownian
+# motion, and directional wind through the complete 144-frame shot. Every live
+# particle position is sampled each frame into a self-contained shape-key bake;
+# the final Geometry Nodes instances never depend on a live cache at render time.
+scene.frame_start=1;scene.frame_end=144
+emitter=cube('Simulation emitter | hidden after full flight bake',(-1.0,2.0,1.55),(5.8,4.8,.01),dark,FLIES)
 bpy.context.view_layer.objects.active=emitter;emitter.select_set(True)
-emitter.rotation_euler.x=.58  # tilted emitter: physically distributed starting heights
-bpy.ops.object.particle_system_add();ps=emitter.particle_systems[-1].settings;ps.count=108;ps.frame_start=1;ps.frame_end=40;ps.lifetime=110;ps.emit_from='FACE';ps.physics_type='NEWTON';ps.normal_factor=.12;ps.effector_weights.gravity=0;ps.brownian_factor=.54;ps.damping=.65;ps.render_type='NONE'
-bpy.ops.object.effector_add(type='TURBULENCE',location=(.3,0,1.8));force=move(bpy.context.object,FLIES);force.name='Simulation force | turbulence';force.field.strength=.38;force.field.size=1.5
+emitter.rotation_euler.x=.58  # tilted source plane gives a broad physical altitude distribution
+bpy.ops.object.particle_system_add()
+ps=emitter.particle_systems[-1].settings
+ps.count=108;ps.frame_start=1;ps.frame_end=1;ps.lifetime=200;ps.emit_from='FACE'
+ps.physics_type='NEWTON';ps.normal_factor=.04;ps.effector_weights.gravity=0
+ps.brownian_factor=1.1;ps.damping=.45;ps.render_type='NONE'
+bpy.ops.object.effector_add(type='TURBULENCE',location=(.3,0,1.8))
+force=move(bpy.context.object,FLIES);force.name='Simulation force | measured turbulent gusts'
+force.field.strength=1.3;force.field.size=2.0
+bpy.ops.object.effector_add(type='WIND',location=(-20,20,0))
+wind=move(bpy.context.object,FLIES);wind.name='Simulation force | directional flight toward forest clearing'
+wind.field.strength=10.0
+wind.rotation_euler=Vector((.22,-.53,.03)).to_track_quat('Z','Y').to_euler()
 scene.gravity=(0,0,-9.81)
-# Evaluate forward sequentially, preserving genuine particle motion.
-samples=[];movement=0
-for frame in range(1,76):
+raw_samples={}
+for frame in range(scene.frame_start,scene.frame_end+1):
  scene.frame_set(frame)
- if frame in (48,55,75):
-  dg=bpy.context.evaluated_depsgraph_get();ev=emitter.evaluated_get(dg)
-  samples.append({i:tuple(p.location) for i,p in enumerate(ev.particle_systems[0].particles) if p.alive_state=='ALIVE'})
-if len(samples)>1:
- shared=set(samples[0])&set(samples[-1]);movement=sum((Vector(samples[0][i])-Vector(samples[-1][i])).length for i in shared)
-# baked static mesh of discrete luminous vertices via GN instancing (easy to edit, no simulation dependency).
-positions=[v for i,v in sorted(samples[-1].items()) if -3.3<v[0]<3.3 and -3<v[1]<3 and .5<v[2]<3.7 and (v[0]**2+v[1]**2)>.32]
-if len(positions)<15:raise RuntimeError('Insufficient living particles after physics simulation: '+str(len(positions)))
-pts=bpy.data.meshes.new('Particle simulation baked positions | frame 75');pts.from_pydata(positions,[],[]);pts.update();baked=bpy.data.objects.new('Baked fireflies | frozen instances',pts);FLIES.objects.link(baked)
-bulb_source=sphere('Firefly luminaire source',(110,0,-30),(1,1,1),glow,SOURCES);bulb_source.data.transform(Matrix.Diagonal((.035,.035,.035,1)));bulb_source.hide_render=True
-bulb=list(SOURCES.objects)[-1];bulb.hide_set(True)
-g=bpy.data.node_groups.new('Firefly bake | instances from simulated vertices','GeometryNodeTree');g.interface.new_socket(name='Geometry',in_out='INPUT',socket_type='NodeSocketGeometry');g.interface.new_socket(name='Geometry',in_out='OUTPUT',socket_type='NodeSocketGeometry');ns=g.nodes;li=g.links;inn=ns.new('NodeGroupInput');out=ns.new('NodeGroupOutput');inst=ns.new('GeometryNodeInstanceOnPoints');obj=ns.new('GeometryNodeObjectInfo');obj.inputs['Object'].default_value=bulb;obj.inputs['As Instance'].default_value=True;li.new(inn.outputs['Geometry'],inst.inputs['Points']);li.new(obj.outputs['Geometry'],inst.inputs['Instance']);li.new(inst.outputs['Instances'],out.inputs['Geometry']);baked.modifiers.new('Static instanced fireflies','NODES').node_group=g
-emitter.hide_render=True;emitter.hide_set(True);force.hide_render=True;force.hide_set(True)
-baked['physics']='Blender particle NEWTON + turbulence + Brownian, evaluated frames 1–75';baked['baked_frame']=75;baked['motion_sum_m']=movement
-review('3 萤火虫物理模拟与烘焙',{'particle_system':len(emitter.particle_systems)>0,'turbulence_force':force.field.type=='TURBULENCE','measured_motion':movement>.01,'baked_count':len(positions)>=15,'static_vertex_mesh':len(baked.data.vertices)==len(positions),'height_variation':max(v[2] for v in positions)-min(v[2] for v in positions)>1,'fly_source_diameter':max(v.co.x for v in bulb.data.vertices)-min(v.co.x for v in bulb.data.vertices)<.1},f'物理引擎粒子帧 1–75 连续求值；48→75 帧共有粒子位移总和 {movement:.2f} m；第 75 帧筛选并烘焙 {len(positions)} 个静态点，GN 引用内嵌发光源，渲染不依赖粒子缓存。')
+ bpy.context.view_layer.update()
+ ev=emitter.evaluated_get(bpy.context.evaluated_depsgraph_get())
+ raw_samples[frame]={i:Vector(p.location) for i,p in enumerate(ev.particle_systems[0].particles) if p.alive_state=='ALIVE'}
+assert all(len(raw_samples[f])==ps.count for f in raw_samples), 'NEWTON flock did not remain alive through the complete shot'
+# Omit only a particle which intersects terrain or leaves the authored flight
+# volume in ANY sample, keeping one fixed editable vertex topology throughout.
+from terrain_profile import height as particle_ground_height
+particle_ids=[]
+for i in raw_samples[scene.frame_start]:
+ if all(-4.5<p.x<4.5 and -4.5<p.y<4.5 and particle_ground_height(p.x,p.y)+.20<p.z<3.8
+        for sample in raw_samples.values() if i in sample for p in (sample[i],)):
+  particle_ids.append(i)
+if len(particle_ids)<80:raise RuntimeError('Too few continuously airborne baked particles: '+str(len(particle_ids)))
+centroid={f:sum((raw_samples[f][i] for i in particle_ids),Vector())/len(particle_ids) for f in raw_samples}
+flock_travel=(centroid[scene.frame_end]-centroid[scene.frame_start]).length
+movement=sum((raw_samples[scene.frame_end][i]-raw_samples[scene.frame_start][i]).length for i in particle_ids)
+positions=[raw_samples[scene.frame_start][i] for i in particle_ids]
+pts=bpy.data.meshes.new('NEWTON flight cache | 108 particle paths x 144 samples')
+pts.from_pydata([tuple(p) for p in positions],[],[]);pts.update()
+baked=bpy.data.objects.new('Baked fireflies | 144-frame physical particle cache',pts);FLIES.objects.link(baked)
+baked.shape_key_add(name='Basis',from_mix=False)
+for frame in range(scene.frame_start,scene.frame_end+1):
+ key=baked.shape_key_add(name='Blender NEWTON bake | frame %03d'%frame,from_mix=False)
+ for index,particle_id in enumerate(particle_ids):key.data[index].co=raw_samples[frame][particle_id]
+ key.value=0
+ if frame>scene.frame_start:
+  key.keyframe_insert(data_path='value',frame=frame-1,group='Baked Newton particle simulation')
+ key.value=1;key.keyframe_insert(data_path='value',frame=frame,group='Baked Newton particle simulation')
+ if frame<scene.frame_end:
+  key.value=0;key.keyframe_insert(data_path='value',frame=frame+1,group='Baked Newton particle simulation')
+ key.value=0
+if pts.shape_keys.animation_data and pts.shape_keys.animation_data.action:
+ for curve in pts.shape_keys.animation_data.action.fcurves:
+  for point in curve.keyframe_points:point.interpolation='LINEAR'
+bulb_source=sphere('Firefly luminaire source',(110,0,-30),(1,1,1),glow,SOURCES)
+bulb_source.data.transform(Matrix.Diagonal((.035,.035,.035,1)));bulb_source.hide_render=True
+bulb_source.hide_set(True)
+g=bpy.data.node_groups.new('Firefly bake | instances from physics-baked vertices','GeometryNodeTree')
+g.interface.new_socket(name='Geometry',in_out='INPUT',socket_type='NodeSocketGeometry')
+g.interface.new_socket(name='Geometry',in_out='OUTPUT',socket_type='NodeSocketGeometry')
+ns=g.nodes;li=g.links;inn=ns.new('NodeGroupInput');out=ns.new('NodeGroupOutput')
+inst=ns.new('GeometryNodeInstanceOnPoints');obj=ns.new('GeometryNodeObjectInfo')
+obj.inputs['Object'].default_value=bulb_source;obj.inputs['As Instance'].default_value=True
+li.new(inn.outputs['Geometry'],inst.inputs['Points']);li.new(obj.outputs['Geometry'],inst.inputs['Instance'])
+li.new(inst.outputs['Instances'],out.inputs['Geometry'])
+baked.modifiers.new('Editable instances | baked physical paths','NODES').node_group=g
+for source in (emitter,force,wind):source.hide_render=True;source.hide_set(True)
+baked['physics']='Blender NEWTON particle system + Brownian + turbulent force + directional wind, sequentially simulated at every frame 1–144'
+baked['bake_method']='Each physical sample stored as a relative shape key on the 3D point mesh; geometry nodes instance a CC0 firefly on the baked moving points'
+baked['particle_indices']=len(particle_ids);baked['simulation_frames']=scene.frame_end
+baked['centroid_frame_001']=list(centroid[1]);baked['centroid_frame_144']=list(centroid[144])
+baked['flock_travel_m']=flock_travel;baked['particle_path_distance_sum_m']=movement
+review('3 萤火虫物理模拟与烘焙',{'particle_system':len(emitter.particle_systems)>0,'turbulence_force':force.field.type=='TURBULENCE','directional_wind':wind.field.type=='WIND','all_144_physics_samples':len(raw_samples)==144,'measured_flock_travel_over_1m':flock_travel>1.0,'baked_count':len(particle_ids)>=80,'animated_bake_shape_keys':len(pts.shape_keys.key_blocks)>=140,'terrain_clearance':all(p.z>particle_ground_height(p.x,p.y)+.19 for sample in raw_samples.values() for i in particle_ids for p in (sample[i],)),'firefly_source_diameter':max(v.co.x for v in bulb_source.data.vertices)-min(v.co.x for v in bulb_source.data.vertices)<.1},f'真实 Blender NEWTON 粒子 + Brownian + turbulence + 有方向风力，逐帧 1–144 连续求值。筛出全程在地面上方且在场景飞行域的 {len(particle_ids)} 只萤火虫；群体质心飞行 {flock_travel:.2f} m，逐只路径总位移 {movement:.1f} m。每帧作为 shape key 烘焙进 .blend，GN 继续实例化真实 CC0 萤火虫模型。')
 # Lighting / camera, conservative preview settings.
-world=bpy.data.worlds.new('Twilight ambient') if not bpy.data.worlds else bpy.data.worlds[0];scene.world=world;world.use_nodes=True;world.node_tree.nodes['Background'].inputs['Color'].default_value=(.11,.16,.22,1);world.node_tree.nodes['Background'].inputs['Strength'].default_value=.37
+world=bpy.data.worlds.new('Twilight ambient') if not bpy.data.worlds else bpy.data.worlds[0];scene.world=world;world.use_nodes=True;world.node_tree.nodes['Background'].inputs['Color'].default_value=(.065,.095,.14,1);world.node_tree.nodes['Background'].inputs['Strength'].default_value=.25
 def area(name,loc,power,color,size,target):
  bpy.ops.object.light_add(type='AREA',location=loc);o=move(bpy.context.object,LIGHTS);o.name=name;o.data.energy=power;o.data.color=color;o.data.shape='DISK';o.data.size=size;o.rotation_euler=(Vector(target)-o.location).to_track_quat('-Z','Y').to_euler()
-area('Cold moonlight | broad rim',(2,3,8),850,(.43,.61,1),7,(0,0,1))
-area('Soft sky fill',(-4,-2,5),410,(.52,.69,.78),8,(0,0,1.4))
-area('Faint amber bounce',(0,-3,3),80,(1,.54,.25),4,(0,0,1.4))
+area('Cold moonlight | broad rim',(2,3,8),520,(.34,.52,.78),8,(0,0,1))
+area('Soft sky fill',(-4,-2,5),255,(.38,.54,.64),8,(0,0,1.4))
+area('Faint amber bounce',(0,-3,3),55,(1,.40,.20),4,(0,0,1.4))
 bpy.ops.object.camera_add(location=(5.2,-8.2,4.15));cam=move(bpy.context.object,LIGHTS);cam.name='Camera | forest clearing';cam.rotation_euler=(Vector((0,0,1.46))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=10.2;scene.camera=cam;cam.location=(4.9,-8.3,5.7);cam.rotation_euler=(Vector((1.25,1.25,1.05))-cam.location).to_track_quat('-Z','Y').to_euler()
 scene.render.engine='BLENDER_EEVEE_NEXT';scene.render.resolution_x=640;scene.render.resolution_y=480;scene.render.resolution_percentage=100;scene.render.image_settings.file_format='PNG';scene.render.filepath=str(ROOT/'output'/'preview_640x480.png');scene.render.film_transparent=False
 scene.view_settings.view_transform='AgX';scene.render.image_settings.color_mode='RGBA'
@@ -232,7 +308,7 @@ for screen in bpy.data.screens:
    area_view.spaces.active.overlay.show_overlays=False
    area_view.spaces.active.region_3d.view_perspective='CAMERA'
 review('4 微光灯光与基础材质',{'eevee':scene.render.engine=='BLENDER_EEVEE_NEXT','preview_le_720p':scene.render.resolution_x<=1280 and scene.render.resolution_y<=720,'default_viewport_material_mode':all(a.spaces.active.shading.type=='MATERIAL' for sc in bpy.data.screens for a in sc.areas if a.type=='VIEW_3D'),'lighting':len([o for o in LIGHTS.objects if o.type=='LIGHT'])==3,'material_assignments':all(o.data.materials for o in ROBOT.objects if o.type=='MESH')},'月光冷主光、弱冷填光、微弱暖色反射；金属、氧化铜、石土与发光材料分离；仅允许 640×480 预览。')
-# EEVEE needs an OpenGL/EGL context: do not attempt a render in a context-free sandbox.
+# Do not render in the builder. Only render_lowres_preview.py may create 640x480 review PNGs.
 blend=ROOT/'output'/'Twilight_Wilderness_Robot.blend';bpy.ops.wm.save_as_mainfile(filepath=str(blend),compress=True)
 review('5 清理与交付',{'required_collections':all(k in bpy.data.collections for k in ['Architecture','Environment','Robot','Fireflies','Lights']),'blend_saved':blend.exists(),'static_bake':len(baked.data.vertices)==len(positions),'simulation_hidden':emitter.hide_render and force.hide_render},'保留隐藏模拟源以便追溯，静态实例作为最终展示；资产内嵌到 .blend，外部 FBX 仅供重建脚本使用。')
 # Remove orphaned imported data; every active image is packed into .blend.
@@ -250,4 +326,4 @@ for item in REPORT:
  item['JEV']['Verification'] += ' 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。'
  item['JEV']['Evidence']['new_visual_evidence_available']=False
 (ROOT/'output'/'JEV_reviews.json').write_text(json.dumps(REPORT,ensure_ascii=False,indent=2))
-print('PREVIEW NOT GENERATED: no EGL/GLX context; all candidate stages PENDING_VISUAL.')
+print('BUILD SAVED WITHOUT A PREVIEW: run the separate <=720p EEVEE review script; all candidate stages remain PENDING_VISUAL.')

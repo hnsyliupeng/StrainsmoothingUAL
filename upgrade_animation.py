@@ -56,22 +56,77 @@ def local_origin(e):
 arm=bpy.data.armatures.new('17 measured URDF servo axes | rigid link skin')
 rig=bpy.data.objects.new('Robot armature | 144-frame scanning and step pose',arm);robot.objects.link(rig);rig.show_in_front=True
 bpy.ops.object.select_all(action='DESELECT');rig.select_set(True);bpy.context.view_layer.objects.active=rig;bpy.ops.object.mode_set(mode='EDIT')
-axes={}
+axes={};joint_heads={};joint_worlds={};link_objects={}
 for obj in [o for o in robot.objects if o.type=='MESH' and o.name.startswith('URDF |')]:
     name=obj['urdf_link'];link=next(l for l in urdf.findall('link') if l.get('name')==name)
-    # Remove visual offset to recover the joint frame from the already assembled
-    # (scaled and posed) link transform; use that pose as the animation rest pose.
+    # Recover the actual servo pivot from the authored URDF visual offset.
     joint_world=obj.matrix_world @ local_origin(link.find('visual/origin')).inverted()
-    head=joint_world.translation.copy()
-    j=joints_by_child.get(name);axis=(joint_world.to_3x3() @ xyz(j.find('axis').get('xyz'))).normalized() if j is not None and j.find('axis') is not None else Vector((0,0,1))
+    head=rig.matrix_world.inverted() @ joint_world.translation
+    j=joints_by_child.get(name)
+    axis=(joint_world.to_3x3() @ xyz(j.find('axis').get('xyz'))).normalized() if j is not None and j.find('axis') is not None else Vector((0,0,1))
     bone=arm.edit_bones.new(name);bone.head=head;bone.tail=head+axis*.17
-    axes[name]=axis
+    axes[name]=axis;joint_heads[name]=head;joint_worlds[name]=joint_world;link_objects[name]=obj
 for name,j in joints_by_child.items():
     parent=j.find('parent').get('link')
     if name in arm.edit_bones and parent in arm.edit_bones:
         arm.edit_bones[name].parent=arm.edit_bones[parent]
         arm.edit_bones[name].use_connect=False
+# Give serial leg bones their measured pivot-to-pivot segment lengths. The old
+# uniform 17 cm joint-axis sticks made a nonphysical IK chain with no limb reach.
+children={name:[] for name in arm.edit_bones.keys()}
+for child,j in joints_by_child.items():
+    parent=j.find('parent').get('link')
+    if child in children and parent in children:children[parent].append(child)
+for name,bone in arm.edit_bones.items():
+    if len(children[name])==1:
+        child=children[name][0];delta=joint_heads[child]-joint_heads[name]
+        if delta.length>.045:bone.tail=joint_heads[child]
+    elif name.endswith('_foot_link'):
+        # End the terminal foot bone at its authored toe, so the IK endpoint
+        # controls actual sole placement rather than an arbitrary axis stub.
+        joint=joint_worlds[name];obj=link_objects[name]
+        local_vertices=[joint.inverted() @ (obj.matrix_world @ v.co) for v in obj.data.vertices]
+        toe=min(local_vertices,key=lambda v:v.y)
+        tail=rig.matrix_world.inverted() @ (joint @ toe)
+        if (tail-bone.head).length>.045:bone.tail=tail
+    # Local Z is rolled onto the URDF revolute axis where geometrically possible.
+    segment=(bone.tail-bone.head).normalized();axis=axes.get(name,Vector((0,0,1)))
+    roll_axis=axis-segment*axis.dot(segment)
+    if roll_axis.length>1e-5:bone.align_roll(roll_axis.normalized())
 bpy.ops.object.mode_set(mode='OBJECT')
+# Every revolute DOF is explicitly limited/locked to its original URDF axis.
+# These IK limits also apply while Blender's IK constraint is solving the walk.
+ik_axis_name=('x','y','z')
+for child,j in joints_by_child.items():
+    if child not in arm.bones or j.get('type')!='revolute':continue
+    local_axis=arm.bones[child].matrix_local.to_3x3().inverted() @ axes[child]
+    local_axis.normalize();axis_index=max(range(3),key=lambda i:abs(local_axis[i]))
+    pb=rig.pose.bones[child]
+    limit=j.find('limit')
+    if limit is not None and limit.get('lower') is not None and limit.get('upper') is not None:
+        lower=float(limit.get('lower'));upper=float(limit.get('upper'))
+        pb['urdf_joint_limit_rad']=[lower,upper]
+    pb['urdf_joint_axis_local']=list(local_axis)
+    pb['urdf_joint_name']=j.get('name')
+    # Blender's built-in IK limits are axis-aligned in bone space. Apply them
+    # to each actual leg DOF; some arm servos are oblique to their bone and keep
+    # exact URDF limits as metadata instead of receiving a false Euler-axis lock.
+    leg_dof=any(token in child for token in ('hip_roll_link','knee_link','ankle_pitch_joint','ankle_link')) and child[:2] in ('l_','r_')
+    if abs(local_axis[axis_index])<.80:
+        if leg_dof:raise RuntimeError(f'Leg URDF axis is not representable by a single IK limit axis: {child} {tuple(local_axis)}')
+        pb['urdf_axis_aligned_ik_limit_applied']=False
+        for axis_name in ik_axis_name:
+            setattr(pb,'lock_ik_'+axis_name,False);setattr(pb,'use_ik_limit_'+axis_name,False)
+        continue
+    for i,axis_name in enumerate(ik_axis_name):
+        setattr(pb,'lock_ik_'+axis_name,i!=axis_index)
+        setattr(pb,'use_ik_limit_'+axis_name,i==axis_index)
+    if limit is not None and limit.get('lower') is not None and limit.get('upper') is not None:
+        sign=1.0 if local_axis[axis_index]>=0 else -1.0
+        setattr(pb,'ik_min_'+ik_axis_name[axis_index],lower if sign>0 else -upper)
+        setattr(pb,'ik_max_'+ik_axis_name[axis_index],upper if sign>0 else -lower)
+        pb['urdf_axis_aligned_ik_limit_applied']=True
+
 for obj in list(robot.objects):
     if obj.type!='MESH' or not obj.name.startswith('URDF |'):continue
     vg=obj.vertex_groups.new(name=obj['urdf_link']);vg.add(list(range(len(obj.data.vertices))),1.0,'REPLACE')
@@ -146,14 +201,14 @@ center=sum((v.co for v in insect.data.vertices),Vector())/len(insect.data.vertic
 for vert in insect.data.vertices:vert.co-=center
 insect.location=(96,0,-30);insect.hide_render=True;insect.hide_set(True)
 insect['asset_source']='LaurianeGelebart/The_Colorless_Journey, CC0 1.0'
-baked=bpy.data.objects['Baked fireflies | frozen instances']
+baked=bpy.data.objects['Baked fireflies | 144-frame physical particle cache']
 g=baked.modifiers[0].node_group
 ref=next(n for n in g.nodes if n.bl_idname=='GeometryNodeObjectInfo')
 ref.inputs['Object'].default_value=insect
 baked['source_asset']='assets/firefly_cc0/firefly.obj | CC0'
 baked['insect_anatomy']='authored wing, head, body and abdominal glow submeshes/material slots'
-# The physics cache is retained for provenance, but animated presentation is
-# deliberately driven by the skeleton; frozen fireflies never rely on cache.
+# Keep the complete 144-frame NEWTON geometry bake for provenance. The final
+# insects follow those per-frame points and require no live particle cache.
 scene.frame_end=144;scene.frame_set(75)
 # Main scene in the user's screenshot made the 2m robot too small to read.
 # Increase framing without inventing new forest assets. Additional edit-friendly
@@ -195,10 +250,11 @@ summary={'objects':len(bpy.data.objects),'collections':{c.name:len(c.objects) fo
          'render_engine':scene.render.engine,'render_size':[scene.render.resolution_x,scene.render.resolution_y]}
 for index,entry in enumerate(reviews):
     if index:entry['get_scene_info']=summary
-    entry['JEV']['Judgement']='FAIL_VISUAL' if index<4 else 'BLOCKED_PENDING_VISUAL'
-    entry['JEV']['Evidence']['user_screenshot_rejected_original_scene']=True
-    entry['JEV']['Evidence']['new_scene_eevee_preview_available']=False
-    entry['JEV']['Verification']+=' 用户最新截图否定旧版材质/构图/萤火虫。新文件只通过数据审计，尚无其自身的低分辨率 EEVEE 预览，不可通过视觉审查。'
+    entry['JEV']['Judgement']='PENDING_VISUAL'
+    entry['JEV']['Evidence']['previous_candidate_rejected_by_user_screenshot']=True
+    entry['JEV']['Evidence']['new_candidate_eevee_preview_available']=False
+    entry['JEV']['Verification']+=' 历史候选曾被用户截图否定；当前候选已更换完整144帧物理烘焙、发光与骨骼运动结构，但本次EEVEE预览尚未成功生成/目视审查，因此仍待人工JEV。'
+    entry['Next_step_plan']='在可用EEVEE OpenGL/EGL主机生成并目视审查640×480帧1、75、144及萤火虫近景；按截图继续修复后再清理交付。'
 reviews[0]['JEV']['Evidence'].update({'preserved_pine_bark_twig_face_indices':True,'woodland_log_uses_correct_atlas':True})
 reviews[1]['JEV']['Evidence'].update({'animated_armature_bones':len(arm.bones),'frame_end':scene.frame_end,'surface_pbr_map_count':3,'main_camera_ortho_scale_m':scene.camera.data.ortho_scale})
 reviews[3]['JEV']['Evidence']['two_optional_anatomy_and_rig_inspection_cameras']=True

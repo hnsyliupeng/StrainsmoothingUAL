@@ -18,57 +18,57 @@
     "tree_scatter_has_random_z_rotation": true,
     "flowering_instances": true,
     "no_central_tree_trunks": true,
-    "fireflies_92_simulation_baked_points_with_two_instanced_meshes": true,
+    "fireflies_107_physics_baked_points_with_two_instanced_meshes": true,
     "particle_engine_source_retained": true,
     "active_material_textures_packed": true,
     "all_image_references_packed": true,
     "evaluated_arm_animation_moves_mesh": true
   },
   "instances": {
-    "Oaks A | GN scatter": 5,
-    "Oaks B | GN scatter": 7,
-    "Birches A | GN scatter": 6,
-    "Birches B | GN scatter": 3,
-    "Pine saplings | GN scatter": 26,
-    "Moss rocks A | GN scatter": 46,
-    "Moss rocks B | GN scatter": 29,
-    "Meadow grass | GN scatter": 337,
-    "Coastal grass | GN scatter": 286,
-    "Ferns A | GN scatter": 166,
-    "Ferns B | GN scatter": 104,
-    "Shrubs | GN scatter": 151,
-    "Sorrel ground cover | GN scatter": 146,
-    "Flowering rose plants | GN scatter": 18,
+    "Oaks A | GN scatter": 18,
+    "Oaks B | GN scatter": 8,
+    "Birches A | GN scatter": 17,
+    "Birches B | GN scatter": 10,
+    "Pine saplings | GN scatter": 24,
+    "Moss rocks A | GN scatter": 36,
+    "Moss rocks B | GN scatter": 36,
+    "Meadow grass | GN scatter": 520,
+    "Coastal grass | GN scatter": 439,
+    "Ferns A | GN scatter": 194,
+    "Ferns B | GN scatter": 157,
+    "Shrubs | GN scatter": 201,
+    "Sorrel ground cover | GN scatter": 220,
+    "Flowering rose plants | GN scatter": 15,
     "Fallen log | GN scatter": 10,
-    "Baked fireflies | frozen instances": 184
+    "Baked fireflies | 144-frame physical particle cache": 214
   },
   "robot_camera_pixel_positions": {
     "URDF | base_link": [
-      230.7,
-      231.4
+      212.1,
+      239.7
     ],
     "URDF | Head_link": [
-      230.8,
-      206.1
+      212.2,
+      214.4
     ],
     "URDF | l_foot_link": [
-      246.9,
-      305.3
+      214.6,
+      309.8
     ],
     "URDF | r_foot_link": [
-      216.5,
-      285.9
+      204.2,
+      300.5
     ]
   },
   "foot_lowest_world_z_m": {
-    "URDF | l_foot_link": 0.1769,
-    "URDF | r_foot_link": 0.1183
+    "URDF | l_foot_link": 0.0732,
+    "URDF | r_foot_link": 0.0924
   },
   "firefly_z_range_m": [
-    0.52,
+    0.28,
     2.82
   ],
-  "animation_test_displacement_m": 1.6807,
+  "animation_test_displacement_m": 1.8032,
   "frame_range": [
     1,
     144

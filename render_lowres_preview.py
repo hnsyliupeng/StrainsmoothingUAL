@@ -39,7 +39,7 @@ w = round(scene.render.resolution_x * scene.render.resolution_percentage / 100)
 h = round(scene.render.resolution_y * scene.render.resolution_percentage / 100)
 assert (w, h) == (640, 480), f'Refusing unapproved preview size: {w}x{h}'
 assert w <= 1280 and h <= 720, 'Refusing high-resolution render'
-assert bpy.data.objects.get('Baked fireflies | frozen instances') is not None
+assert bpy.data.objects.get('Baked fireflies | 144-frame physical particle cache') is not None
 assert scene.camera is not None
 scene.render.image_settings.file_format = 'PNG'
 scene.render.use_persistent_data = True

@@ -1,25 +1,36 @@
-# Twilight wilderness robot — moving-flight candidate, not visually accepted
+# Twilight Wilderness Robot — editable candidate, **not visually approved**
 
-**This `.blend` is updated, but it is not visually approved.** The current sandbox still cannot create a 640×480 EEVEE preview because EGL/GLX reports `EGL_BAD_PARAMETER`; do not use counts or script results as a substitute for looking at a render. Do not request a high-resolution render yet.
+The current `.blend` is structurally rebuilt, but the user’s earlier screenshot remains a rejection and this candidate has **not** been visually approved. Its old preview PNGs were deleted because they depict the rejected, pre-rebuild scene. No high-resolution render has been made. Automated audits below are evidence about scene data and motion only; they are not visual JEV approval.
 
-## What was changed in this scene
+## Current candidate
 
-- **Visible lake and nonflat land geometry:** editable 30 m terrain with a measured **2.56 m elevation range** and excavated basin; a separate glossy, moonlit water mesh (150 polygons) is clipped to *submerged* terrain. The main camera includes lake center at pixel (521, 283). All 15 GN scatters exclude the lake. The forest uses UV-preserving CC0 BFjord / Poly Haven assets; the previously sideways Poly Haven tree, fern, shrub, and rock meshes are converted from Y-up to Blender Z-up. See `forest_assets.py`, `build_scene.py` and `assets/` licenses.
-- **Fireflies actually fly:** first evaluate a Blender NEWTON/Brownian/turbulence particle simulation and bake 92 initial positions. `animate_flight.py` then integrates independent Newton/drag/steering paths over 144 frames and stores 19 sampled states as mesh shape keys with linear interpolation. Both the CC0 anatomical insect (head, abdomen, wings, legs; five preserved face material groups) and the small warm halo GN-instance from the SAME moving vertices. The insect's abdomen is emissive (strength 18); eight warm point lights move with specific insects. An EEVEE compositor FOG_GLOW node exists for visible bloom. The swarm center travels **3.312 m in world space**. The unanimated simulation emitter remains hidden for provenance; the final flight plays in Blender with no script or live particle cache.
-- **Robot really follows flight direction:** all 18 MIT UBTECH Alpha 1S STL visual links are parented to the 18-bone armature and their supplier URDF servo axes are keyframed. The evaluated *visible mesh*, not merely a rig control, moves **3.312 m** across the scene, in the same direction as the flying swarm (direction dot product 1.0), maintaining roughly 1.43 m behind its centroid. Independent bone channels alternate while moving, rather than stationary jogging. `terrain_profile.py` supplies the same height function to land and foot checks.
-- **Materials:** actual source image atlases are packed, pine needles retain their face material group, and the robot shell has the CC0 ambientCG MetalPlates006 base color, metallic and roughness maps. These are data bindings, not proof the resulting composition looks good.
+- **Forest and lake:** editable 30 m height-field terrain on a 128 × 128 grid (16,641 vertices; 2.562 m relief). Fifteen CC0 source meshes feed editable Geometry Nodes scatters. Tree framing exclusions were narrowed and plant scatter density increased to address the sparse clearing in the rejected screenshot. The water is an editable 5,120-face mesh whose shore is built from 256 binary-searched intersections against the analytic terrain height field, rather than the old coarse polygon clipping. Ground color retains the packed Poly Haven forest-floor map but is graded darker for twilight. These changes still need an EEVEE image review.
+- **Fireflies:** `build_scene.py` runs Blender’s actual NEWTON particle system with Brownian motion, a directional WIND field and turbulence, sampling all 144 frames. 107 continuously airborne particles are baked into 144 relative shape keys on an editable vertex mesh; Geometry Nodes instance the CC0 anatomical firefly and a translucent aura at those moving points. The measured flock centroid travels **3.658 m** (aggregate individual path distance **391.45 m**). `animate_flight.py` no longer invents a second flight integrator: the robot follows the measured baked centroid, about 1.433 m behind it. The source emitter and force fields are retained hidden for provenance.
+- **Bioluminescence:** the anatomical abdomen has saturated yellow-green emission (strength 4.8), a translucent 12 cm aura, 18 animated flight-following point lights, and an EEVEE compositor FOG_GLOW node. Those are implementation details—not proof the glow reads well at 640 × 480; that must be judged from the rendered image.
+- **Robot and gait:** the 18-link UBTECH Alpha 1S URDF armature retains real STL link meshes. Both legs now have four-link ankle/sole IK constraints, animated world-space foot targets and knee pole targets, with the leg action curves removed. URDF axis locks and angular limits constrain each leg DOF. Evaluated sole-mesh stance clearance across frames 1–144 is **0.80–3.11 cm**; the all-phase range is **−0.24–5.04 cm** (the raised part is the authored swing arc). Maximum IK endpoint error is **0.000047 m**. The visible body follows the physical flock for 3.652 m with direction dot product 1.0. These measurements do not establish that the gait looks natural.
+- **Lighting and presentation:** the ground grading, twilight exposure and forest framing were changed after inspecting the rejected screenshot. The only approved review format is EEVEE at **640 × 480** (or another size no larger than 720p).
 
-## Remaining issues / strict status
+## Visual-review blocker — approval is still pending
 
-- The earlier **17.3 cm foot hover** was a real error. `refine_walk.py` now solves both legs against evaluated sole vertices **on every frame 1–144**. Measured gap is **0.8–2.6 cm** across both feet. This fixes geometric ground contact; the gait still requires actual visual judgement.
-- A physically sized 5.1 cm firefly is only about 3 px across in the main 640px overview; the anatomical close-up camera now follows one real baked insect and keeps it near pixel (320,240) at frames 1,75,144. Use `--camera=firefly --frame=75` with `render_lowres_preview.py` on a working EEVEE host to inspect wings and abdomen. Do not claim the main overview shows their anatomy.
-- **No preview PNG was generated or reviewed here.** `output/JEV_reviews.json` marks every stage `BLOCKED_PENDING_VISUAL`.
+`output/JEV_reviews.json` marks all five stages `PENDING_VISUAL`. No current-candidate preview exists. I attempted the ≤720p EEVEE preview locally; the sandbox has no GPU device and its software EGL/llvmpipe path is too old for Blender 4.5 EEVEE (it reports OpenGL 3.1; forcing a 4.5 profile still segfaults even on a minimal EEVEE scene). I will not substitute Cycles, Workbench, a data-only audit, or the old rejected PNGs and call that a visual review.
 
-## Files and reproducibility
+On a working Blender 4.5 host with a compatible OpenGL/EGL/GLX context, generate only low-resolution review frames:
 
-- [Editable Blender 4.5 file](output/Twilight_Wilderness_Robot.blend)
-- [Evaluated 3D flight and chase audit](output/flight_audit.json) — 17 data checks, not a visual review
-- [Staged JEV report](output/JEV_reviews.json)
-- No `output/preview_640x480.png` exists yet.
+```bash
+blender -b output/Twilight_Wilderness_Robot.blend \
+  --python render_lowres_preview.py -- \
+  --frames=1,75,144 --include-firefly --samples=4
+```
 
-Build in this order with Blender 4.5 bpy and xacro: `python3 build_scene.py && python3 upgrade_animation.py && python3 animate_flight.py && python3 refine_walk.py && python3 audit_flight.py`. Each rebuild starts from scratch; `animate_flight.py` refuses to apply twice. On an OpenGL/EGL/GLX-capable Blender host, run `blender -b output/Twilight_Wilderness_Robot.blend --python render_lowres_preview.py` and inspect actual EEVEE frames 1, 75 and 144 and the firefly close-up at **no more than 720p** before any visual sign-off.
+Review the three overview frames and the animated anatomical close-up. If any of the user-reported issues remain (stiff gait, imperceptible glow, jagged shore, or floating dark geometry), fix them and repeat the JEV. **No visual sign-off has been recorded.**
+
+## Files
+
+- Editable candidate: `output/Twilight_Wilderness_Robot.blend` (43,401,354 bytes; 41.4 MiB)
+- Staged JEV: `output/JEV_reviews.json` (all five stages remain `PENDING_VISUAL`)
+- Independent non-rendering scene/data audit: `output/scene_audit.json` (22 checks pass; explicitly not visual approval)
+- Physical flock / chase data audit: `output/flight_audit.json`
+- Two-leg URDF IK and sole-contact audit: `output/robot_ik_audit.json`
+- Build stages: `build_scene.py` → `upgrade_animation.py` → `animate_flight.py` → `refine_walk.py` → `audit_flight.py`
+
+Do not treat the `.blend` as visually approved or ready for high-resolution rendering until the required ≤720p EEVEE review is completed.

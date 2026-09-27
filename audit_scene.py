@@ -7,7 +7,7 @@ bpy.ops.wm.open_mainfile(filepath=str(ROOT/'output'/'Twilight_Wilderness_Robot.b
 s=bpy.context.scene;camera=s.camera
 D=bpy.context.evaluated_depsgraph_get()
 counts=dict(collections.Counter(i.parent.original.name for i in D.object_instances if i.is_instance))
-flies=bpy.data.objects['Baked fireflies | frozen instances']; coords=[v.co for v in flies.data.vertices]
+flies=bpy.data.objects['Baked fireflies | 144-frame physical particle cache']; coords=[v.co for v in flies.data.vertices]
 robot=[o for o in bpy.data.collections['Robot'].objects if o.type=='MESH']
 rig=bpy.data.objects['Robot armature | 144-frame scanning and step pose']
 insect=bpy.data.objects['Firefly | original CC0 insect mesh | source']
@@ -29,7 +29,7 @@ checks={
  'bone_rig_17_servos_plus_root':rig.type=='ARMATURE' and len(rig.data.bones)==18 and s.frame_end>=120,
  'rigged_robot_links':all(o.parent==rig and any(m.type=='ARMATURE' and m.object==rig for m in o.modifiers) and o.vertex_groups.get(o['urdf_link']) for o in robot),
  'authored_insect_anatomy':len(insect.data.vertices)>=900 and len(insect.data.materials)==5 and all(any(p.material_index==i for p in insect.data.polygons) for i in range(5)) and counts.get(flies.name)==len(flies.data.vertices)*2,
- 'insect_glow_and_wings':insect.data.materials[1].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value>0 and all(m is not None for m in insect.data.materials),
+ 'insect_glow_and_wings':insect.data.materials[1].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value>=4.8 and all(m is not None for m in insect.data.materials),
  'robot_visual_vertices_over_100k':sum(len(o.data.vertices) for o in robot)>100000,
  'robot_camera_frame':all(0<x<640 and 0<y<480 for x,y in frame_positions.values()),
  'foot_mesh_bounds_finite':all(abs(z)<3 for z in feet_base.values()),
@@ -49,9 +49,9 @@ checks={
      for o in bpy.data.collections['Environment'].objects
      if o.name in ('Oaks A | GN scatter','Oaks B | GN scatter','Birches A | GN scatter','Birches B | GN scatter')), 
  'flowering_instances':counts.get('Flowering rose plants | GN scatter',0)>=15,
- 'no_central_tree_trunks':all(not (abs(i.matrix_world.translation.x)<3.8 and -8<i.matrix_world.translation.y<5) for i in D.object_instances if i.is_instance and i.parent.original.name in {'Oaks A | GN scatter','Oaks B | GN scatter','Birches A | GN scatter','Birches B | GN scatter','Pine saplings | GN scatter'}),
- 'fireflies_92_simulation_baked_points_with_two_instanced_meshes':counts.get(flies.name)==len(flies.data.vertices)*2==184,
- 'particle_engine_source_retained':len(bpy.data.objects['Simulation emitter | hidden after bake'].particle_systems)>0,
+ 'no_central_tree_trunks':all(not (abs(i.matrix_world.translation.x)<2.6 and -5.5<i.matrix_world.translation.y<3.5) for i in D.object_instances if i.is_instance and i.parent.original.name in {'Oaks A | GN scatter','Oaks B | GN scatter','Birches A | GN scatter','Birches B | GN scatter','Pine saplings | GN scatter'}),
+ 'fireflies_107_physics_baked_points_with_two_instanced_meshes':counts.get(flies.name)==len(flies.data.vertices)*2==214,
+ 'particle_engine_source_retained':len(bpy.data.objects['Simulation emitter | hidden after full flight bake'].particle_systems)>0,
  'active_material_textures_packed':all(n.image and n.image.packed_file and all(n.image.size) for m in bpy.data.materials if m.use_nodes and m.users for n in m.node_tree.nodes if n.type=='TEX_IMAGE'),
  'all_image_references_packed':all(i.packed_file for i in bpy.data.images if i.type=='IMAGE' and i.users),
 }
