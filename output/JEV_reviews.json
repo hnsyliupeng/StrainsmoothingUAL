@@ -1,0 +1,229 @@
+[
+  {
+    "stage": "1 基础环境与地形",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "FAIL_VISUAL",
+      "Evidence": {
+        "terrain_grid": true,
+        "open_source_textured_sources": true,
+        "gn_scatter_count": true,
+        "pine_has_needles_and_bark": true,
+        "no_missing_texture": true,
+        "no_mass_object_duplication": true,
+        "user_screenshot_review_passed": false,
+        "low_resolution_eevee_preview_delivered": false
+      },
+      "Verification": "FAIL — 用户提供的多张 Blender 视口截图显示树木、草丛、花朵与岩石仍呈低模/卡片状、缺少真实植物形态；以前的散射数量与贴图存在性检查不能抵消视觉失败。",
+      "visual_evidence": "User-provided Blender viewport screenshots in chat; not a passing EEVEE render or approval."
+    },
+    "get_scene_info": {
+      "objects": 18,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 0,
+        "Fireflies": 0,
+        "Lights": 0,
+        "Architecture / open-source asset prototypes": 7
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 0,
+      "baked_fireflies": 0,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        1920,
+        1080
+      ]
+    }
+  },
+  {
+    "stage": "2 机器人主体",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "FAIL_VISUAL",
+      "Evidence": {
+        "multi_part_actuation": true,
+        "head_and_optics": true,
+        "bilateral_pistons": true,
+        "power_data_harnesses": true,
+        "both_feet": true,
+        "user_screenshot_review_passed": false,
+        "low_resolution_eevee_preview_delivered": false
+      },
+      "Verification": "FAIL — 用户截图中主体仍是方盒躯干、简化四肢和不可信的关节；零件数量不是机械结构合理性的证据。",
+      "visual_evidence": "User-provided Blender viewport screenshots in chat; not a passing EEVEE render or approval."
+    },
+    "get_scene_info": {
+      "objects": 117,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 99,
+        "Fireflies": 0,
+        "Lights": 0,
+        "Architecture / open-source asset prototypes": 7
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 99,
+      "baked_fireflies": 0,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        1920,
+        1080
+      ]
+    }
+  },
+  {
+    "stage": "3 萤火虫物理模拟与烘焙",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "FAIL_VISUAL",
+      "Evidence": {
+        "particle_system": true,
+        "turbulence_force": true,
+        "measured_motion": true,
+        "baked_count": true,
+        "static_vertex_mesh": true,
+        "height_variation": true,
+        "fly_source_diameter": true,
+        "user_screenshot_review_passed": false,
+        "low_resolution_eevee_preview_delivered": false
+      },
+      "Verification": "FAIL — 虽然记录了 Newton 粒子模拟及 92 个烘焙静态实例，用户截图中萤火虫表现为大小/亮度近乎一致的白色球点，缺乏符合场景的自然发光层次；外观未达到要求。",
+      "visual_evidence": "User-provided Blender viewport screenshots in chat; not a passing EEVEE render or approval."
+    },
+    "get_scene_info": {
+      "objects": 121,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 99,
+        "Fireflies": 3,
+        "Lights": 0,
+        "Architecture / open-source asset prototypes": 8
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 99,
+      "baked_fireflies": 1,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        1920,
+        1080
+      ]
+    }
+  },
+  {
+    "stage": "4 微光灯光与基础材质",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "FAIL_VISUAL",
+      "Evidence": {
+        "eevee": true,
+        "preview_le_720p": true,
+        "default_viewport_material_mode": true,
+        "lighting": true,
+        "material_assignments": true,
+        "user_screenshot_review_passed": false,
+        "low_resolution_eevee_preview_delivered": false
+      },
+      "Verification": "FAIL — 用户截图中的地面、石头、草木与机器人材质缺少写实细节，微光夜景不成立；没有产出且审查符合要求的 ≤720p EEVEE 预览。",
+      "visual_evidence": "User-provided Blender viewport screenshots in chat; not a passing EEVEE render or approval."
+    },
+    "get_scene_info": {
+      "objects": 125,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 99,
+        "Fireflies": 3,
+        "Lights": 4,
+        "Architecture / open-source asset prototypes": 8
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 99,
+      "baked_fireflies": 1,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        640,
+        480
+      ]
+    }
+  },
+  {
+    "stage": "5 清理与交付",
+    "hardness": "High",
+    "JEV": {
+      "Judgement": "FAIL_DELIVERY",
+      "Evidence": {
+        "required_collections": true,
+        "blend_saved": true,
+        "static_bake": true,
+        "simulation_hidden": true,
+        "user_screenshot_review_passed": false,
+        "low_resolution_eevee_preview_delivered": false
+      },
+      "Verification": "FAIL — 步骤 1–4 未通过 JEV，最终静态场景和规定的低分辨率 EEVEE 预览没有合格交付。现有 .blend 是被否决的历史原型，不是最终成果。",
+      "visual_evidence": "User-provided Blender viewport screenshots in chat; not a passing EEVEE render or approval."
+    },
+    "get_scene_info": {
+      "objects": 125,
+      "collections": {
+        "Architecture": 0,
+        "Environment": 11,
+        "Robot": 99,
+        "Fireflies": 3,
+        "Lights": 4,
+        "Architecture / open-source asset prototypes": 8
+      },
+      "geometry_nodes": [
+        "Pines | GN scatter",
+        "Dead trunks | GN scatter",
+        "Deciduous | GN scatter",
+        "Stones | GN scatter",
+        "Understory | GN scatter",
+        "Bushes | GN scatter",
+        "Flowering understory | GN scatter"
+      ],
+      "robot_parts": 99,
+      "baked_fireflies": 1,
+      "render_engine": "BLENDER_EEVEE_NEXT",
+      "render_size": [
+        640,
+        480
+      ]
+    }
+  }
+]
