@@ -34,6 +34,9 @@ checks={
  'robot_camera_frame':all(0<x<640 and 0<y<480 for x,y in frame_positions.values()),
  'foot_world_floor_tolerance_2cm':all(abs(z)<.02 for z in feet_base.values()),
  'fifteen_gn_environment_scatterers':len([o for o in bpy.data.collections['Environment'].objects if any(m.type=='NODES' for m in o.modifiers)])==15,
+ 'inspection_cameras_present':all(bpy.data.objects.get(n) and bpy.data.objects[n].type=='CAMERA' for n in ('Camera | robot rig inspection','Camera | firefly anatomical inspection')) and camera.data.ortho_scale<=7,
+ 'pine_needles_have_real_face_materials':__import__('collections').Counter(p.material_index for p in bpy.data.objects['Source | pine_sapling_small_b'].data.polygons)[1]>1000 and len(bpy.data.objects['Source | pine_sapling_small_b'].data.materials)==2,
+ 'fallen_log_woodland_material':bpy.data.objects['Source | FallenHollowLog_A'].data.materials[0]==bpy.data.objects['Source | MatureOak_A'].data.materials[0],
  'oak_birch_b_variants_have_correct_uv_atlas':all(
      any(n.type=='TEX_IMAGE' and n.image and n.image.name.startswith('Woodland06Atlas') and n.image.packed_file
          for n in bpy.data.objects['Source | '+name].data.materials[0].node_tree.nodes)

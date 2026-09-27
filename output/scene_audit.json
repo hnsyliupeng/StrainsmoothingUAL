@@ -11,6 +11,9 @@
     "robot_camera_frame": true,
     "foot_world_floor_tolerance_2cm": true,
     "fifteen_gn_environment_scatterers": true,
+    "inspection_cameras_present": true,
+    "pine_needles_have_real_face_materials": true,
+    "fallen_log_woodland_material": true,
     "oak_birch_b_variants_have_correct_uv_atlas": true,
     "tree_scatter_has_random_z_rotation": true,
     "flowering_instances": true,
@@ -41,20 +44,20 @@
   },
   "robot_camera_pixel_positions": {
     "URDF | base_link": [
-      320.7,
-      250.5
+      321.0,
+      254.5
     ],
     "URDF | Head_link": [
-      318.2,
-      220.5
+      317.6,
+      213.0
     ],
     "URDF | l_foot_link": [
-      331.4,
-      333.2
+      335.8,
+      368.8
     ],
     "URDF | r_foot_link": [
-      303.9,
-      327.6
+      297.8,
+      361.1
     ]
   },
   "foot_lowest_world_z_m": {

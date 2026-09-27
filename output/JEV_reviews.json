@@ -11,14 +11,12 @@
         "real_color_maps": true,
         "original_foliage_only": true,
         "new_visual_evidence_available": false,
-        "oak_birch_b_original_uv_atlas_corrected": true,
-        "per_instance_tree_z_rotation": true,
-        "supplied_screenshot_visually_rejected": true,
-        "independent_updated_scene_render_available": false,
-        "broken_importer_image_references_removed": true,
-        "all_used_material_images_packed": true
+        "user_screenshot_rejected_original_scene": true,
+        "new_scene_eevee_preview_available": false,
+        "preserved_pine_bark_twig_face_indices": true,
+        "woodland_log_uses_correct_atlas": true
       },
-      "Verification": "15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 复检补充：Oak_B/Birch_B 已替换错误的 1K WoodlandAtlas，改用原厂 2K Woodland06Atlas；树木 GN 增添独立 Z 轴旋转随机源。此修正尚未得到渲染画面证明，继续 PENDING_VISUAL。 用户提供的最新画面出现粉色植被、材质不清、萤火虫点状及机器人结构不足；原场景视觉验收失败，任何机器断言不能覆盖此证据。新候选仍无 EEVEE 预览，须重新目视验收。"
+      "Verification": "15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 用户最新截图否定旧版材质/构图/萤火虫。新文件只通过数据审计，尚无其自身的低分辨率 EEVEE 预览，不可通过视觉审查。"
     },
     "get_scene_info": {
       "objects": 33,
@@ -67,24 +65,23 @@
         "imported_detail_vertices": true,
         "no_generated_box_body": true,
         "new_visual_evidence_available": false,
-        "supplied_screenshot_visually_rejected": true,
-        "independent_updated_scene_render_available": false,
-        "144_frame_bone_action": true,
-        "18_rigid_deform_bones": true,
-        "evaluated_mesh_vertex_motion_m": 0.0498,
-        "authored_stl_links": 18,
-        "cc0_photographic_metal_plates_packed": true
+        "user_screenshot_rejected_original_scene": true,
+        "new_scene_eevee_preview_available": false,
+        "animated_armature_bones": 18,
+        "frame_end": 144,
+        "surface_pbr_map_count": 3,
+        "main_camera_ortho_scale_m": 6.800000190734863
       },
-      "Verification": "机械主体来自 MIT 授权 UBTECH Alpha 1S 数字孪生 17关节 URDF（人工测量舵机轴），20 个导入视觉网格；仍需低分辨率目视检查站姿、尺寸与地面接触。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 本轮无法生成真实的 640×480 EEVEE 画面，视觉核验维持待审。 用户提供的最新画面出现粉色植被、材质不清、萤火虫点状及机器人结构不足；原场景视觉验收失败，任何机器断言不能覆盖此证据。新候选仍无 EEVEE 预览，须重新目视验收。"
+      "Verification": "机械主体来自 MIT 授权 UBTECH Alpha 1S 数字孪生 17关节 URDF（人工测量舵机轴），20 个导入视觉网格；仍需低分辨率目视检查站姿、尺寸与地面接触。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 用户最新截图否定旧版材质/构图/萤火虫。新文件只通过数据审计，尚无其自身的低分辨率 EEVEE 预览，不可通过视觉审查。"
     },
     "get_scene_info": {
-      "objects": 61,
+      "objects": 63,
       "collections": {
         "Architecture": 0,
         "Environment": 18,
         "Robot": 19,
         "Fireflies": 3,
-        "Lights": 4,
+        "Lights": 6,
         "Architecture / open-source asset prototypes": 17
       },
       "geometry_nodes": [
@@ -112,7 +109,7 @@
         1,
         144
       ],
-      "baked_fireflies": 1,
+      "baked_fireflies": 92,
       "firefly_insect_source_vertices": 970,
       "render_engine": "BLENDER_EEVEE_NEXT",
       "render_size": [
@@ -135,22 +132,21 @@
         "height_variation": true,
         "fly_source_diameter": true,
         "new_visual_evidence_available": false,
-        "supplied_screenshot_visually_rejected": true,
-        "independent_updated_scene_render_available": false,
-        "source_anatomical_cc0_insect_mesh_vertices": 970,
-        "all_five_original_face_material_groups_retained": true,
-        "static_positions_from_particle_simulation": 92
+        "user_screenshot_rejected_original_scene": true,
+        "new_scene_eevee_preview_available": false,
+        "original_insect_material_face_groups": 5,
+        "physics_baked_insect_instances": 92
       },
-      "Verification": "物理引擎粒子帧 1–75 连续求值；48→75 帧共有粒子位移总和 0.61 m；第 75 帧筛选并烘焙 92 个静态点，GN 引用内嵌发光源，渲染不依赖粒子缓存。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 本轮无法生成真实的 640×480 EEVEE 画面，视觉核验维持待审。 用户提供的最新画面出现粉色植被、材质不清、萤火虫点状及机器人结构不足；原场景视觉验收失败，任何机器断言不能覆盖此证据。新候选仍无 EEVEE 预览，须重新目视验收。"
+      "Verification": "物理引擎粒子帧 1–75 连续求值；48→75 帧共有粒子位移总和 0.61 m；第 75 帧筛选并烘焙 92 个静态点，GN 引用内嵌发光源，渲染不依赖粒子缓存。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 用户最新截图否定旧版材质/构图/萤火虫。新文件只通过数据审计，尚无其自身的低分辨率 EEVEE 预览，不可通过视觉审查。"
     },
     "get_scene_info": {
-      "objects": 61,
+      "objects": 63,
       "collections": {
         "Architecture": 0,
         "Environment": 18,
         "Robot": 19,
         "Fireflies": 3,
-        "Lights": 4,
+        "Lights": 6,
         "Architecture / open-source asset prototypes": 17
       },
       "geometry_nodes": [
@@ -178,7 +174,7 @@
         1,
         144
       ],
-      "baked_fireflies": 1,
+      "baked_fireflies": 92,
       "firefly_insect_source_vertices": 970,
       "render_engine": "BLENDER_EEVEE_NEXT",
       "render_size": [
@@ -199,20 +195,20 @@
         "lighting": true,
         "material_assignments": true,
         "new_visual_evidence_available": false,
-        "supplied_screenshot_visually_rejected": true,
-        "independent_updated_scene_render_available": false,
-        "eevee_render_completed": false
+        "user_screenshot_rejected_original_scene": true,
+        "new_scene_eevee_preview_available": false,
+        "two_optional_anatomy_and_rig_inspection_cameras": true
       },
-      "Verification": "月光冷主光、弱冷填光、微弱暖色反射；金属、氧化铜、石土与发光材料分离；仅允许 640×480 预览。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 本轮无法生成真实的 640×480 EEVEE 画面，视觉核验维持待审。 用户提供的最新画面出现粉色植被、材质不清、萤火虫点状及机器人结构不足；原场景视觉验收失败，任何机器断言不能覆盖此证据。新候选仍无 EEVEE 预览，须重新目视验收。"
+      "Verification": "月光冷主光、弱冷填光、微弱暖色反射；金属、氧化铜、石土与发光材料分离；仅允许 640×480 预览。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 用户最新截图否定旧版材质/构图/萤火虫。新文件只通过数据审计，尚无其自身的低分辨率 EEVEE 预览，不可通过视觉审查。"
     },
     "get_scene_info": {
-      "objects": 61,
+      "objects": 63,
       "collections": {
         "Architecture": 0,
         "Environment": 18,
         "Robot": 19,
         "Fireflies": 3,
-        "Lights": 4,
+        "Lights": 6,
         "Architecture / open-source asset prototypes": 17
       },
       "geometry_nodes": [
@@ -240,7 +236,7 @@
         1,
         144
       ],
-      "baked_fireflies": 1,
+      "baked_fireflies": 92,
       "firefly_insect_source_vertices": 970,
       "render_engine": "BLENDER_EEVEE_NEXT",
       "render_size": [
@@ -260,20 +256,19 @@
         "static_bake": true,
         "simulation_hidden": true,
         "new_visual_evidence_available": false,
-        "supplied_screenshot_visually_rejected": true,
-        "independent_updated_scene_render_available": false,
-        "updated_blend_saved": true
+        "user_screenshot_rejected_original_scene": true,
+        "new_scene_eevee_preview_available": false
       },
-      "Verification": "保留隐藏模拟源以便追溯，静态实例作为最终展示；资产内嵌到 .blend，外部 FBX 仅供重建脚本使用。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 本轮无法生成真实的 640×480 EEVEE 画面，视觉核验维持待审。 用户提供的最新画面出现粉色植被、材质不清、萤火虫点状及机器人结构不足；原场景视觉验收失败，任何机器断言不能覆盖此证据。新候选仍无 EEVEE 预览，须重新目视验收。"
+      "Verification": "保留隐藏模拟源以便追溯，静态实例作为最终展示；资产内嵌到 .blend，外部 FBX 仅供重建脚本使用。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 用户最新截图否定旧版材质/构图/萤火虫。新文件只通过数据审计，尚无其自身的低分辨率 EEVEE 预览，不可通过视觉审查。"
     },
     "get_scene_info": {
-      "objects": 61,
+      "objects": 63,
       "collections": {
         "Architecture": 0,
         "Environment": 18,
         "Robot": 19,
         "Fireflies": 3,
-        "Lights": 4,
+        "Lights": 6,
         "Architecture / open-source asset prototypes": 17
       },
       "geometry_nodes": [
@@ -301,7 +296,7 @@
         1,
         144
       ],
-      "baked_fireflies": 1,
+      "baked_fireflies": 92,
       "firefly_insect_source_vertices": 970,
       "render_engine": "BLENDER_EEVEE_NEXT",
       "render_size": [

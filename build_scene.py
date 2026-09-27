@@ -65,7 +65,7 @@ from forest_assets import import_asset, WOOD, WOOD06, FOL, FERN, SHRUB, PINE_BAR
 
 def bf(filename,lod=1,scale=1):
  # B variants use a separate authored atlas. Mixing atlas revisions destroys UV fidelity.
- material=WOOD06 if filename in ('MatureOak_B','SilverBirch_B') else WOOD if filename in ('MatureOak_A','SilverBirch_A','TallMeadowGrass_A') else FOL
+ material=WOOD06 if filename in ('MatureOak_B','SilverBirch_B') else WOOD if filename in ('MatureOak_A','SilverBirch_A','TallMeadowGrass_A','FallenHollowLog_A') else FOL
  return import_asset('bfjord',filename,lod,[material],SOURCES,filename,scale)
 def ph(filename,materials,lod=1,scale=1):
  return import_asset('polyhaven',filename,lod,materials,SOURCES,filename,scale)

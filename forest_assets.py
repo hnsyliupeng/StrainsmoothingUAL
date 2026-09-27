@@ -63,8 +63,15 @@ def import_asset(folder,filename,lod,materials,collection,name,scale=1):
     collection.objects.link(obj);obj.name='Source | '+name
     obj.parent=None;obj.matrix_world.identity()
     obj.data=obj.data.copy()
-    obj.data.materials.clear()
-    for material in materials:obj.data.materials.append(material)
+    # Blender resets EVERY polygon.material_index to 0 when all slots are
+    # cleared. Preserve the FBX face-group indices, especially pine bark/twigs.
+    old_indices=[face.material_index for face in obj.data.polygons]
+    if len(materials)!=len(obj.data.materials):
+        raise ValueError(f'{filename}: expected {len(obj.data.materials)} material slots, got {len(materials)}')
+    for i,material in enumerate(materials):obj.data.materials[i]=material
+    assert all(p.material_index==old_indices[i] for i,p in enumerate(obj.data.polygons)), filename
+    if len(materials)>1:
+        assert all(any(p.material_index==i for p in obj.data.polygons) for i in range(len(materials))), filename
     obj.data.transform(Matrix.Diagonal((scale,scale,scale,1)))
     bottom=min(v.co.z for v in obj.data.vertices)
     for v in obj.data.vertices:v.co.z-=bottom

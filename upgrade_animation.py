@@ -152,6 +152,24 @@ baked['insect_anatomy']='authored wing, head, body and abdominal glow submeshes/
 # The physics cache is retained for provenance, but animated presentation is
 # deliberately driven by the skeleton; frozen fireflies never rely on cache.
 scene.frame_end=144;scene.frame_set(75)
+# Main scene in the user's screenshot made the 2m robot too small to read.
+# Increase framing without inventing new forest assets. Additional edit-friendly
+# diagnostic cameras make the authored insect anatomy and rig inspectable at
+# <=720p, without pretending that their existence is a rendered preview.
+scene.camera.data.ortho_scale=6.8
+lights=bpy.data.collections['Lights']
+def inspection_camera(name, location, target, width):
+    bpy.ops.object.camera_add(location=location)
+    camera=bpy.context.object
+    for c in list(camera.users_collection):c.objects.unlink(camera)
+    lights.objects.link(camera);camera.name=name
+    camera.rotation_euler=(Vector(target)-camera.location).to_track_quat('-Z','Y').to_euler()
+    camera.data.type='ORTHO';camera.data.ortho_scale=width
+    camera['purpose']='Optional material/structure inspection only; not a preview render'
+    return camera
+inspection_camera('Camera | robot rig inspection', (3.8,-5.7,2.7), (0,0,1.05), 3.2)
+fly_target=Vector(baked.data.vertices[len(baked.data.vertices)//2].co)
+inspection_camera('Camera | firefly anatomical inspection',fly_target+Vector((.24,-.23,.12)),fly_target,.30)
 for screen in bpy.data.screens:
     for area in screen.areas:
         if area.type=='VIEW_3D':area.spaces.active.shading.type='MATERIAL'
@@ -161,4 +179,27 @@ assert all(n.image and n.image.packed_file and all(n.image.size) for m in bpy.da
 assert len(arm.bones)==18 and len(insect.data.vertices)>900 and len(baked.data.vertices)>=15
 assert scene.render.engine=='BLENDER_EEVEE_NEXT' and scene.render.resolution_y<=720
 bpy.ops.wm.save_as_mainfile(filepath=str(BLEND),compress=True)
+# The user's screenshot rejects the earlier scene. Keep the high-hardness JEV
+# status synchronized with THIS upgraded file; passing assertions is data only.
+report_path=ROOT/'output/JEV_reviews.json'
+reviews=json.loads(report_path.read_text())
+assert len(reviews)==5
+summary={'objects':len(bpy.data.objects),'collections':{c.name:len(c.objects) for c in scene.collection.children_recursive},
+         'geometry_nodes':[o.name for o in bpy.data.collections['Environment'].objects if any(m.type=='NODES' for m in o.modifiers)],
+         'robot_parts':sum(o.type=='MESH' for o in robot.objects),'robot_armatures':1,'rig_bones':len(arm.bones),
+         'animated_joint_channels':len(trajectories),'animation_frame_range':[scene.frame_start,scene.frame_end],
+         'baked_fireflies':len(baked.data.vertices),'firefly_insect_source_vertices':len(insect.data.vertices),
+         'render_engine':scene.render.engine,'render_size':[scene.render.resolution_x,scene.render.resolution_y]}
+for index,entry in enumerate(reviews):
+    if index:entry['get_scene_info']=summary
+    entry['JEV']['Judgement']='FAIL_VISUAL' if index<4 else 'BLOCKED_PENDING_VISUAL'
+    entry['JEV']['Evidence']['user_screenshot_rejected_original_scene']=True
+    entry['JEV']['Evidence']['new_scene_eevee_preview_available']=False
+    entry['JEV']['Verification']+=' 用户最新截图否定旧版材质/构图/萤火虫。新文件只通过数据审计，尚无其自身的低分辨率 EEVEE 预览，不可通过视觉审查。'
+reviews[0]['JEV']['Evidence'].update({'preserved_pine_bark_twig_face_indices':True,'woodland_log_uses_correct_atlas':True})
+reviews[1]['JEV']['Evidence'].update({'animated_armature_bones':len(arm.bones),'frame_end':scene.frame_end,'surface_pbr_map_count':3,'main_camera_ortho_scale_m':scene.camera.data.ortho_scale})
+reviews[3]['JEV']['Evidence']['two_optional_anatomy_and_rig_inspection_cameras']=True
+reviews[2]['JEV']['Evidence'].update({'original_insect_material_face_groups':len(set(p.material_index for p in insect.data.polygons)),
+                                       'physics_baked_insect_instances':len(baked.data.vertices)})
+report_path.write_text(json.dumps(reviews,ensure_ascii=False,indent=2)+'\n')
 print('UPGRADE',json.dumps({'frame_range':[scene.frame_start,scene.frame_end], 'bones':len(arm.bones), 'animated_bones':len(trajectories), 'mesh_links':sum(o.type=='MESH' for o in robot.objects), 'firefly_vertices':len(insect.data.vertices),'baked_positions':len(baked.data.vertices), 'removed_broken_import_images':removed},ensure_ascii=False))
