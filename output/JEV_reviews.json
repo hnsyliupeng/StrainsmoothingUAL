@@ -3,9 +3,11 @@
     "stage": "1 基础环境与地形",
     "hardness": "High",
     "JEV": {
-      "Judgement": "FAIL_VISUAL",
+      "Judgement": "BLOCKED_PENDING_VISUAL",
       "Evidence": {
         "terrain_grid": true,
+        "terrain_height_range_over_2m": true,
+        "real_lake_faces": true,
         "cc0_source_meshes": true,
         "gn_scatter_count": true,
         "real_color_maps": true,
@@ -14,15 +16,20 @@
         "user_screenshot_rejected_original_scene": true,
         "new_scene_eevee_preview_available": false,
         "preserved_pine_bark_twig_face_indices": true,
-        "woodland_log_uses_correct_atlas": true
+        "woodland_log_uses_correct_atlas": true,
+        "lowres_eevee_preview_available": false,
+        "actual_visual_inspection_done": false,
+        "nonflat_editable_terrain": true,
+        "physical_water_in_lake_basin": true,
+        "polyhaven_source_axes_corrected": true
       },
-      "Verification": "15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 用户最新截图否定旧版材质/构图/萤火虫。新文件只通过数据审计，尚无其自身的低分辨率 EEVEE 预览，不可通过视觉审查。"
+      "Verification": "当前 .blend 的实测数据：飞行虫群世界位移3.312m，可见机器人机身位移3.312m，方向余弦1.0；真实湖水150面、地形高差2.56m。但640×480 EEVEE图像因EGL/GLX环境错误不可生成，严禁宣称已通过目视JEV。另脚部局部悬空最高0.173m，步态仍需进一步实拍修正。"
     },
     "get_scene_info": {
-      "objects": 33,
+      "objects": 34,
       "collections": {
         "Architecture": 0,
-        "Environment": 18,
+        "Environment": 19,
         "Robot": 0,
         "Fireflies": 0,
         "Lights": 0,
@@ -49,16 +56,32 @@
       "baked_fireflies": 0,
       "render_engine": "BLENDER_EEVEE_NEXT",
       "render_size": [
-        1920,
-        1080
+        640,
+        480
+      ],
+      "frame_start": 1,
+      "frame_end": 144,
+      "environment_relief_m": 2.56,
+      "lake_water_faces": 150,
+      "insects_animating": 92,
+      "insect_mesh_instances": 92,
+      "fly_light_count": 8,
+      "insect_baked_shape_keys": 20,
+      "flying_swarm_motion_m": 3.312,
+      "robot_visible_travel_m": 3.312,
+      "robot_follow_direction_dot": 1.0,
+      "foot_clearance_range_m": [
+        0.002,
+        0.173
       ]
-    }
+    },
+    "next_step": "在可用图形上下文生成 <=720p EEVEE 帧1/75/144及昆虫特写，目视核对材质、湖岸、光晕和真实足部接触，再决定下一轮修正。"
   },
   {
     "stage": "2 机器人主体",
     "hardness": "High",
     "JEV": {
-      "Judgement": "FAIL_VISUAL",
+      "Judgement": "BLOCKED_PENDING_VISUAL",
       "Evidence": {
         "authored_urdf_visual_meshes": true,
         "real_joint_hierarchy": true,
@@ -70,15 +93,20 @@
         "animated_armature_bones": 18,
         "frame_end": 144,
         "surface_pbr_map_count": 3,
-        "main_camera_ortho_scale_m": 6.800000190734863
+        "main_camera_ortho_scale_m": 10.199999809265137,
+        "lowres_eevee_preview_available": false,
+        "actual_visual_inspection_done": false,
+        "visible_robot_world_translation": true,
+        "armature_rig_144_frames": true,
+        "foot_contact_visual_acceptance": false
       },
-      "Verification": "机械主体来自 MIT 授权 UBTECH Alpha 1S 数字孪生 17关节 URDF（人工测量舵机轴），20 个导入视觉网格；仍需低分辨率目视检查站姿、尺寸与地面接触。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 用户最新截图否定旧版材质/构图/萤火虫。新文件只通过数据审计，尚无其自身的低分辨率 EEVEE 预览，不可通过视觉审查。"
+      "Verification": "当前 .blend 的实测数据：飞行虫群世界位移3.312m，可见机器人机身位移3.312m，方向余弦1.0；真实湖水150面、地形高差2.56m。但640×480 EEVEE图像因EGL/GLX环境错误不可生成，严禁宣称已通过目视JEV。另脚部局部悬空最高0.173m，步态仍需进一步实拍修正。"
     },
     "get_scene_info": {
-      "objects": 63,
+      "objects": 64,
       "collections": {
         "Architecture": 0,
-        "Environment": 18,
+        "Environment": 19,
         "Robot": 19,
         "Fireflies": 3,
         "Lights": 6,
@@ -115,14 +143,30 @@
       "render_size": [
         640,
         480
+      ],
+      "frame_start": 1,
+      "frame_end": 144,
+      "environment_relief_m": 2.56,
+      "lake_water_faces": 150,
+      "insects_animating": 92,
+      "insect_mesh_instances": 92,
+      "fly_light_count": 8,
+      "insect_baked_shape_keys": 20,
+      "flying_swarm_motion_m": 3.312,
+      "robot_visible_travel_m": 3.312,
+      "robot_follow_direction_dot": 1.0,
+      "foot_clearance_range_m": [
+        0.002,
+        0.173
       ]
-    }
+    },
+    "next_step": "在可用图形上下文生成 <=720p EEVEE 帧1/75/144及昆虫特写，目视核对材质、湖岸、光晕和真实足部接触，再决定下一轮修正。"
   },
   {
     "stage": "3 萤火虫物理模拟与烘焙",
     "hardness": "High",
     "JEV": {
-      "Judgement": "FAIL_VISUAL",
+      "Judgement": "BLOCKED_PENDING_VISUAL",
       "Evidence": {
         "particle_system": true,
         "turbulence_force": true,
@@ -135,15 +179,21 @@
         "user_screenshot_rejected_original_scene": true,
         "new_scene_eevee_preview_available": false,
         "original_insect_material_face_groups": 5,
-        "physics_baked_insect_instances": 92
+        "physics_baked_insect_instances": 92,
+        "lowres_eevee_preview_available": false,
+        "actual_visual_inspection_done": false,
+        "actual_animated_flight_instances": true,
+        "newton_simulated_source": true,
+        "warm_lights_keyframed_to_insects": 8,
+        "abdomen_emission_strength": 18
       },
-      "Verification": "物理引擎粒子帧 1–75 连续求值；48→75 帧共有粒子位移总和 0.61 m；第 75 帧筛选并烘焙 92 个静态点，GN 引用内嵌发光源，渲染不依赖粒子缓存。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 用户最新截图否定旧版材质/构图/萤火虫。新文件只通过数据审计，尚无其自身的低分辨率 EEVEE 预览，不可通过视觉审查。"
+      "Verification": "当前 .blend 的实测数据：飞行虫群世界位移3.312m，可见机器人机身位移3.312m，方向余弦1.0；真实湖水150面、地形高差2.56m。但640×480 EEVEE图像因EGL/GLX环境错误不可生成，严禁宣称已通过目视JEV。另脚部局部悬空最高0.173m，步态仍需进一步实拍修正。"
     },
     "get_scene_info": {
-      "objects": 63,
+      "objects": 64,
       "collections": {
         "Architecture": 0,
-        "Environment": 18,
+        "Environment": 19,
         "Robot": 19,
         "Fireflies": 3,
         "Lights": 6,
@@ -180,14 +230,30 @@
       "render_size": [
         640,
         480
+      ],
+      "frame_start": 1,
+      "frame_end": 144,
+      "environment_relief_m": 2.56,
+      "lake_water_faces": 150,
+      "insects_animating": 92,
+      "insect_mesh_instances": 92,
+      "fly_light_count": 8,
+      "insect_baked_shape_keys": 20,
+      "flying_swarm_motion_m": 3.312,
+      "robot_visible_travel_m": 3.312,
+      "robot_follow_direction_dot": 1.0,
+      "foot_clearance_range_m": [
+        0.002,
+        0.173
       ]
-    }
+    },
+    "next_step": "在可用图形上下文生成 <=720p EEVEE 帧1/75/144及昆虫特写，目视核对材质、湖岸、光晕和真实足部接触，再决定下一轮修正。"
   },
   {
     "stage": "4 微光灯光与基础材质",
     "hardness": "High",
     "JEV": {
-      "Judgement": "FAIL_VISUAL",
+      "Judgement": "BLOCKED_PENDING_VISUAL",
       "Evidence": {
         "eevee": true,
         "preview_le_720p": true,
@@ -197,15 +263,19 @@
         "new_visual_evidence_available": false,
         "user_screenshot_rejected_original_scene": true,
         "new_scene_eevee_preview_available": false,
-        "two_optional_anatomy_and_rig_inspection_cameras": true
+        "two_optional_anatomy_and_rig_inspection_cameras": true,
+        "lowres_eevee_preview_available": false,
+        "actual_visual_inspection_done": false,
+        "fog_glow_compositor": true,
+        "actual_eevee_visual_review": false
       },
-      "Verification": "月光冷主光、弱冷填光、微弱暖色反射；金属、氧化铜、石土与发光材料分离；仅允许 640×480 预览。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 用户最新截图否定旧版材质/构图/萤火虫。新文件只通过数据审计，尚无其自身的低分辨率 EEVEE 预览，不可通过视觉审查。"
+      "Verification": "当前 .blend 的实测数据：飞行虫群世界位移3.312m，可见机器人机身位移3.312m，方向余弦1.0；真实湖水150面、地形高差2.56m。但640×480 EEVEE图像因EGL/GLX环境错误不可生成，严禁宣称已通过目视JEV。另脚部局部悬空最高0.173m，步态仍需进一步实拍修正。"
     },
     "get_scene_info": {
-      "objects": 63,
+      "objects": 64,
       "collections": {
         "Architecture": 0,
-        "Environment": 18,
+        "Environment": 19,
         "Robot": 19,
         "Fireflies": 3,
         "Lights": 6,
@@ -242,8 +312,24 @@
       "render_size": [
         640,
         480
+      ],
+      "frame_start": 1,
+      "frame_end": 144,
+      "environment_relief_m": 2.56,
+      "lake_water_faces": 150,
+      "insects_animating": 92,
+      "insect_mesh_instances": 92,
+      "fly_light_count": 8,
+      "insect_baked_shape_keys": 20,
+      "flying_swarm_motion_m": 3.312,
+      "robot_visible_travel_m": 3.312,
+      "robot_follow_direction_dot": 1.0,
+      "foot_clearance_range_m": [
+        0.002,
+        0.173
       ]
-    }
+    },
+    "next_step": "在可用图形上下文生成 <=720p EEVEE 帧1/75/144及昆虫特写，目视核对材质、湖岸、光晕和真实足部接触，再决定下一轮修正。"
   },
   {
     "stage": "5 清理与交付",
@@ -257,15 +343,17 @@
         "simulation_hidden": true,
         "new_visual_evidence_available": false,
         "user_screenshot_rejected_original_scene": true,
-        "new_scene_eevee_preview_available": false
+        "new_scene_eevee_preview_available": false,
+        "lowres_eevee_preview_available": false,
+        "actual_visual_inspection_done": false
       },
-      "Verification": "保留隐藏模拟源以便追溯，静态实例作为最终展示；资产内嵌到 .blend，外部 FBX 仅供重建脚本使用。 自动几何断言不是视觉验收；用户截图否定旧版场景。本次候选版本未生成 EEVEE 低分辨率预览，不能声称通过。 用户最新截图否定旧版材质/构图/萤火虫。新文件只通过数据审计，尚无其自身的低分辨率 EEVEE 预览，不可通过视觉审查。"
+      "Verification": "当前 .blend 的实测数据：飞行虫群世界位移3.312m，可见机器人机身位移3.312m，方向余弦1.0；真实湖水150面、地形高差2.56m。但640×480 EEVEE图像因EGL/GLX环境错误不可生成，严禁宣称已通过目视JEV。另脚部局部悬空最高0.173m，步态仍需进一步实拍修正。"
     },
     "get_scene_info": {
-      "objects": 63,
+      "objects": 64,
       "collections": {
         "Architecture": 0,
-        "Environment": 18,
+        "Environment": 19,
         "Robot": 19,
         "Fireflies": 3,
         "Lights": 6,
@@ -302,7 +390,23 @@
       "render_size": [
         640,
         480
+      ],
+      "frame_start": 1,
+      "frame_end": 144,
+      "environment_relief_m": 2.56,
+      "lake_water_faces": 150,
+      "insects_animating": 92,
+      "insect_mesh_instances": 92,
+      "fly_light_count": 8,
+      "insect_baked_shape_keys": 20,
+      "flying_swarm_motion_m": 3.312,
+      "robot_visible_travel_m": 3.312,
+      "robot_follow_direction_dot": 1.0,
+      "foot_clearance_range_m": [
+        0.002,
+        0.173
       ]
-    }
+    },
+    "next_step": "在可用图形上下文生成 <=720p EEVEE 帧1/75/144及昆虫特写，目视核对材质、湖岸、光晕和真实足部接触，再决定下一轮修正。"
   }
 ]

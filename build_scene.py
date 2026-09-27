@@ -48,16 +48,42 @@ def sphere(name,loc,scale,material,coll=ROBOT):
 def rod(name,a,b,r,material,coll=ROBOT,verts=12):
  a,b=Vector(a),Vector(b);mid=(a+b)/2;delta=b-a
  bpy.ops.mesh.primitive_cylinder_add(vertices=verts,radius=r,depth=delta.length,location=mid);o=move(bpy.context.object,coll);o.name=name;o.rotation_euler=delta.to_track_quat('Z','Y').to_euler();o.data.materials.append(material);return o
-def ground_z(x,y):return .13*math.sin(x*.46)*math.cos(y*.36)+.065*math.sin(y*.83+x*.17)
+from terrain_profile import height as ground_z, LAKE_CENTER, LAKE_RADIUS, LAKE_LEVEL
 # Terrain, 30m across. Geometry baked into a simple editable grid.
-n=48;verts=[];faces=[]
+n=64;verts=[];faces=[]
 for j in range(n+1):
  for i in range(n+1):
   x=(i/n-.5)*30;y=(j/n-.5)*30;verts.append((x,y,ground_z(x,y)))
 for j in range(n):
  for i in range(n):
   v=j*(n+1)+i;faces.append((v,v+1,v+n+2,v+n+1))
-mesh=bpy.data.meshes.new('Editable terrain grid');mesh.from_pydata(verts,[],faces);mesh.update();terrain=bpy.data.objects.new('Terrain | 30m rolling floor',mesh);ENV.objects.link(terrain);mesh.materials.append(soil)
+mesh=bpy.data.meshes.new('Editable terrain grid');mesh.from_pydata(verts,[],faces);mesh.update()
+terrain=bpy.data.objects.new('Terrain | 2.5m relief and excavated lake basin',mesh);ENV.objects.link(terrain);mesh.materials.append(soil)
+terrain['height_range_m']=round(max(v[2] for v in verts)-min(v[2] for v in verts),3)
+# Clip every water polygon to ground below the physical lake level.
+watermat=mat('Lake water | moonlight reflections',(.025,.075,.094),.0,.13)
+wb=watermat.node_tree.nodes.get('Principled BSDF');wb.inputs['IOR'].default_value=1.333
+wb.inputs['Coat Weight'].default_value=.6;wb.inputs['Coat Roughness'].default_value=.08
+waterverts=[];waterfaces=[]
+for face in terrain.data.polygons:
+ coords=[terrain.data.vertices[k].co.copy() for k in face.vertices]
+ if min(math.hypot(p.x-LAKE_CENTER[0],p.y-LAKE_CENTER[1]) for p in coords)>LAKE_RADIUS+.6:continue
+ clipped=[]
+ for a,b in zip(coords,coords[1:]+coords[:1]):
+  ina=a.z<=LAKE_LEVEL;inb=b.z<=LAKE_LEVEL
+  if ina:clipped.append((a.x,a.y,LAKE_LEVEL))
+  if ina!=inb:
+   t=(LAKE_LEVEL-a.z)/(b.z-a.z)
+   clipped.append((a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,LAKE_LEVEL))
+ if len(clipped)<3:continue
+ k=len(waterverts);waterverts.extend(clipped)
+ for i in range(1,len(clipped)-1):waterfaces.append((k,k+i,k+i+1))
+assert len(waterfaces)>20
+watermesh=bpy.data.meshes.new('Shoreline clipped to depressed terrain');watermesh.from_pydata(waterverts,[],waterfaces);watermesh.update()
+lake=bpy.data.objects.new('Lake | water inside excavated basin',watermesh);ENV.objects.link(lake);watermesh.materials.append(watermat)
+lake['water_level_z']=LAKE_LEVEL;lake['lake_center_xy']=LAKE_CENTER
+# A soft highlight from moonlight gives the water a readable reflective edge.
+
 for p in mesh.polygons:p.use_smooth=True
 # Screen-tested source assets retain the actual CC0 UV base maps and normal maps.
 # No former Proton Scatter vegetation is used in this candidate.
@@ -106,6 +132,15 @@ def scatter(label,src,density,seed,min_radius,max_radius,scl,front_clear=False):
   between=ns.new('ShaderNodeMath');between.operation='MULTIPLY';between.location=(155,-520);links.new(corridor.outputs[0],between.inputs[0]);links.new(yhigh.outputs[0],between.inputs[1])
   not_center=ns.new('ShaderNodeMath');not_center.operation='SUBTRACT';not_center.inputs[0].default_value=1;not_center.location=(300,-520);links.new(between.outputs[0],not_center.inputs[1])
   mask=ns.new('ShaderNodeMath');mask.operation='MULTIPLY';mask.location=(350,-180);links.new(outside.outputs[0],mask.inputs[0]);links.new(not_center.outputs[0],mask.inputs[1]);selection=mask.outputs[0]
+ # Mask submerged lake area for every Geometry Nodes vegetation scatter.
+ dx=ns.new('ShaderNodeMath');dx.operation='SUBTRACT';dx.inputs[1].default_value=LAKE_CENTER[0];links.new(sep.outputs['X'],dx.inputs[0])
+ dy=ns.new('ShaderNodeMath');dy.operation='SUBTRACT';dy.inputs[1].default_value=LAKE_CENTER[1];links.new(sep.outputs['Y'],dy.inputs[0])
+ sqx=ns.new('ShaderNodeMath');sqx.operation='MULTIPLY';links.new(dx.outputs[0],sqx.inputs[0]);links.new(dx.outputs[0],sqx.inputs[1])
+ sqy=ns.new('ShaderNodeMath');sqy.operation='MULTIPLY';links.new(dy.outputs[0],sqy.inputs[0]);links.new(dy.outputs[0],sqy.inputs[1])
+ dist2=ns.new('ShaderNodeMath');dist2.operation='ADD';links.new(sqx.outputs[0],dist2.inputs[0]);links.new(sqy.outputs[0],dist2.inputs[1])
+ radius2=ns.new('ShaderNodeMath');radius2.operation='SQRT';links.new(dist2.outputs[0],radius2.inputs[0])
+ dry=ns.new('ShaderNodeMath');dry.operation='GREATER_THAN';dry.inputs[1].default_value=LAKE_RADIUS-.15;links.new(radius2.outputs[0],dry.inputs[0])
+ land=ns.new('ShaderNodeMath');land.operation='MULTIPLY';links.new(selection,land.inputs[0]);links.new(dry.outputs[0],land.inputs[1]);selection=land.outputs[0]
  links.new(inp.outputs['Geometry'],dist.inputs['Mesh']);links.new(selection,dist.inputs['Selection'])
  info=ns.new('GeometryNodeObjectInfo');info.transform_space='ORIGINAL';info.location=(-240,-90);info.inputs['Object'].default_value=src;info.inputs['As Instance'].default_value=True
  rand=ns.new('FunctionNodeRandomValue');rand.data_type='FLOAT';rand.inputs['Min'].default_value=scl*.72;rand.inputs['Max'].default_value=scl*1.23;rand.location=(-15,-210)
@@ -139,7 +174,7 @@ def info():
 def review(stage,checks,notes):
  passed=all(checks.values());entry={'stage':stage,'hardness':'High','JEV':{'Judgement':'DATA_ONLY' if passed else 'FAIL','Evidence':checks,'Verification':notes},'get_scene_info':info()};REPORT.append(entry);(ROOT/'output'/'JEV_reviews.json').write_text(json.dumps(REPORT,ensure_ascii=False,indent=2));print(json.dumps(entry,ensure_ascii=False));
  if not passed:raise RuntimeError('JEV failed: '+stage)
-review('1 基础环境与地形',{'terrain_grid':len(mesh.vertices)==2401,'cc0_source_meshes':len(sources)==15 and all(x.data.uv_layers for x in sources),'gn_scatter_count':len(info()['geometry_nodes'])==15,'real_color_maps':forest_color.packed_file is not None and all(n.image and n.image.packed_file for m in [WOOD,WOOD06,FOL,FERN,SHRUB,PINE_BARK,PINE_TWIG,MOSS_ROCK] for n in m.node_tree.nodes if n.type=='TEX_IMAGE'),'original_foliage_only':all('assets/' in x['asset_file'] for x in sources)},'15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。')
+review('1 基础环境与地形',{'terrain_grid':len(mesh.vertices)==4225,'terrain_height_range_over_2m':terrain['height_range_m']>2,'real_lake_faces':len(watermesh.polygons)>20,'cc0_source_meshes':len(sources)==15 and all(x.data.uv_layers for x in sources),'gn_scatter_count':len(info()['geometry_nodes'])==15,'real_color_maps':forest_color.packed_file is not None and all(n.image and n.image.packed_file for m in [WOOD,WOOD06,FOL,FERN,SHRUB,PINE_BARK,PINE_TWIG,MOSS_ROCK] for n in m.node_tree.nodes if n.type=='TEX_IMAGE'),'original_foliage_only':all('assets/' in x['asset_file'] for x in sources)},'15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。')
 # Robot is now an imported measured real-servo-axis URDF mesh assembly, not
 # 99 generated boxes/bolts. Its 20 authored STL visual links are editable.
 from robot_asset import build_robot
@@ -186,7 +221,7 @@ def area(name,loc,power,color,size,target):
 area('Cold moonlight | broad rim',(2,3,8),850,(.43,.61,1),7,(0,0,1))
 area('Soft sky fill',(-4,-2,5),410,(.52,.69,.78),8,(0,0,1.4))
 area('Faint amber bounce',(0,-3,3),80,(1,.54,.25),4,(0,0,1.4))
-bpy.ops.object.camera_add(location=(5.2,-8.2,4.15));cam=move(bpy.context.object,LIGHTS);cam.name='Camera | forest clearing';cam.rotation_euler=(Vector((0,0,1.46))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=9.4;scene.camera=cam
+bpy.ops.object.camera_add(location=(5.2,-8.2,4.15));cam=move(bpy.context.object,LIGHTS);cam.name='Camera | forest clearing';cam.rotation_euler=(Vector((0,0,1.46))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=10.2;scene.camera=cam;cam.location=(4.9,-8.3,5.7);cam.rotation_euler=(Vector((1.25,1.25,1.05))-cam.location).to_track_quat('-Z','Y').to_euler()
 scene.render.engine='BLENDER_EEVEE_NEXT';scene.render.resolution_x=640;scene.render.resolution_y=480;scene.render.resolution_percentage=100;scene.render.image_settings.file_format='PNG';scene.render.filepath=str(ROOT/'output'/'preview_640x480.png');scene.render.film_transparent=False
 scene.view_settings.view_transform='AgX';scene.render.image_settings.color_mode='RGBA'
 scene.frame_set(75)

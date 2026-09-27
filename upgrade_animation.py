@@ -40,6 +40,7 @@ for suffix,input_name in [('Color','Base Color'),('Metalness','Metallic'),('Roug
     links.new(mapping.outputs['Vector'],tex.inputs['Vector']);links.new(tex.outputs['Color'],bs.inputs[input_name])
 joints=finish('Robot / exposed graphite actuator / authored STL',(.055,.075,.076),.36,.65)
 for obj in robot.objects:
+    if obj.type!='MESH':continue
     obj.data.materials.clear()
     obj.data.materials.append(joints if any(s in obj.name for s in ('ankle','hip','shoulder','knee','forearm')) else shell)
     obj.color=obj.data.materials[0].diffuse_color[:]
@@ -76,6 +77,7 @@ for obj in list(robot.objects):
     vg=obj.vertex_groups.new(name=obj['urdf_link']);vg.add(list(range(len(obj.data.vertices))),1.0,'REPLACE')
     mod=obj.modifiers.new('Rigid URDF servo-bone deformation','ARMATURE');mod.object=rig;mod.use_deform_preserve_volume=False
     obj['rigid_bone']=obj['urdf_link']
+    obj.parent=rig;obj.matrix_parent_inverse=rig.matrix_world.inverted()
 # Each key is a relative delta from the audited initial supplier pose; all joint
 # excursions stay well inside their URDF limits. Stand, scan, lift leg, recover.
 # 1, 37, 73, 109, 144 span >120 frames and form a clear editable action.
@@ -86,8 +88,8 @@ trajectories={
  'l_arm_link':(0,.14,-.18,.22,0),'r_arm_link':(0,-.15,.20,-.20,0),
  'l_forearm_link':(0,.18,-.12,.20,0),'r_forearm_link':(0,-.18,.12,-.18,0),
  'l_hip_roll_link':(0,.025,-.02,.03,0),'r_hip_roll_link':(0,-.025,.02,-.03,0),
- 'l_knee_link':(0,.12,-.09,.17,0),'r_knee_link':(0,-.12,.08,-.12,0),
- 'l_ankle_pitch_joint':(0,-.10,.06,-.12,0),'r_ankle_pitch_joint':(0,.10,-.05,.08,0),
+ 'l_knee_link':(0,.28,-.12,.32,0),'r_knee_link':(0,-.12,.28,-.16,0),
+ 'l_ankle_pitch_joint':(0,-.19,.10,-.22,0),'r_ankle_pitch_joint':(0,.12,-.18,.13,0),
 }
 for name,angles in trajectories.items():
     pb=rig.pose.bones[name];pb.rotation_mode='QUATERNION'
@@ -139,6 +141,7 @@ assert all(any(p.material_index==index for p in insect.data.polygons) for index 
 # The OBJ bounding width is 2.04 authored units; static fireflies are 5 cm wide.
 scale=.025
 insect.data.transform(Matrix.Diagonal((scale,scale,scale,1)))
+insect.data.transform(Matrix.Rotation(math.pi/2,4,'X')) # anatomical body lies horizontally
 center=sum((v.co for v in insect.data.vertices),Vector())/len(insect.data.vertices)
 for vert in insect.data.vertices:vert.co-=center
 insect.location=(96,0,-30);insect.hide_render=True;insect.hide_set(True)
@@ -156,7 +159,7 @@ scene.frame_end=144;scene.frame_set(75)
 # Increase framing without inventing new forest assets. Additional edit-friendly
 # diagnostic cameras make the authored insect anatomy and rig inspectable at
 # <=720p, without pretending that their existence is a rendered preview.
-scene.camera.data.ortho_scale=6.8
+scene.camera.data.ortho_scale=10.2
 lights=bpy.data.collections['Lights']
 def inspection_camera(name, location, target, width):
     bpy.ops.object.camera_add(location=location)

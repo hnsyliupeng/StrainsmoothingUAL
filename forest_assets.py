@@ -3,6 +3,7 @@ Original foliage: BFjord OriginalFoliage CC0; supplemental models: Poly Haven CC
 No base-color remapping or generated mesh foliage is performed here.
 """
 import bpy
+import math
 from pathlib import Path
 from mathutils import Matrix
 ROOT=Path(__file__).resolve().parent
@@ -72,6 +73,10 @@ def import_asset(folder,filename,lod,materials,collection,name,scale=1):
     assert all(p.material_index==old_indices[i] for i,p in enumerate(obj.data.polygons)), filename
     if len(materials)>1:
         assert all(any(p.material_index==i for p in obj.data.polygons) for i in range(len(materials))), filename
+    # Source FBX has Y-up mesh coordinates; GN expects Blender Z-up.
+    if folder=='polyhaven':
+        obj.data.transform(Matrix.Rotation(math.pi/2,4,'X'))
+        obj['axis_conversion']='Poly Haven Y-up to Blender Z-up'
     obj.data.transform(Matrix.Diagonal((scale,scale,scale,1)))
     bottom=min(v.co.z for v in obj.data.vertices)
     for v in obj.data.vertices:v.co.z-=bottom

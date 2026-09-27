@@ -1,0 +1,140 @@
+{
+  "kind": "actual evaluated geometric motion; NOT a visual render review",
+  "checks": {
+    "terrain_broad_relief_over_2m": true,
+    "actual_lake_water_mesh_above_submerged_terrain": true,
+    "lake_center_in_preview_framing": true,
+    "up_axis_fixed_pine": true,
+    "insect_wings_body_head_preserved": true,
+    "abdomen_emission": true,
+    "actually_instanced_insect_and_halo_at_every_sample": true,
+    "baked_mesh_has_animated_shape_keys": true,
+    "baked_swarm_changes_world_position_gt_2m": true,
+    "real_robot_visual_body_moves_gt_2m": true,
+    "visible_robot_tracks_fly_direction": true,
+    "robot_keeps_ahead_flight_within_1_7m": true,
+    "sampled_feet_do_not_enter_landscape": true,
+    "lake_and_glow_compositor_saved": true,
+    "render_is_eevee_640x480": true
+  },
+  "frames": {
+    "1": {
+      "baked_insect_and_halo_instances": 184,
+      "flight_centroid_xyz_m": [
+        -0.005,
+        0.256,
+        1.717
+      ],
+      "rig_xy_m": [
+        -0.485,
+        1.606
+      ],
+      "visible_body_xy_m": [
+        -0.485,
+        1.606
+      ],
+      "distance_body_to_flying_centroid_xy_m": 1.433
+    },
+    "13": {
+      "baked_insect_and_halo_instances": 184,
+      "flight_centroid_xyz_m": [
+        0.071,
+        0.117,
+        1.716
+      ],
+      "rig_xy_m": [
+        -0.408,
+        1.471
+      ],
+      "visible_body_xy_m": [
+        -0.408,
+        1.471
+      ],
+      "distance_body_to_flying_centroid_xy_m": 1.436
+    },
+    "37": {
+      "baked_insect_and_halo_instances": 184,
+      "flight_centroid_xyz_m": [
+        0.277,
+        -0.362,
+        1.717
+      ],
+      "rig_xy_m": [
+        -0.203,
+        0.989
+      ],
+      "visible_body_xy_m": [
+        -0.203,
+        0.989
+      ],
+      "distance_body_to_flying_centroid_xy_m": 1.433
+    },
+    "75": {
+      "baked_insect_and_halo_instances": 184,
+      "flight_centroid_xyz_m": [
+        0.638,
+        -1.225,
+        1.715
+      ],
+      "rig_xy_m": [
+        0.158,
+        0.125
+      ],
+      "visible_body_xy_m": [
+        0.158,
+        0.125
+      ],
+      "distance_body_to_flying_centroid_xy_m": 1.433
+    },
+    "110": {
+      "baked_insect_and_halo_instances": 184,
+      "flight_centroid_xyz_m": [
+        0.961,
+        -2.021,
+        1.719
+      ],
+      "rig_xy_m": [
+        0.481,
+        -0.671
+      ],
+      "visible_body_xy_m": [
+        0.481,
+        -0.671
+      ],
+      "distance_body_to_flying_centroid_xy_m": 1.433
+    },
+    "144": {
+      "baked_insect_and_halo_instances": 184,
+      "flight_centroid_xyz_m": [
+        1.282,
+        -2.796,
+        1.718
+      ],
+      "rig_xy_m": [
+        0.802,
+        -1.446
+      ],
+      "visible_body_xy_m": [
+        0.802,
+        -1.446
+      ],
+      "distance_body_to_flying_centroid_xy_m": 1.433
+    }
+  },
+  "flight_world_distance_m": 3.312,
+  "robot_visible_world_distance_m": 3.312,
+  "flight_robot_direction_dot": 1.0,
+  "foot_clearance_range_m": [
+    0.002,
+    0.173
+  ],
+  "unresolved_walk_contact": true,
+  "lake_face_count": 150,
+  "terrain_height_range_m": 2.56,
+  "lake_preview_pixel": [
+    521,
+    283
+  ],
+  "preview_png_available": false,
+  "full_visual_review_completed": false
+}
