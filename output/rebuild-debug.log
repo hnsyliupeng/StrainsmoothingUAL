@@ -1,0 +1,236 @@
+
+===== build_scene.py =====
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+{"stage": "1 基础环境与地形", "hardness": "High", "JEV": {"Judgement": "DATA_ONLY", "Evidence": {"terrain_grid": true, "terrain_height_range_over_2m": true, "real_lake_faces": true, "cc0_source_meshes": true, "gn_scatter_count": true, "real_color_maps": true, "original_foliage_only": true}, "Verification": "15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。"}, "get_scene_info": {"objects": 34, "collections": {"Architecture": 0, "Environment": 19, "Robot": 0, "Fireflies": 0, "Lights": 0, "Architecture / open-source asset prototypes": 15}, "geometry_nodes": ["Oaks A | GN scatter", "Oaks B | GN scatter", "Birches A | GN scatter", "Birches B | GN scatter", "Pine saplings | GN scatter", "Moss rocks A | GN scatter", "Moss rocks B | GN scatter", "Meadow grass | GN scatter", "Coastal grass | GN scatter", "Ferns A | GN scatter", "Ferns B | GN scatter", "Shrubs | GN scatter", "Sorrel ground cover | GN scatter", "Flowering rose plants | GN scatter", "Fallen log | GN scatter"], "robot_parts": 0, "baked_fireflies": 0, "render_engine": "BLENDER_EEVEE_NEXT", "render_size": [1920, 1080]}, "Next_step_plan": "继续搭建受URDF限位的机器人rig，再运行第二轮JEV。"}
+Timer 'STL Import' took 10.16 ms
+Timer 'STL Import' took 6.21 ms
+Timer 'STL Import' took 1.00 ms
+Timer 'STL Import' took 4.83 ms
+Timer 'STL Import' took 4.65 ms
+Timer 'STL Import' took 0.85 ms
+Timer 'STL Import' took 4.81 ms
+Timer 'STL Import' took 4.54 ms
+Timer 'STL Import' took 1.64 ms
+Timer 'STL Import' took 5.74 ms
+Timer 'STL Import' took 1.36 ms
+Timer 'STL Import' took 1.37 ms
+WARN (io.stl): source/blender/io/stl/importer/stl_import_mesh.cc:63 to_mesh: Removed 3 duplicate triangles during import
+Timer 'STL Import' took 3.20 ms
+Timer 'STL Import' took 1.62 ms
+Timer 'STL Import' took 5.84 ms
+Timer 'STL Import' took 1.38 ms
+Timer 'STL Import' took 1.35 ms
+WARN (io.stl): source/blender/io/stl/importer/stl_import_mesh.cc:63 to_mesh: Removed 3 duplicate triangles during import
+Timer 'STL Import' took 3.24 ms
+{"stage": "2 机器人主体", "hardness": "High", "JEV": {"Judgement": "DATA_ONLY", "Evidence": {"authored_urdf_visual_meshes": true, "real_joint_hierarchy": true, "imported_detail_vertices": true, "no_generated_box_body": true}, "Verification": "机械主体来自 MIT 授权 UBTECH Alpha 1S 数字孪生 17关节 URDF（人工测量舵机轴），20 个导入视觉网格；仍需低分辨率目视检查站姿、尺寸与地面接触。"}, "get_scene_info": {"objects": 52, "collections": {"Architecture": 0, "Environment": 19, "Robot": 18, "Fireflies": 0, "Lights": 0, "Architecture / open-source asset prototypes": 15}, "geometry_nodes": ["Oaks A | GN scatter", "Oaks B | GN scatter", "Birches A | GN scatter", "Birches B | GN scatter", "Pine saplings | GN scatter", "Moss rocks A | GN scatter", "Moss rocks B | GN scatter", "Meadow grass | GN scatter", "Coastal grass | GN scatter", "Ferns A | GN scatter", "Ferns B | GN scatter", "Shrubs | GN scatter", "Sorrel ground cover | GN scatter", "Flowering rose plants | GN scatter", "Fallen log | GN scatter"], "robot_parts": 18, "baked_fireflies": 0, "render_engine": "BLENDER_EEVEE_NEXT", "render_size": [1920, 1080]}, "Next_step_plan": "运行真实NEWTON萤火虫逐帧物理烘焙与跟随动画，再运行第三轮JEV。"}
+{"stage": "3 萤火虫物理模拟与烘焙", "hardness": "High", "JEV": {"Judgement": "DATA_ONLY", "Evidence": {"particle_system": true, "turbulence_force": true, "directional_wind": true, "all_144_physics_samples": true, "measured_flock_travel_over_1m": true, "baked_count": true, "animated_bake_shape_keys": true, "terrain_clearance": true, "firefly_source_diameter": true}, "Verification": "真实 Blender NEWTON 粒子 + Brownian + turbulence + 有方向风力，逐帧 1–144 连续求值。筛出全程在地面上方且在场景飞行域的 107 只萤火虫；群体质心飞行 3.66 m，逐只路径总位移 391.5 m。每帧作为 shape key 烘焙进 .blend，GN 继续实例化真实 CC0 萤火虫模型。"}, "get_scene_info": {"objects": 57, "collections": {"Architecture": 0, "Environment": 19, "Robot": 18, "Fireflies": 4, "Lights": 0, "Architecture / open-source asset prototypes": 16}, "geometry_nodes": ["Oaks A | GN scatter", "Oaks B | GN scatter", "Birches A | GN scatter", "Birches B | GN scatter", "Pine saplings | GN scatter", "Moss rocks A | GN scatter", "Moss rocks B | GN scatter", "Meadow grass | GN scatter", "Coastal grass | GN scatter", "Ferns A | GN scatter", "Ferns B | GN scatter", "Shrubs | GN scatter", "Sorrel ground cover | GN scatter", "Flowering rose plants | GN scatter", "Fallen log | GN scatter"], "robot_parts": 18, "baked_fireflies": 1, "render_engine": "BLENDER_EEVEE_NEXT", "render_size": [1920, 1080]}, "Next_step_plan": "加入显著生物发光与林地暮色材质，然后进行640x480 EEVEE预览和第四轮JEV。"}
+{"stage": "4 微光灯光与基础材质", "hardness": "High", "JEV": {"Judgement": "DATA_ONLY", "Evidence": {"eevee": true, "preview_le_720p": true, "default_viewport_material_mode": true, "lighting": true, "material_assignments": true}, "Verification": "月光冷主光、弱冷填光、微弱暖色反射；金属、氧化铜、石土与发光材料分离；仅允许 640×480 预览。"}, "get_scene_info": {"objects": 61, "collections": {"Architecture": 0, "Environment": 19, "Robot": 18, "Fireflies": 4, "Lights": 4, "Architecture / open-source asset prototypes": 16}, "geometry_nodes": ["Oaks A | GN scatter", "Oaks B | GN scatter", "Birches A | GN scatter", "Birches B | GN scatter", "Pine saplings | GN scatter", "Moss rocks A | GN scatter", "Moss rocks B | GN scatter", "Meadow grass | GN scatter", "Coastal grass | GN scatter", "Ferns A | GN scatter", "Ferns B | GN scatter", "Shrubs | GN scatter", "Sorrel ground cover | GN scatter", "Flowering rose plants | GN scatter", "Fallen log | GN scatter"], "robot_parts": 18, "baked_fireflies": 1, "render_engine": "BLENDER_EEVEE_NEXT", "render_size": [640, 480]}, "Next_step_plan": "清理交付候选并实际审查640x480 EEVEE预览；任何截图错误继续修复。"}
+Info: Saved as "Twilight_Wilderness_Robot.blend"
+{"stage": "5 清理与交付", "hardness": "High", "JEV": {"Judgement": "DATA_ONLY", "Evidence": {"required_collections": true, "blend_saved": true, "static_bake": true, "simulation_hidden": true}, "Verification": "保留隐藏模拟源以便追溯，静态实例作为最终展示；资产内嵌到 .blend，外部 FBX 仅供重建脚本使用。"}, "get_scene_info": {"objects": 61, "collections": {"Architecture": 0, "Environment": 19, "Robot": 18, "Fireflies": 4, "Lights": 4, "Architecture / open-source asset prototypes": 16}, "geometry_nodes": ["Oaks A | GN scatter", "Oaks B | GN scatter", "Birches A | GN scatter", "Birches B | GN scatter", "Pine saplings | GN scatter", "Moss rocks A | GN scatter", "Moss rocks B | GN scatter", "Meadow grass | GN scatter", "Coastal grass | GN scatter", "Ferns A | GN scatter", "Ferns B | GN scatter", "Shrubs | GN scatter", "Sorrel ground cover | GN scatter", "Flowering rose plants | GN scatter", "Fallen log | GN scatter"], "robot_parts": 18, "baked_fireflies": 1, "render_engine": "BLENDER_EEVEE_NEXT", "render_size": [640, 480]}, "Next_step_plan": "逐帧查看EEVEE预览并完成人工JEV；在视觉确认前保持待审状态。"}
+Info: Saved as "Twilight_Wilderness_Robot.blend"
+BUILD SAVED WITHOUT A PREVIEW: run the separate <=720p EEVEE review script; all candidate stages remain PENDING_VISUAL.
+
+===== upgrade_animation.py =====
+Read blend: "/home/runner/work/StrainsmoothingUAL/StrainsmoothingUAL/output/Twilight_Wilderness_Robot.blend"
+OBJ import of 'firefly.obj' took 4.02 ms
+Info: Saved as "Twilight_Wilderness_Robot.blend"
+UPGRADE {"frame_range": [1, 144], "bones": 18, "animated_bones": 13, "mesh_links": 18, "firefly_vertices": 970, "baked_positions": 107, "removed_broken_import_images": ["OriginalFoliageAtlas", "OriginalFoliageAtlas.001", "OriginalFoliageAtlas.002", "OriginalFoliageNormal", "OriginalFoliageNormal.001", "OriginalFoliageNormal.002", "pine_sapling_small_bark_nor_gl.png", "pine_sapling_small_bark_rough.png", "rock_moss_set_01_diff.png", "rock_moss_set_01_diff.png.001", "rock_moss_set_01_nor_gl.png", "rock_moss_set_01_nor_gl.png.001", "rock_moss_set_01_rough.png", "rock_moss_set_01_rough.png.001", "WoodlandAtlas", "WoodlandAtlas.001", "WoodlandAtlas.002", "WoodlandAtlas.003", "WoodlandNormal", "WoodlandNormal.001", "WoodlandNormal.002", "WoodlandNormal.003"]}
+
+===== animate_flight.py =====
+Read blend: "/home/runner/work/StrainsmoothingUAL/StrainsmoothingUAL/output/Twilight_Wilderness_Robot.blend"
+Info: Saved as "Twilight_Wilderness_Robot.blend"
+FLIGHT BAKED: 107 insects, 144 geometry states, full range 1 144 centroids (-1.04, 2.06, 1.59) -> (0.35, -1.31, 1.79)
+
+===== refine_walk.py =====
+Read blend: "/home/runner/work/StrainsmoothingUAL/StrainsmoothingUAL/output/Twilight_Wilderness_Robot.blend"
+Info: Saved as "Twilight_Wilderness_Robot.blend"
+URDF-LIMITED IK WALK {"IK_constraints": {"l": "URDF leg IK | l | measured ankle/sole plant", "r": "URDF leg IK | r | measured ankle/sole plant"}, "IK_chain_lengths": {"l": 4, "r": 4}, "leg_joint_axis_locks": {"l": {"l_hip_roll_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.5709999799728394, 3.1415927410125732, 3.1415927410125732, 0.5239999890327454]}, "l_knee_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.5709999799728394, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "l_ankle_pitch_joint": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.3250000476837158, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "l_ankle_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.0470000505447388, 3.1415927410125732, 3.1415927410125732, 1.0470000505447388]}, "l_foot_link": {"locks": [false, false, false], "limits": [-3.1415927410125732, -3.1415927410125732, -3.1415927410125732, 3.1415927410125732, 3.1415927410125732, 3.1415927410125732]}}, "r": {"r_hip_roll_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -0.5239999890327454, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "r_knee_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.5709999799728394, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "r_ankle_pitch_joint": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.3250000476837158, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "r_ankle_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.0470000505447388, 3.1415927410125732, 3.1415927410125732, 1.0470000505447388]}, "r_foot_link": {"locks": [false, false, false], "limits": [-3.1415927410125732, -3.1415927410125732, -3.1415927410125732, 3.1415927410125732, 3.1415927410125732, 3.1415927410125732]}}}, "foot_clearance_range_m": [-0.0024087880632830683, 0.0503654922284113], "planted_foot_clearance_range_m": [0.007961407048818592, 0.031068712618001232], "max_ik_target_error_m": 4.629746419748092e-05, "frames": 144, "visual_review_completed": false}
+
+===== audit_flight.py =====
+Read blend: "/home/runner/work/StrainsmoothingUAL/StrainsmoothingUAL/output/Twilight_Wilderness_Robot.blend"
+{
+  "kind": "actual evaluated geometric motion; NOT a visual render review",
+  "checks": {
+    "terrain_broad_relief_over_2m": true,
+    "smooth_256_sample_analytic_shoreline": true,
+    "lake_center_in_preview_framing": true,
+    "up_axis_fixed_pine": true,
+    "insect_wings_body_head_preserved": true,
+    "saturated_emissive_abdomen": false,
+    "emissive_insect_and_aura_instances_at_every_sample": true,
+    "genuine_newton_particle_simulation_baked_all_frames": true,
+    "baked_swarm_changes_world_position_gt_2m": true,
+    "real_robot_visual_body_moves_gt_2m": true,
+    "visible_robot_tracks_physical_flock_direction": true,
+    "robot_keeps_ahead_flight_within_1_7m": true,
+    "both_soles_measured_each_frame_with_small_clearance": true,
+    "stance_sole_contact_range_within_3cm": true,
+    "two_real_urdf_limited_ik_chains_and_poles": true,
+    "urdf_axis_locks_applied_to_both_legs": true,
+    "original_articulated_links_and_rig_kept": true,
+    "18_animated_real_firefly_lights_and_compositor_glow": true,
+    "animated_insect_closeup_tracks_one_baked_particle": true,
+    "render_is_eevee_640x480": true
+  },
+  "frames": {
+    "1": {
+      "baked_insect_and_halo_instances": 214,
+      "flight_centroid_xyz_m": [
+        -1.044,
+        2.064,
+        1.592
+      ],
+      "rig_xy_m": [
+        -1.524,
+        3.414
+      ],
+      "visible_body_xy_m": [
+        -1.524,
+        3.414
+      ],
+      "distance_body_to_flying_centroid_xy_m": 1.433
+    },
+    "13": {
+      "baked_insect_and_halo_instances": 214,
+      "flight_centroid_xyz_m": [
+        -0.943,
+        1.811,
+        1.607
+      ],
+      "rig_xy_m": [
+        -1.423,
+        3.161
+      ],
+      "visible_body_xy_m": [
+        -1.423,
+        3.161
+      ],
+      "distance_body_to_flying_centroid_xy_m": 1.433
+    },
+    "37": {
+      "baked_insect_and_halo_instances": 214,
+      "flight_centroid_xyz_m": [
+        -0.715,
+        1.237,
+        1.637
+      ],
+      "rig_xy_m": [
+        -1.195,
+        2.587
+      ],
+      "visible_body_xy_m": [
+        -1.195,
+        2.587
+      ],
+      "distance_body_to_flying_centroid_xy_m": 1.433
+    },
+    "75": {
+      "baked_insect_and_halo_instances": 214,
+      "flight_centroid_xyz_m": [
+        -0.342,
+        0.334,
+        1.689
+      ],
+      "rig_xy_m": [
+        -0.822,
+        1.684
+      ],
+      "visible_body_xy_m": [
+        -0.822,
+        1.684
+      ],
+      "distance_body_to_flying_centroid_xy_m": 1.433
+    },
+    "110": {
+      "baked_insect_and_halo_instances": 214,
+      "flight_centroid_xyz_m": [
+        0.012,
+        -0.499,
+        1.744
+      ],
+      "rig_xy_m": [
+        -0.468,
+        0.851
+      ],
+      "visible_body_xy_m": [
+        -0.468,
+        0.851
+      ],
+      "distance_body_to_flying_centroid_xy_m": 1.433
+    },
+    "144": {
+      "baked_insect_and_halo_instances": 214,
+      "flight_centroid_xyz_m": [
+        0.352,
+        -1.311,
+        1.792
+      ],
+      "rig_xy_m": [
+        -0.128,
+        0.039
+      ],
+      "visible_body_xy_m": [
+        -0.128,
+        0.039
+      ],
+      "distance_body_to_flying_centroid_xy_m": 1.433
+    }
+  },
+  "flight_world_distance_m": 3.658,
+  "robot_visible_world_distance_m": 3.652,
+  "flight_robot_direction_dot": 1.0,
+  "foot_clearance_range_m": [
+    -0.002,
+    0.05
+  ],
+  "planted_sole_clearance_range_m": [
+    0.007961407048818592,
+    0.031068712618001232
+  ],
+  "max_ik_endpoint_error_m": 4.629746419748092e-05,
+  "urdf_limited_ik_chain_count": 2,
+  "physics_baked_firefly_count": 107,
+  "physical_flock_path_distance_m": 391.4502590500705,
+  "unresolved_walk_contact": false,
+  "lake_face_count": 5120,
+  "terrain_height_range_m": 2.562,
+  "lake_preview_pixel": [
+    470,
+    281
+  ],
+  "tracked_firefly_pixel_by_frame": {
+    "1": [
+      320,
+      240
+    ],
+    "75": [
+      320,
+      240
+    ],
+    "144": [
+      320,
+      240
+    ]
+  },
+  "preview_png_available": false,
+  "full_visual_review_completed": false
+}
+Traceback (most recent call last):
+  File "/home/runner/work/StrainsmoothingUAL/StrainsmoothingUAL/audit_flight.py", line 106, in <module>
+    if not all(checks.values()):raise RuntimeError('Flight and world-space audit failed')
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Flight and world-space audit failed
