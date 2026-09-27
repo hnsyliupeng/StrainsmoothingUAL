@@ -1,0 +1,88 @@
+name: EEVEE low-resolution visual review
+
+on:
+  push:
+    branches:
+      - arena/01a0e0d3-strainsmoothingual
+    paths:
+      - .github/workflows/eevee-review-preview.yml
+      - output/Twilight_Wilderness_Robot.blend
+      - render_lowres_preview.py
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: eevee-review-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  render:
+    name: Render approved 640x480 EEVEE review frames
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out the session branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Set up Blender-compatible Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install headless Mesa software OpenGL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            xvfb libgl1-mesa-dri libegl-mesa0 libglx-mesa0 \
+            libx11-6 libx11-xcb1 libxrender1 libxi6 libxfixes3 \
+            libxdamage1 libxcomposite1 libxrandr2 libxkbcommon0 \
+            libxkbcommon-x11-0 libsm6 libice6 libxext6
+          python -m pip install --disable-pip-version-check bpy==4.5.14 pillow xacro
+
+      - name: Render only the approved EEVEE preview sizes
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+          GALLIUM_DRIVER: llvmpipe
+          EGL_PLATFORM: surfaceless
+          LP_NUM_THREADS: '4'
+        run: |
+          set -euo pipefail
+          for frame in 1 75 144; do
+            xvfb-run -a -s '-screen 0 1280x720x24' \
+              python render_lowres_preview.py --frame="$frame"
+          done
+          xvfb-run -a -s '-screen 0 1280x720x24' \
+            python render_lowres_preview.py --frame=75 --camera=firefly
+          python - <<'PY'
+          from pathlib import Path
+          import struct
+          paths = [
+              Path('output/preview_frame_001_640x480.png'),
+              Path('output/preview_640x480.png'),
+              Path('output/preview_frame_144_640x480.png'),
+              Path('output/preview_firefly_075_640x480.png'),
+          ]
+          for path in paths:
+              data = path.read_bytes()
+              assert data[:8] == b'\x89PNG\r\n\x1a\n', f'invalid PNG: {path}'
+              assert struct.unpack('>II', data[16:24]) == (640, 480), f'bad size: {path}'
+              print(f'{path}: {len(data)} bytes, 640x480')
+          PY
+
+      - name: Publish low-resolution review images on this branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            output/preview_frame_001_640x480.png \
+            output/preview_640x480.png \
+            output/preview_frame_144_640x480.png \
+            output/preview_firefly_075_640x480.png \
+            output/JEV_reviews.json
+          git commit -m 'Add 640x480 EEVEE visual review previews'
+          git push origin "${GITHUB_REF_NAME}"
