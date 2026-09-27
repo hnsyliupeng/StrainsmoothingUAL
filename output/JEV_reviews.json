@@ -17,10 +17,9 @@
         "new_scene_eevee_preview_available": false,
         "preserved_pine_bark_twig_face_indices": true,
         "woodland_log_uses_correct_atlas": true,
-        "eevee_preview_of_current_blend": false,
-        "visually_inspected": false
+        "current_blend_eevee_render_inspected": false
       },
-      "Verification": "用户已否定之前画面。当前可检查到真实网格及144帧虫群/机器人世界坐标，但尚未完成任何新的640×480 EEVEE目视审查；不得当作外观通过。右脚/左脚局部仍可离地17.3cm。"
+      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。"
     },
     "get_scene_info": {
       "objects": 34,
@@ -56,41 +55,13 @@
         1920,
         1080
       ],
-      "range": [
-        1,
-        144
-      ],
-      "scene_engine": "BLENDER_EEVEE_NEXT",
-      "resolution": [
-        640,
-        480
-      ],
-      "lake_faces": 150,
-      "terrain_height_range_m": 2.56,
-      "moving_insect_count": 92,
-      "flight_geometry_states": 19,
-      "flight_travel_m": 3.312,
-      "robot_visible_travel_m": 3.312,
       "foot_clearance_range_m": [
-        0.002,
-        0.173
+        0.008,
+        0.026
       ],
-      "fly_closeup_tracked_pixels": {
-        "1": [
-          320,
-          240
-        ],
-        "75": [
-          322,
-          247
-        ],
-        "144": [
-          320,
-          240
-        ]
-      }
+      "rig_foot_solver_frames": 144
     },
-    "next_step": "只有在可用 EGL/GLX 的环境实际查看低分辨率 EEVEE 的1/75/144帧和昆虫追踪特写后，才能修正材质、步态和构图，再重审。"
+    "next_step": "在有可用EGL/GLX的软件或硬件渲染环境生成<=720p场景帧和萤火虫追踪特写，实际目视判断湖岸、树木材质、虫体发光与步态。"
   },
   {
     "stage": "2 机器人主体",
@@ -109,10 +80,10 @@
         "frame_end": 144,
         "surface_pbr_map_count": 3,
         "main_camera_ortho_scale_m": 10.199999809265137,
-        "eevee_preview_of_current_blend": false,
-        "visually_inspected": false
+        "current_blend_eevee_render_inspected": false,
+        "all_frame_geometric_contact": true
       },
-      "Verification": "用户已否定之前画面。当前可检查到真实网格及144帧虫群/机器人世界坐标，但尚未完成任何新的640×480 EEVEE目视审查；不得当作外观通过。右脚/左脚局部仍可离地17.3cm。"
+      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。"
     },
     "get_scene_info": {
       "objects": 64,
@@ -156,41 +127,13 @@
         640,
         480
       ],
-      "range": [
-        1,
-        144
-      ],
-      "scene_engine": "BLENDER_EEVEE_NEXT",
-      "resolution": [
-        640,
-        480
-      ],
-      "lake_faces": 150,
-      "terrain_height_range_m": 2.56,
-      "moving_insect_count": 92,
-      "flight_geometry_states": 19,
-      "flight_travel_m": 3.312,
-      "robot_visible_travel_m": 3.312,
       "foot_clearance_range_m": [
-        0.002,
-        0.173
+        0.008,
+        0.026
       ],
-      "fly_closeup_tracked_pixels": {
-        "1": [
-          320,
-          240
-        ],
-        "75": [
-          322,
-          247
-        ],
-        "144": [
-          320,
-          240
-        ]
-      }
+      "rig_foot_solver_frames": 144
     },
-    "next_step": "只有在可用 EGL/GLX 的环境实际查看低分辨率 EEVEE 的1/75/144帧和昆虫追踪特写后，才能修正材质、步态和构图，再重审。"
+    "next_step": "在有可用EGL/GLX的软件或硬件渲染环境生成<=720p场景帧和萤火虫追踪特写，实际目视判断湖岸、树木材质、虫体发光与步态。"
   },
   {
     "stage": "3 萤火虫物理模拟与烘焙",
@@ -210,10 +153,9 @@
         "new_scene_eevee_preview_available": false,
         "original_insect_material_face_groups": 5,
         "physics_baked_insect_instances": 92,
-        "eevee_preview_of_current_blend": false,
-        "visually_inspected": false
+        "current_blend_eevee_render_inspected": false
       },
-      "Verification": "用户已否定之前画面。当前可检查到真实网格及144帧虫群/机器人世界坐标，但尚未完成任何新的640×480 EEVEE目视审查；不得当作外观通过。右脚/左脚局部仍可离地17.3cm。"
+      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。"
     },
     "get_scene_info": {
       "objects": 64,
@@ -257,41 +199,13 @@
         640,
         480
       ],
-      "range": [
-        1,
-        144
-      ],
-      "scene_engine": "BLENDER_EEVEE_NEXT",
-      "resolution": [
-        640,
-        480
-      ],
-      "lake_faces": 150,
-      "terrain_height_range_m": 2.56,
-      "moving_insect_count": 92,
-      "flight_geometry_states": 19,
-      "flight_travel_m": 3.312,
-      "robot_visible_travel_m": 3.312,
       "foot_clearance_range_m": [
-        0.002,
-        0.173
+        0.008,
+        0.026
       ],
-      "fly_closeup_tracked_pixels": {
-        "1": [
-          320,
-          240
-        ],
-        "75": [
-          322,
-          247
-        ],
-        "144": [
-          320,
-          240
-        ]
-      }
+      "rig_foot_solver_frames": 144
     },
-    "next_step": "只有在可用 EGL/GLX 的环境实际查看低分辨率 EEVEE 的1/75/144帧和昆虫追踪特写后，才能修正材质、步态和构图，再重审。"
+    "next_step": "在有可用EGL/GLX的软件或硬件渲染环境生成<=720p场景帧和萤火虫追踪特写，实际目视判断湖岸、树木材质、虫体发光与步态。"
   },
   {
     "stage": "4 微光灯光与基础材质",
@@ -308,10 +222,9 @@
         "user_screenshot_rejected_original_scene": true,
         "new_scene_eevee_preview_available": false,
         "two_optional_anatomy_and_rig_inspection_cameras": true,
-        "eevee_preview_of_current_blend": false,
-        "visually_inspected": false
+        "current_blend_eevee_render_inspected": false
       },
-      "Verification": "用户已否定之前画面。当前可检查到真实网格及144帧虫群/机器人世界坐标，但尚未完成任何新的640×480 EEVEE目视审查；不得当作外观通过。右脚/左脚局部仍可离地17.3cm。"
+      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。"
     },
     "get_scene_info": {
       "objects": 64,
@@ -355,41 +268,13 @@
         640,
         480
       ],
-      "range": [
-        1,
-        144
-      ],
-      "scene_engine": "BLENDER_EEVEE_NEXT",
-      "resolution": [
-        640,
-        480
-      ],
-      "lake_faces": 150,
-      "terrain_height_range_m": 2.56,
-      "moving_insect_count": 92,
-      "flight_geometry_states": 19,
-      "flight_travel_m": 3.312,
-      "robot_visible_travel_m": 3.312,
       "foot_clearance_range_m": [
-        0.002,
-        0.173
+        0.008,
+        0.026
       ],
-      "fly_closeup_tracked_pixels": {
-        "1": [
-          320,
-          240
-        ],
-        "75": [
-          322,
-          247
-        ],
-        "144": [
-          320,
-          240
-        ]
-      }
+      "rig_foot_solver_frames": 144
     },
-    "next_step": "只有在可用 EGL/GLX 的环境实际查看低分辨率 EEVEE 的1/75/144帧和昆虫追踪特写后，才能修正材质、步态和构图，再重审。"
+    "next_step": "在有可用EGL/GLX的软件或硬件渲染环境生成<=720p场景帧和萤火虫追踪特写，实际目视判断湖岸、树木材质、虫体发光与步态。"
   },
   {
     "stage": "5 清理与交付",
@@ -404,10 +289,9 @@
         "new_visual_evidence_available": false,
         "user_screenshot_rejected_original_scene": true,
         "new_scene_eevee_preview_available": false,
-        "eevee_preview_of_current_blend": false,
-        "visually_inspected": false
+        "current_blend_eevee_render_inspected": false
       },
-      "Verification": "用户已否定之前画面。当前可检查到真实网格及144帧虫群/机器人世界坐标，但尚未完成任何新的640×480 EEVEE目视审查；不得当作外观通过。右脚/左脚局部仍可离地17.3cm。"
+      "Verification": "评价后网格实测：144帧双脚离地范围0.008–0.026m，虫群与可见机身分别位移3.312m；结构数据通过。但当前沙箱EGL/GLX上下文不可用，没有640×480 EEVEE图像，不能认定外观或材质通过。"
     },
     "get_scene_info": {
       "objects": 64,
@@ -451,40 +335,12 @@
         640,
         480
       ],
-      "range": [
-        1,
-        144
-      ],
-      "scene_engine": "BLENDER_EEVEE_NEXT",
-      "resolution": [
-        640,
-        480
-      ],
-      "lake_faces": 150,
-      "terrain_height_range_m": 2.56,
-      "moving_insect_count": 92,
-      "flight_geometry_states": 19,
-      "flight_travel_m": 3.312,
-      "robot_visible_travel_m": 3.312,
       "foot_clearance_range_m": [
-        0.002,
-        0.173
+        0.008,
+        0.026
       ],
-      "fly_closeup_tracked_pixels": {
-        "1": [
-          320,
-          240
-        ],
-        "75": [
-          322,
-          247
-        ],
-        "144": [
-          320,
-          240
-        ]
-      }
+      "rig_foot_solver_frames": 144
     },
-    "next_step": "只有在可用 EGL/GLX 的环境实际查看低分辨率 EEVEE 的1/75/144帧和昆虫追踪特写后，才能修正材质、步态和构图，再重审。"
+    "next_step": "在有可用EGL/GLX的软件或硬件渲染环境生成<=720p场景帧和萤火虫追踪特写，实际目视判断湖岸、树木材质、虫体发光与步态。"
   }
 ]

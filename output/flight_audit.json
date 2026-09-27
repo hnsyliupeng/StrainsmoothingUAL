@@ -13,7 +13,8 @@
     "real_robot_visual_body_moves_gt_2m": true,
     "visible_robot_tracks_fly_direction": true,
     "robot_keeps_ahead_flight_within_1_7m": true,
-    "sampled_feet_do_not_enter_landscape": true,
+    "every_frame_both_feet_near_terrain": true,
+    "original_articulated_links_and_rig_kept": true,
     "lake_and_glow_compositor_saved": true,
     "animated_insect_closeup_actually_tracks_one_baked_particle": true,
     "render_is_eevee_640x480": true
@@ -126,10 +127,10 @@
   "robot_visible_world_distance_m": 3.312,
   "flight_robot_direction_dot": 1.0,
   "foot_clearance_range_m": [
-    0.002,
-    0.173
+    0.008,
+    0.026
   ],
-  "unresolved_walk_contact": true,
+  "unresolved_walk_contact": false,
   "lake_face_count": 150,
   "terrain_height_range_m": 2.56,
   "lake_preview_pixel": [
