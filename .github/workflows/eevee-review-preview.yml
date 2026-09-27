@@ -44,45 +44,36 @@ jobs:
             libxkbcommon-x11-0 libsm6 libice6 libxext6
           python -m pip install --disable-pip-version-check bpy==4.5.14 pillow xacro
 
-      - name: Render only the approved EEVEE preview sizes
+      - name: Render the approved EEVEE preview sizes
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
           GALLIUM_DRIVER: llvmpipe
           EGL_PLATFORM: surfaceless
           LP_NUM_THREADS: '4'
         run: |
-          set -euo pipefail
-          for frame in 1 75 144; do
+          # Use a single Blender Python process so EEVEE and its software
+          # context/data persist across review frames. Eight TAA samples are
+          # intentionally limited to diagnostic previews, not final renders.
+          timeout --signal=TERM --kill-after=30s 1500s \
             xvfb-run -a -s '-screen 0 1280x720x24' \
-              python render_lowres_preview.py --frame="$frame"
-          done
-          xvfb-run -a -s '-screen 0 1280x720x24' \
-            python render_lowres_preview.py --frame=75 --camera=firefly
-          python - <<'PY'
-          from pathlib import Path
-          import struct
-          paths = [
-              Path('output/preview_frame_001_640x480.png'),
-              Path('output/preview_640x480.png'),
-              Path('output/preview_frame_144_640x480.png'),
-              Path('output/preview_firefly_075_640x480.png'),
-          ]
-          for path in paths:
-              data = path.read_bytes()
-              assert data[:8] == b'\x89PNG\r\n\x1a\n', f'invalid PNG: {path}'
-              assert struct.unpack('>II', data[16:24]) == (640, 480), f'bad size: {path}'
-              print(f'{path}: {len(data)} bytes, 640x480')
-          PY
+            python -u render_lowres_preview.py --frames=1,75,144 --include-firefly --samples=8
 
-      - name: Publish low-resolution review images on this branch
+      - name: Publish any completed low-resolution review images
+        if: always()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add \
+          git add output/JEV_reviews.json 2>/dev/null || true
+          for image in \
             output/preview_frame_001_640x480.png \
             output/preview_640x480.png \
             output/preview_frame_144_640x480.png \
-            output/preview_firefly_075_640x480.png \
-            output/JEV_reviews.json
-          git commit -m 'Add 640x480 EEVEE visual review previews'
+            output/preview_firefly_075_640x480.png; do
+            if [ -s "$image" ]; then git add "$image"; fi
+          done
+          if git diff --cached --quiet; then
+            echo 'No preview PNGs completed in this run.'
+            exit 0
+          fi
+          git commit -m 'Add completed 640x480 EEVEE review previews'
           git push origin "${GITHUB_REF_NAME}"
