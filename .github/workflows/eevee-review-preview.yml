@@ -130,13 +130,22 @@ jobs:
       - name: Preserve failed harness logs for diagnosis
         if: failure()
         run: |
+          echo "Harness failed: run=${GITHUB_RUN_ID} sha=${GITHUB_SHA} event=${GITHUB_EVENT_NAME}"
+          for log in output/rebuild-debug.log output/render-debug.log; do
+            if [ -s "$log" ]; then
+              echo "===== $log (last 160 lines) ====="
+              tail -n 160 "$log"
+            fi
+          done
+          if [ -s output/rebuild-debug.log ]; then
+            printf "\\nHarness failed in run %s at %s\\n" "$GITHUB_RUN_ID" "$(date -u +%FT%TZ)" >> output/rebuild-debug.log
+          else
+            printf "Harness failed before build logging began. run=%s sha=%s\\n" "$GITHUB_RUN_ID" "$GITHUB_SHA" > output/rebuild-debug.log
+          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add output/rebuild-debug.log output/render-debug.log 2>/dev/null || true
-          if git diff --cached --quiet; then
-            echo 'No harness logs to preserve.'
-            exit 0
-          fi
+          git add -f output/rebuild-debug.log output/render-debug.log 2>/dev/null || true
+          git add -f output/rebuild-debug.log
           git commit -m 'Preserve scene harness failure logs'
           git push origin "${GITHUB_REF_NAME}"
 
