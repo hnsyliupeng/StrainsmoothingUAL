@@ -149,10 +149,11 @@ check('animated_flight_lights_and_eevee_bloom', len(lights) >= 18
 ik_constraints = [c for pb in rig.pose.bones for c in pb.constraints if c.type == 'IK']
 check('two_four_link_ik_chains_with_poles', len(ik_constraints) == 2
       and all(c.chain_count == 4 and c.target is not None and c.pole_target is not None
-              and not c.use_stretch for c in ik_constraints),
+              and c.use_rotation and not c.use_stretch for c in ik_constraints),
       [{'name': c.name, 'chain_count': c.chain_count,
         'target': c.target.name if c.target else None,
-        'pole': c.pole_target.name if c.pole_target else None} for c in ik_constraints])
+        'pole': c.pole_target.name if c.pole_target else None,
+        'use_rotation': c.use_rotation} for c in ik_constraints])
 leg_joints_ok = True
 for side in ('l', 'r'):
     for name in (side + '_hip_roll_link', side + '_knee_link',
@@ -170,6 +171,14 @@ control_key_counts = {o.name: min((len(fc.keyframe_points) for fc in o.animation
 check('world_space_foot_targets_and_poles_are_keyed_all_frames',
       len(keyed_controls) == 4 and all(count >= 144 for count in control_key_counts.values()),
       control_key_counts)
+orientation_key_counts = {
+    o.name: min((len(fc.keyframe_points) for fc in o.animation_data.action.fcurves
+                 if fc.data_path == 'rotation_quaternion'), default=0)
+    for o in keyed_controls if o.name.startswith('IK Target |')
+}
+check('terrain_tangent_ankle_orientations_keyed_all_frames',
+      len(orientation_key_counts) == 2 and all(count >= 144 for count in orientation_key_counts.values()),
+      orientation_key_counts)
 robot_links = [o for o in bpy.data.collections['Robot'].objects if o.type == 'MESH']
 check('18_authored_rigged_urdf_mesh_links', len(robot_links) == 18 and len(rig.data.bones) == 18
       and all(o.parent == rig and any(m.type == 'ARMATURE' and m.object == rig for m in o.modifiers)

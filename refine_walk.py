@@ -156,9 +156,10 @@ for side in ('l', 'r'):
     constraint.target = target
     constraint.pole_target = pole
     constraint.chain_count = 4
-    constraint.iterations = 96
+    constraint.iterations = 256
     constraint.use_stretch = False
-    constraint.use_rotation = False
+    constraint.use_rotation = True
+    target.rotation_mode = 'QUATERNION'
     IKs[side] = constraint
     for name in leg_bones[side]:
         rig.pose.bones[name]['IK_chain_side'] = side
@@ -177,10 +178,13 @@ def target_position(side, frame):
     local = touchdown_local(side)
     previous = local_to_world(local, touchdown)
     following = local_to_world(local, next_touchdown)
+    previous_yaw = root_at(touchdown)[1]
+    next_yaw = root_at(next_touchdown)[1]
     if u < stance_fraction:
         x, y = previous.x, previous.y
         z = height(x, y) + toe_above_sole[side] + contact_clearance_target
         planted = True
+        foot_yaw = previous_yaw  # a planted sole keeps its landing orientation
     else:
         swing = (u - stance_fraction) / (1.0 - stance_fraction)
         smooth = swing * swing * (3.0 - 2.0 * swing)
@@ -189,7 +193,19 @@ def target_position(side, frame):
         lift = swing_height * 4.0 * swing * (1.0 - swing)
         z = height(x, y) + toe_above_sole[side] + lift + contact_clearance_target
         planted = False
-    return Vector((x, y, z)), planted
+        foot_yaw = previous_yaw + angle_delta(previous_yaw, next_yaw) * smooth
+    return Vector((x, y, z)), planted, foot_yaw
+
+
+def contact_frame(x, y, yaw):
+    """Return a terrain-tangent foot frame and its world-space rotation."""
+    epsilon = 0.05
+    dx = (height(x + epsilon, y) - height(x - epsilon, y)) / (2.0 * epsilon)
+    dy = (height(x, y + epsilon) - height(x, y - epsilon)) / (2.0 * epsilon)
+    normal = Vector((-dx, -dy, 1.0)).normalized()
+    terrain_tilt = Vector((0.0, 0.0, 1.0)).rotation_difference(normal)
+    world_from_root = terrain_tilt @ Euler((0.0, 0.0, yaw), 'XYZ').to_quaternion()
+    return world_from_root
 
 
 def pole_position(side, frame):
@@ -199,20 +215,24 @@ def pole_position(side, frame):
 # A contact correction moves only the world-space IK target. The pelvis trajectory
 # remains the measured firefly-follow path, and no individual joint is hand-spun.
 contact_errors = []
+contact_samples = []
 target_errors = []
+target_error_samples = []
 for frame in range(scene.frame_start, scene.frame_end + 1):
     scene.frame_set(frame)
     bpy.context.view_layer.update()
     for side in ('l', 'r'):
         target = targets[side]
-        desired_toe, planted = target_position(side, frame)
-        yaw = root_at(frame)[1]
-        ankle_toe_offset = Euler((0, 0, yaw), 'XYZ').to_matrix() @ (base_toe[side] - ankle_tail[side])
+        desired_toe, planted, foot_yaw = target_position(side, frame)
+        ground_rotation = contact_frame(desired_toe.x, desired_toe.y, foot_yaw)
+        ankle_toe_offset = ground_rotation @ (base_toe[side] - ankle_tail[side])
         target.location = desired_toe - ankle_toe_offset
+        target.rotation_quaternion = ground_rotation @ rig.data.bones[side + '_ankle_link'].matrix_local.to_quaternion()
         poles[side].location = pole_position(side, frame)
         # Insert the current keys BEFORE measuring: otherwise Blender evaluates
         # the prior-frame F-curve and the solver sees a stale target transform.
         target.keyframe_insert(data_path='location', frame=frame, group='World-space planted-foot IK')
+        target.keyframe_insert(data_path='rotation_quaternion', frame=frame, group='Terrain-tangent ankle orientation')
         poles[side].keyframe_insert(data_path='location', frame=frame, group='Moving knee pole target')
         bpy.context.view_layer.update()
         if planted:
@@ -236,8 +256,11 @@ for frame in range(scene.frame_start, scene.frame_end + 1):
         gap = mesh_clearance(side)
         if planted:
             contact_errors.append(gap)
+            contact_samples.append({'frame': frame, 'side': side, 'clearance_m': gap})
         end = rig.matrix_world @ rig.pose.bones[side + '_ankle_link'].tail
-        target_errors.append((end - target.location).length)
+        endpoint_error = (end - target.location).length
+        target_errors.append(endpoint_error)
+        target_error_samples.append({'frame': frame, 'side': side, 'error_m': endpoint_error})
 
 for obj in list(targets.values()) + list(poles.values()):
     if obj.animation_data and obj.animation_data.action:
@@ -269,6 +292,7 @@ for frame in range(scene.frame_start, scene.frame_end + 1):
 rig['foot_all_frame_clearance_range_m'] = [min(clearances), max(clearances)]
 summary = {
     'IK_constraints': {side: IKs[side].name for side in ('l', 'r')},
+    'IK_rotation_targets_enabled': {side: IKs[side].use_rotation for side in ('l', 'r')},
     'IK_chain_lengths': {side: IKs[side].chain_count for side in ('l', 'r')},
     'leg_joint_axis_locks': {
         side: {name: {'locks': [rig.pose.bones[name].lock_ik_x,
@@ -290,6 +314,9 @@ summary = {
     'contact_clearance_tolerance_m': contact_clearance_tolerance,
     'lowest_sole_sample': min(clearance_samples, key=lambda item: item['clearance_m']),
     'highest_sole_sample': max(clearance_samples, key=lambda item: item['clearance_m']),
+    'lowest_planted_sample': min(contact_samples, key=lambda item: item['clearance_m']),
+    'highest_planted_sample': max(contact_samples, key=lambda item: item['clearance_m']),
+    'largest_ik_endpoint_error': max(target_error_samples, key=lambda item: item['error_m']),
     'frames': scene.frame_end,
     'visual_review_completed': False,
 }
@@ -329,6 +356,7 @@ reviews[1]['JEV']['Evidence'].update({
     'urdf_limited_ik_chain_length': 4,
     'pole_targets_baked_every_frame': True,
     'two_sole_meshes_measured_each_frame': len(clearances) == 288,
+    'terrain_tangent_ankle_rotation_targets': all(c.use_rotation for c in IKs.values()),
     'all_frame_foot_clearance_range_m': [min(clearances), max(clearances)],
     'stance_only_foot_clearance_range_m': [min(contact_errors), max(contact_errors)],
     'max_ik_endpoint_error_m': max(target_errors),
