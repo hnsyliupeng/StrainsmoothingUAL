@@ -157,15 +157,51 @@ check('animated_flight_lights_and_eevee_bloom', len(lights) >= 18
 # Robot: real URDF links, both constrained IK chains, keyed controls, close-to-zero plants.
 ik_pairs = [(pb, c) for pb in rig.pose.bones for c in pb.constraints if c.type == 'IK']
 ik_constraints = [c for _, c in ik_pairs]
-check('toe_endpoint_ik_is_owned_by_both_foot_bones',
-      {pb.name for pb, _ in ik_pairs} == {'l_foot_link', 'r_foot_link'})
-check('two_five_link_urdf_ik_chains_with_poles', len(ik_constraints) == 2
-      and all(c.chain_count == 5 and c.target is not None and c.pole_target is not None
+check('ankle_pivot_ik_is_owned_by_both_ankle_bones',
+      {pb.name for pb, _ in ik_pairs} == {'l_ankle_link', 'r_ankle_link'})
+check('two_four_link_urdf_ik_chains_with_poles', len(ik_constraints) == 2
+      and all(c.chain_count == 4 and c.target is not None and c.pole_target is not None
               and not c.use_rotation and not c.use_stretch for c in ik_constraints),
       [{'name': c.name, 'chain_count': c.chain_count,
         'target': c.target.name if c.target else None,
         'pole': c.pole_target.name if c.pole_target else None,
         'position_only_target': not c.use_rotation} for c in ik_constraints])
+ankle_roll_constraint_details = {}
+ankle_roll_limits_ok = True
+for side in ('l', 'r'):
+    pb = rig.pose.bones[side + '_foot_link']
+    limits = [c for c in pb.constraints if c.type == 'LIMIT_ROTATION'
+              and c.name == 'URDF ankle-roll limit | ' + side]
+    axis = list(pb['urdf_joint_axis_local'])
+    axis_index = max(range(3), key=lambda i: abs(axis[i]))
+    lower, upper = map(float, pb['urdf_joint_limit_rad'])
+    expected = ((lower, upper) if axis[axis_index] >= 0 else (-upper, -lower))
+    if len(limits) != 1:
+        ankle_roll_limits_ok = False
+        continue
+    limit = limits[0]
+    actual = (getattr(limit, 'min_' + 'xyz'[axis_index]),
+              getattr(limit, 'max_' + 'xyz'[axis_index]))
+    all_axes_enabled = all(getattr(limit, 'use_limit_' + axis_name) for axis_name in 'xyz')
+    ankle_roll_limits_ok &= (limit.owner_space == 'LOCAL' and all_axes_enabled
+                             and abs(actual[0] - expected[0]) < 1e-6
+                             and abs(actual[1] - expected[1]) < 1e-6)
+    ankle_roll_constraint_details[side] = {
+        'name': limit.name, 'owner_space': limit.owner_space,
+        'axis_local': axis, 'urdf_limits_rad': [lower, upper],
+        'local_component_limits_rad': list(actual),
+    }
+check('asymmetric_ankle_roll_limits_are_local_and_match_urdf',
+      ankle_roll_limits_ok, ankle_roll_constraint_details)
+roll_action = rig.animation_data.action if rig.animation_data else None
+ankle_roll_key_counts = {}
+for side in ('l', 'r'):
+    data_path = f'pose.bones["{side}_foot_link"].rotation_quaternion'
+    counts = [len(curve.keyframe_points) for curve in roll_action.fcurves
+              if curve.data_path == data_path] if roll_action else []
+    ankle_roll_key_counts[side] = min(counts) if len(counts) == 4 else 0
+check('ankle_roll_servo_keyed_for_every_animation_frame',
+      all(count >= 144 for count in ankle_roll_key_counts.values()), ankle_roll_key_counts)
 leg_joints_ok = True
 for side in ('l', 'r'):
     for name in (side + '_hip_roll_link', side + '_knee_link',

@@ -82,13 +82,11 @@ for name,bone in arm.edit_bones.items():
         child=children[name][0];delta=joint_heads[child]-joint_heads[name]
         if delta.length>.045:bone.tail=joint_heads[child]
     elif name.endswith('_foot_link'):
-        # End the terminal foot bone at its authored toe, so the IK endpoint
-        # controls actual sole placement rather than an arbitrary axis stub.
-        joint=joint_worlds[name];obj=link_objects[name]
-        local_vertices=[joint.inverted() @ (obj.matrix_world @ v.co) for v in obj.data.vertices]
-        toe=min(local_vertices,key=lambda v:v.y)
-        tail=rig.matrix_world.inverted() @ (joint @ toe)
-        if (tail-bone.head).length>.045:bone.tail=tail
+        # This terminal visual link is driven by the URDF ankle-roll servo.
+        # Align the bone's longitudinal local Y exactly to that oblique joint
+        # axis so Blender's Euler/IK limit can represent the real angular range.
+        axis=axes[name].normalized()
+        bone.tail=bone.head+axis*.17
     # Local Z is rolled onto the URDF revolute axis where geometrically possible.
     segment=(bone.tail-bone.head).normalized();axis=axes.get(name,Vector((0,0,1)))
     roll_axis=axis-segment*axis.dot(segment)

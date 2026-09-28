@@ -56,6 +56,20 @@ hero=inspection['tracked_particle_index']
 ik_pairs=[(pb,c) for pb in rig.pose.bones for c in pb.constraints if c.type=='IK']
 ik_constraints=[c for _,c in ik_pairs]
 ik_owners={pb.name for pb,_ in ik_pairs}
+roll_limit_constraints={side:[c for c in rig.pose.bones[side+'_foot_link'].constraints
+                               if c.type=='LIMIT_ROTATION' and c.name=='URDF ankle-roll limit | '+side]
+                         for side in ('l','r')}
+roll_limit_matches_urdf={}
+for side in ('l','r'):
+    pb=rig.pose.bones[side+'_foot_link'];items=roll_limit_constraints[side]
+    axis=list(pb['urdf_joint_axis_local']);axis_index=max(range(3),key=lambda i:abs(axis[i]))
+    lower,upper=map(float,pb['urdf_joint_limit_rad'])
+    expected=(lower,upper) if axis[axis_index]>=0 else (-upper,-lower)
+    c=items[0] if len(items)==1 else None
+    actual=(getattr(c,'min_'+'xyz'[axis_index]),getattr(c,'max_'+'xyz'[axis_index])) if c else (float('inf'),-float('inf'))
+    roll_limit_matches_urdf[side]=bool(c and c.owner_space=='LOCAL'
+        and all(getattr(c,'use_limit_'+a) for a in 'xyz')
+        and abs(actual[0]-expected[0])<1e-6 and abs(actual[1]-expected[1])<1e-6)
 ik_audit=json.loads((ROOT/'output'/'robot_ik_audit.json').read_text())
 emitter=bpy.data.objects.get('Simulation emitter | hidden after full flight bake')
 particle_system=emitter.particle_systems[0] if emitter and emitter.particle_systems else None
@@ -96,8 +110,10 @@ checks={
  'robot_keeps_ahead_flight_within_1_7m':all(data['distance_body_to_flying_centroid_xy_m']<1.7 for data in frames.values()),
  'both_soles_measured_each_frame_with_small_clearance':min(foot_clearance)>=-.003 and max(foot_clearance)<.075,
  'stance_sole_contact_within_6mm':ik_audit['planted_foot_clearance_range_m'][0]>=-.001 and ik_audit['planted_foot_clearance_range_m'][1]<=.006,
- 'two_real_urdf_limited_ik_chains_and_poles':len(ik_constraints)==2 and all(c.chain_count==5 and c.pole_target for c in ik_constraints),
- 'toe_endpoint_ik_owned_by_left_and_right_foot_bones':ik_owners=={'l_foot_link','r_foot_link'},
+ 'two_real_urdf_limited_four_link_ik_chains_and_poles':len(ik_constraints)==2 and all(c.chain_count==4 and c.pole_target for c in ik_constraints),
+ 'ankle_pivot_ik_owned_by_left_and_right_ankle_bones':ik_owners=={'l_ankle_link','r_ankle_link'},
+ 'both_ankle_roll_servos_have_exact_native_urdf_axis_limits':all(roll_limit_matches_urdf.values()),
+ 'ankle_roll_gait_angles_stay_within_urdf_ranges':all(ik_audit['ankle_roll_limits_rad'][side][0] <= ik_audit['ankle_roll_angle_ranges_rad'][side][0] <= ik_audit['ankle_roll_angle_ranges_rad'][side][1] <= ik_audit['ankle_roll_limits_rad'][side][1] for side in ('l','r')),
  'urdf_axis_locks_applied_to_all_five_dofs':all(all(any((rig.pose.bones[name].lock_ik_x, rig.pose.bones[name].lock_ik_y, rig.pose.bones[name].lock_ik_z)) and any((rig.pose.bones[name].use_ik_limit_x, rig.pose.bones[name].use_ik_limit_y, rig.pose.bones[name].use_ik_limit_z)) for name in side_bones) for side_bones in (( 'l_hip_roll_link','l_knee_link','l_ankle_pitch_joint','l_ankle_link','l_foot_link'),('r_hip_roll_link','r_knee_link','r_ankle_pitch_joint','r_ankle_link','r_foot_link'))),
  'original_articulated_links_and_rig_kept':len(rig.data.bones)==18 and all(o.parent==rig for o in bpy.data.collections['Robot'].objects if o.type=='MESH'),
  '18_animated_real_firefly_lights_and_compositor_glow':len(point_lights)>=18 and all(o.animation_data and o.data.energy>0 for o in point_lights) and bool(glow_nodes) and s.render.use_compositing,
