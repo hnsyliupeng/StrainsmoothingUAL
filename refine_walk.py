@@ -258,11 +258,14 @@ rig['foot_ik_max_endpoint_error_m'] = max(target_errors)
 scene.frame_set(75)
 bpy.context.view_layer.update()
 clearances = []
+clearance_samples = []
 for frame in range(scene.frame_start, scene.frame_end + 1):
     scene.frame_set(frame)
     bpy.context.view_layer.update()
     for side in ('l', 'r'):
-        clearances.append(mesh_clearance(side))
+        gap = mesh_clearance(side)
+        clearances.append(gap)
+        clearance_samples.append({'frame': frame, 'side': side, 'clearance_m': gap})
 rig['foot_all_frame_clearance_range_m'] = [min(clearances), max(clearances)]
 summary = {
     'IK_constraints': {side: IKs[side].name for side in ('l', 'r')},
@@ -285,10 +288,13 @@ summary = {
     'max_ik_target_error_m': max(target_errors),
     'contact_clearance_target_m': contact_clearance_target,
     'contact_clearance_tolerance_m': contact_clearance_tolerance,
+    'lowest_sole_sample': min(clearance_samples, key=lambda item: item['clearance_m']),
+    'highest_sole_sample': max(clearance_samples, key=lambda item: item['clearance_m']),
     'frames': scene.frame_end,
     'visual_review_completed': False,
 }
 (ROOT / 'output' / 'robot_ik_audit.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2) + '\n')
+print('URDF-LIMITED IK WALK DIAGNOSTIC', json.dumps(summary, ensure_ascii=False), flush=True)
 assert len(IKs) == 2 and all(c.chain_count == 4 and c.pole_target for c in IKs.values())
 assert min(clearances) >= -0.003 and max(clearances) < 0.15, summary['foot_clearance_range_m']
 assert min(contact_errors) >= -0.001 and max(contact_errors) <= 0.006, summary['planted_foot_clearance_range_m']

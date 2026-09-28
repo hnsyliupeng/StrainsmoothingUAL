@@ -7,8 +7,11 @@ so its shoreline is smooth and the scattering mask can reject submerged ground.
 import math
 
 LAKE_CENTER = (3.7, 3.8)
-LAKE_RADIUS = 5.2
-LAKE_BASIN_DEPTH = 2.15
+# Keep a broad, clearly visible lake, but leave the moving robot a generous,
+# walkable dry bank. The previous 5.2 m depression steepened the ground along
+# the robot's chase path and made the URDF-limited ankle chains unreachable.
+LAKE_RADIUS = 4.5
+LAKE_BASIN_DEPTH = 1.9
 LAKE_BASIN_EXPONENT = 0.80
 LAKE_LEVEL = -0.38
 

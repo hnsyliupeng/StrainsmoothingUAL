@@ -63,7 +63,9 @@ jobs:
           LP_NUM_THREADS: '4'
         run: |
           set -euo pipefail
-          rm -f output/rebuild-debug.log output/render-debug.log
+          rm -f output/rebuild-debug.log output/render-debug.log \
+            output/robot_ik_audit.json output/scene_contract_audit.json \
+            output/scene_audit.json output/flight_audit.json
           timeout --signal=TERM --kill-after=30s 3000s \
             xvfb-run -a -s '-screen 0 1280x720x24' \
             bash -euo pipefail -c '
@@ -122,6 +124,10 @@ jobs:
           path: |
             output/rebuild-debug.log
             output/render-debug.log
+            output/robot_ik_audit.json
+            output/scene_contract_audit.json
+            output/scene_audit.json
+            output/flight_audit.json
             output/preview_manifest.json
             output/preview*640x480.png
           if-no-files-found: ignore
@@ -135,6 +141,13 @@ jobs:
             if [ -s "$log" ]; then
               echo "===== $log (last 160 lines) ====="
               tail -n 160 "$log"
+            fi
+          done
+          for report in output/robot_ik_audit.json output/scene_contract_audit.json \
+                        output/scene_audit.json output/flight_audit.json; do
+            if [ -s "$report" ]; then
+              printf "\\n===== %s =====\\n" "$report" | tee -a output/rebuild-debug.log
+              cat "$report" | tee -a output/rebuild-debug.log
             fi
           done
           if [ -s output/rebuild-debug.log ]; then
