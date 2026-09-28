@@ -53,7 +53,9 @@ fly_dim=[max(v.co[k] for v in fly.data.vertices)-min(v.co[k] for v in fly.data.v
 project=world_to_camera_view(s,s.camera,Vector((3.7,3.8,-.38)))
 inspection=bpy.data.objects['Camera | firefly anatomical inspection']
 hero=inspection['tracked_particle_index']
-ik_constraints=[c for pb in rig.pose.bones for c in pb.constraints if c.type=='IK']
+ik_pairs=[(pb,c) for pb in rig.pose.bones for c in pb.constraints if c.type=='IK']
+ik_constraints=[c for _,c in ik_pairs]
+ik_owners={pb.name for pb,_ in ik_pairs}
 ik_audit=json.loads((ROOT/'output'/'robot_ik_audit.json').read_text())
 emitter=bpy.data.objects.get('Simulation emitter | hidden after full flight bake')
 particle_system=emitter.particle_systems[0] if emitter and emitter.particle_systems else None
@@ -94,8 +96,9 @@ checks={
  'robot_keeps_ahead_flight_within_1_7m':all(data['distance_body_to_flying_centroid_xy_m']<1.7 for data in frames.values()),
  'both_soles_measured_each_frame_with_small_clearance':min(foot_clearance)>=-.003 and max(foot_clearance)<.075,
  'stance_sole_contact_within_6mm':ik_audit['planted_foot_clearance_range_m'][0]>=-.001 and ik_audit['planted_foot_clearance_range_m'][1]<=.006,
- 'two_real_urdf_limited_ik_chains_and_poles':len(ik_constraints)==2 and all(c.chain_count==4 and c.pole_target for c in ik_constraints),
- 'urdf_axis_locks_applied_to_both_legs':all(any(rig.pose.bones[name].lock_ik_x or rig.pose.bones[name].lock_ik_y or rig.pose.bones[name].lock_ik_z for name in side_bones) for side_bones in (( 'l_hip_roll_link','l_knee_link','l_ankle_pitch_joint','l_ankle_link'),('r_hip_roll_link','r_knee_link','r_ankle_pitch_joint','r_ankle_link'))),
+ 'two_real_urdf_limited_ik_chains_and_poles':len(ik_constraints)==2 and all(c.chain_count==5 and c.pole_target for c in ik_constraints),
+ 'toe_endpoint_ik_owned_by_left_and_right_foot_bones':ik_owners=={'l_foot_link','r_foot_link'},
+ 'urdf_axis_locks_applied_to_all_five_dofs':all(all(any((rig.pose.bones[name].lock_ik_x, rig.pose.bones[name].lock_ik_y, rig.pose.bones[name].lock_ik_z)) and any((rig.pose.bones[name].use_ik_limit_x, rig.pose.bones[name].use_ik_limit_y, rig.pose.bones[name].use_ik_limit_z)) for name in side_bones) for side_bones in (( 'l_hip_roll_link','l_knee_link','l_ankle_pitch_joint','l_ankle_link','l_foot_link'),('r_hip_roll_link','r_knee_link','r_ankle_pitch_joint','r_ankle_link','r_foot_link'))),
  'original_articulated_links_and_rig_kept':len(rig.data.bones)==18 and all(o.parent==rig for o in bpy.data.collections['Robot'].objects if o.type=='MESH'),
  '18_animated_real_firefly_lights_and_compositor_glow':len(point_lights)>=18 and all(o.animation_data and o.data.energy>0 for o in point_lights) and bool(glow_nodes) and s.render.use_compositing,
  'animated_insect_closeup_tracks_one_baked_particle':all(200<x<440 and 120<y<360 for x,y in hero_pixels.values()),

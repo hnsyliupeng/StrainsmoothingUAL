@@ -1,7 +1,7 @@
 """Build a real URDF-limited, foot-target IK walk for the moving robot.
 
-Run after animate_flight.py. Each editable ankle/sole IK target and knee pole is
-keyed every frame; URDF joint axes/limits constrain the four-DOF leg chain while
+Run after animate_flight.py. Each editable toe/sole IK target and knee pole is
+keyed every frame; URDF joint axes/limits constrain the five-DOF leg chain while
 the foot link inherits ankle pose. Sole contact is measured on evaluated STL
 geometry against terrain_profile.height.
 This is a structural/kinematic audit, not a substitute for viewing the gait.
@@ -104,7 +104,6 @@ def make_control(name, display_type, size, color):
 scene.frame_set(75)
 bpy.context.view_layer.update()
 base_toe = {side: rig.pose.bones[side + '_foot_link'].tail.copy() for side in ('l', 'r')}
-ankle_tail = {side: rig.pose.bones[side + '_ankle_link'].tail.copy() for side in ('l', 'r')}
 hip_local = {}
 knee_local = {}
 for side in ('l', 'r'):
@@ -147,19 +146,20 @@ targets = {}
 poles = {}
 
 for side in ('l', 'r'):
-    target = make_control('IK Target | ' + side + ' sole contact / ankle pivot', 'SPHERE', 0.055, (1.0, 0.34, 0.04, 1))
+    target = make_control('IK Target | ' + side + ' sole contact / toe endpoint', 'SPHERE', 0.055, (1.0, 0.34, 0.04, 1))
     pole = make_control('IK Pole | ' + side + ' knee bend', 'CIRCLE', 0.075, (0.08, 0.55, 1.0, 1))
     targets[side] = target
     poles[side] = pole
-    constraint = rig.pose.bones[side + '_ankle_link'].constraints.new('IK')
-    constraint.name = 'URDF leg IK | ' + side + ' | measured ankle/sole plant'
+    # End on the authored toe: the fifth link is the real URDF ankle-roll DOF.
+    constraint = rig.pose.bones[side + '_foot_link'].constraints.new('IK')
+    constraint.name = 'URDF leg IK | ' + side + ' | URDF ankle-roll-to-toe contact'
     constraint.target = target
     constraint.pole_target = pole
-    constraint.chain_count = 4
+    constraint.chain_count = 5
     constraint.iterations = 512
     constraint.use_stretch = False
-    # Solve the physically reachable ankle position only; rotational IK over-constrains
-    # the URDF-limited chain and previously sent the endpoint metres off target.
+    # Solve the physically reachable toe position only; rotational IK over-constrains
+    # the five-axis URDF-limited chain and previously sent the endpoint metres off target.
     constraint.use_rotation = False
     IKs[side] = constraint
     for name in leg_bones[side]:
@@ -233,14 +233,14 @@ def solve_stance_height(target, side, frame, desired_gap):
             best = (offset, residual, gap)
         return residual
 
-    coarse_offsets = [step * 0.01 for step in range(-30, 31)]
+    coarse_offsets = [step * 0.01 for step in range(-12, 13)]
     for offset in coarse_offsets:
         sample(offset)
 
     # A dense local scan (0.4 mm spacing) refines the nearest physically
     # reachable root without relying on a derivative through the IK solver.
     center = best[0]
-    fine_offsets = [max(-0.30, min(0.30, center + step * 0.0004))
+    fine_offsets = [max(-0.12, min(0.12, center + step * 0.0004))
                     for step in range(-max_contact_iterations, max_contact_iterations + 1)]
     for offset in fine_offsets:
         sample(offset)
@@ -276,9 +276,7 @@ for frame in range(scene.frame_start, scene.frame_end + 1):
     for side in ('l', 'r'):
         target = targets[side]
         desired_toe, planted = target_position(side, frame)
-        yaw = root_at(frame)[1]
-        ankle_toe_offset = Euler((0, 0, yaw), 'XYZ').to_matrix() @ (base_toe[side] - ankle_tail[side])
-        target.location = desired_toe - ankle_toe_offset
+        target.location = desired_toe
         poles[side].location = pole_position(side, frame)
         # Insert the current keys BEFORE measuring: otherwise Blender evaluates
         # the prior-frame F-curve and the solver sees a stale target transform.
@@ -305,7 +303,7 @@ for frame in range(scene.frame_start, scene.frame_end + 1):
         gap = mesh_clearance(side)
         if planted:
             contact_errors.append(gap)
-        end = rig.matrix_world @ rig.pose.bones[side + '_ankle_link'].tail
+        end = rig.matrix_world @ rig.pose.bones[side + '_foot_link'].tail
         endpoint_error = (end - target.location).length
         target_errors.append(endpoint_error)
         target_error_samples.append({'frame': frame, 'side': side, 'error_m': endpoint_error,
@@ -318,7 +316,7 @@ for obj in list(targets.values()) + list(poles.values()):
             for key in curve.keyframe_points:
                 key.interpolation = 'LINEAR'
 
-rig['foot_ik_version'] = 'URDF joint-limited 4-link ankle IK, moving pole targets, measured terrain-planted sole meshes'
+rig['foot_ik_version'] = 'URDF joint-limited 5-link toe IK including ankle roll, moving pole targets, measured terrain-planted sole meshes'
 rig['foot_ik_period_frames'] = period
 rig['foot_ik_stance_fraction'] = stance_fraction
 rig['foot_ik_stride_length_m'] = 2.0 * stride_half_length
@@ -343,6 +341,7 @@ rig['foot_all_frame_clearance_range_m'] = [min(clearances), max(clearances)]
 summary = {
     'IK_constraints': {side: IKs[side].name for side in ('l', 'r')},
     'IK_position_only_targets': {side: not IKs[side].use_rotation for side in ('l', 'r')},
+    'terminal_foot_targets': {side: rig.pose.bones[side + '_foot_link'].name for side in ('l', 'r')},
     'IK_chain_lengths': {side: IKs[side].chain_count for side in ('l', 'r')},
     'leg_joint_axis_locks': {
         side: {name: {'locks': [rig.pose.bones[name].lock_ik_x,
@@ -378,7 +377,7 @@ summary = {
 }
 (ROOT / 'output' / 'robot_ik_audit.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2) + '\n')
 print('URDF-LIMITED IK WALK DIAGNOSTIC', json.dumps(summary, ensure_ascii=False), flush=True)
-assert len(IKs) == 2 and all(c.chain_count == 4 and c.pole_target for c in IKs.values())
+assert len(IKs) == 2 and all(c.chain_count == 5 and c.pole_target for c in IKs.values())
 assert min(clearances) >= -0.003 and max(clearances) < 0.15, summary['foot_clearance_range_m']
 assert not contact_solver_failures, summary['stance_contact_solver']
 assert min(contact_errors) >= -0.001 and max(contact_errors) <= 0.006, summary['planted_foot_clearance_range_m']
@@ -410,7 +409,7 @@ for entry in reviews:
     entry['Next_step_plan'] = '审查新生成的640×480 EEVEE图像；若湖面、机器人步态或萤火虫光仍不清晰则继续修改并重审。'
 reviews[1]['JEV']['Evidence'].update({
     'real_armature_constraints': len(IKs) == 2,
-    'urdf_limited_ik_chain_length': 4,
+    'urdf_limited_ik_chain_length': 5,
     'pole_targets_baked_every_frame': True,
     'two_sole_meshes_measured_each_frame': len(clearances) == 288,
     'ik_position_targets_only': all(not c.use_rotation for c in IKs.values()),

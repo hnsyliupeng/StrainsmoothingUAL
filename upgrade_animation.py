@@ -111,7 +111,7 @@ for child,j in joints_by_child.items():
     # Blender's built-in IK limits are axis-aligned in bone space. Apply them
     # to each actual leg DOF; some arm servos are oblique to their bone and keep
     # exact URDF limits as metadata instead of receiving a false Euler-axis lock.
-    leg_dof=any(token in child for token in ('hip_roll_link','knee_link','ankle_pitch_joint','ankle_link')) and child[:2] in ('l_','r_')
+    leg_dof=any(token in child for token in ('hip_roll_link','knee_link','ankle_pitch_joint','ankle_link','foot_link')) and child[:2] in ('l_','r_')
     if abs(local_axis[axis_index])<.80:
         if leg_dof:raise RuntimeError(f'Leg URDF axis is not representable by a single IK limit axis: {child} {tuple(local_axis)}')
         pb['urdf_axis_aligned_ik_limit_applied']=False

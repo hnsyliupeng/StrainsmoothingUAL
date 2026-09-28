@@ -155,9 +155,12 @@ check('animated_flight_lights_and_eevee_bloom', len(lights) >= 18
           for n in scene.node_tree.nodes)})
 
 # Robot: real URDF links, both constrained IK chains, keyed controls, close-to-zero plants.
-ik_constraints = [c for pb in rig.pose.bones for c in pb.constraints if c.type == 'IK']
-check('two_four_link_ik_chains_with_poles', len(ik_constraints) == 2
-      and all(c.chain_count == 4 and c.target is not None and c.pole_target is not None
+ik_pairs = [(pb, c) for pb in rig.pose.bones for c in pb.constraints if c.type == 'IK']
+ik_constraints = [c for _, c in ik_pairs]
+check('toe_endpoint_ik_is_owned_by_both_foot_bones',
+      {pb.name for pb, _ in ik_pairs} == {'l_foot_link', 'r_foot_link'})
+check('two_five_link_urdf_ik_chains_with_poles', len(ik_constraints) == 2
+      and all(c.chain_count == 5 and c.target is not None and c.pole_target is not None
               and not c.use_rotation and not c.use_stretch for c in ik_constraints),
       [{'name': c.name, 'chain_count': c.chain_count,
         'target': c.target.name if c.target else None,
@@ -166,7 +169,7 @@ check('two_four_link_ik_chains_with_poles', len(ik_constraints) == 2
 leg_joints_ok = True
 for side in ('l', 'r'):
     for name in (side + '_hip_roll_link', side + '_knee_link',
-                 side + '_ankle_pitch_joint', side + '_ankle_link'):
+                 side + '_ankle_pitch_joint', side + '_ankle_link', side + '_foot_link'):
         pb = rig.pose.bones[name]
         lock_count = sum((pb.lock_ik_x, pb.lock_ik_y, pb.lock_ik_z))
         limits_enabled = any((pb.use_ik_limit_x, pb.use_ik_limit_y, pb.use_ik_limit_z))
