@@ -92,6 +92,14 @@ for name,bone in arm.edit_bones.items():
     roll_axis=axis-segment*axis.dot(segment)
     if roll_axis.length>1e-5:bone.align_roll(roll_axis.normalized())
 bpy.ops.object.mode_set(mode='OBJECT')
+# Preserve the authored toe endpoint in armature space before the foot-bone
+# tail is redirected along the ankle-roll axis for a representable joint limit.
+for side in ('l','r'):
+    name=side+'_foot_link';obj=link_objects[name];joint=joint_worlds[name]
+    local_vertices=[joint.inverted() @ (obj.matrix_world @ vertex.co) for vertex in obj.data.vertices]
+    toe_joint=min(local_vertices,key=lambda point:point.y)
+    toe_arm=rig.matrix_world.inverted() @ (joint @ toe_joint)
+    rig[side+'_foot_toe_endpoint_armature']=list(toe_arm)
 # Every revolute DOF is explicitly limited/locked to its original URDF axis.
 # These IK limits also apply while Blender's IK constraint is solving the walk.
 ik_axis_name=('x','y','z')

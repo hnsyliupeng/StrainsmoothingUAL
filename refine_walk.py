@@ -113,16 +113,11 @@ toe_local_bone = {}
 ankle_tail = {}
 for side in ('l', 'r'):
     ankle_tail[side] = rig.pose.bones[side + '_ankle_link'].tail.copy()
-    foot = foot_objects[side].evaluated_get(bpy.context.evaluated_depsgraph_get())
-    mesh = foot.to_mesh()
-    try:
-        armature_vertices = [rig.matrix_world.inverted() @ (foot.matrix_world @ vertex.co)
-                             for vertex in mesh.vertices]
-        base_toe[side] = min(armature_vertices, key=lambda point: point.y).copy()
-        foot_bone_rest = rig.data.bones[side + '_foot_link'].matrix_local
-        toe_local_bone[side] = foot_bone_rest.inverted() @ base_toe[side]
-    finally:
-        foot.to_mesh_clear()
+    endpoint = rig.get(side + '_foot_toe_endpoint_armature')
+    assert endpoint is not None, f'Missing authored URDF toe endpoint for {side}'
+    base_toe[side] = Vector(endpoint)
+    foot_bone_rest = rig.data.bones[side + '_foot_link'].matrix_local
+    toe_local_bone[side] = foot_bone_rest.inverted() @ base_toe[side]
 hip_local = {}
 knee_local = {}
 for side in ('l', 'r'):
