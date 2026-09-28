@@ -16,26 +16,26 @@ FBX version: 7400
 FBX version: 7400
 FBX version: 7400
 {"stage": "1 基础环境与地形", "hardness": "High", "JEV": {"Judgement": "DATA_ONLY", "Evidence": {"terrain_grid": true, "terrain_height_range_over_2m": true, "real_lake_faces": true, "cc0_source_meshes": true, "gn_scatter_count": true, "real_color_maps": true, "original_foliage_only": true}, "Verification": "15 个 CC0 FBX 源资产；树木、蕨类、草、灌木、苔岩及真实开花玫瑰；15 组 GN 散射。贴图为源资产本来图像，非程序化颜色模拟。几何审查通过；视觉审查必须核对新场景的真实 EEVEE 预览。"}, "get_scene_info": {"objects": 32, "collections": {"Architecture": 0, "Environment": 17, "Robot": 0, "Fireflies": 0, "Lights": 0, "Architecture / open-source asset prototypes": 15}, "geometry_nodes": ["Oaks A | GN scatter", "Oaks B | GN scatter", "Birches A | GN scatter", "Birches B | GN scatter", "Pine saplings | GN scatter", "Moss rocks A | GN scatter", "Moss rocks B | GN scatter", "Meadow grass | GN scatter", "Coastal grass | GN scatter", "Ferns A | GN scatter", "Ferns B | GN scatter", "Shrubs | GN scatter", "Sorrel ground cover | GN scatter", "Flowering rose plants | GN scatter", "Fallen log | GN scatter"], "robot_parts": 0, "baked_fireflies": 0, "render_engine": "BLENDER_EEVEE_NEXT", "render_size": [1920, 1080]}, "Next_step_plan": "继续搭建受URDF限位的机器人rig，再运行第二轮JEV。"}
-Timer 'STL Import' took 8.25 ms
-Timer 'STL Import' took 5.04 ms
-Timer 'STL Import' took 0.74 ms
-Timer 'STL Import' took 3.96 ms
-Timer 'STL Import' took 3.74 ms
-Timer 'STL Import' took 0.71 ms
-Timer 'STL Import' took 3.93 ms
-Timer 'STL Import' took 3.70 ms
-Timer 'STL Import' took 1.48 ms
-Timer 'STL Import' took 4.80 ms
-Timer 'STL Import' took 1.10 ms
-Timer 'STL Import' took 1.10 ms
-WARN (io.stl): source/blender/io/stl/importer/stl_import_mesh.cc:63 to_mesh: Removed 3 duplicate triangles during import
-Timer 'STL Import' took 2.56 ms
+Timer 'STL Import' took 11.46 ms
+Timer 'STL Import' took 6.08 ms
+Timer 'STL Import' took 0.79 ms
+Timer 'STL Import' took 4.61 ms
+Timer 'STL Import' took 4.67 ms
+Timer 'STL Import' took 0.91 ms
+Timer 'STL Import' took 5.00 ms
+Timer 'STL Import' took 4.85 ms
+Timer 'STL Import' took 1.73 ms
+Timer 'STL Import' took 5.77 ms
 Timer 'STL Import' took 1.39 ms
-Timer 'STL Import' took 4.89 ms
-Timer 'STL Import' took 1.09 ms
-Timer 'STL Import' took 1.08 ms
+Timer 'STL Import' took 1.42 ms
 WARN (io.stl): source/blender/io/stl/importer/stl_import_mesh.cc:63 to_mesh: Removed 3 duplicate triangles during import
-Timer 'STL Import' took 2.66 ms
+Timer 'STL Import' took 3.20 ms
+Timer 'STL Import' took 1.66 ms
+Timer 'STL Import' took 5.42 ms
+Timer 'STL Import' took 1.38 ms
+Timer 'STL Import' took 1.35 ms
+WARN (io.stl): source/blender/io/stl/importer/stl_import_mesh.cc:63 to_mesh: Removed 3 duplicate triangles during import
+Timer 'STL Import' took 3.16 ms
 {"stage": "2 机器人主体", "hardness": "High", "JEV": {"Judgement": "DATA_ONLY", "Evidence": {"authored_urdf_visual_meshes": true, "real_joint_hierarchy": true, "imported_detail_vertices": true, "no_generated_box_body": true}, "Verification": "机械主体来自 MIT 授权 UBTECH Alpha 1S 数字孪生 17关节 URDF（人工测量舵机轴），20 个导入视觉网格；仍需低分辨率目视检查站姿、尺寸与地面接触。"}, "get_scene_info": {"objects": 50, "collections": {"Architecture": 0, "Environment": 17, "Robot": 18, "Fireflies": 0, "Lights": 0, "Architecture / open-source asset prototypes": 15}, "geometry_nodes": ["Oaks A | GN scatter", "Oaks B | GN scatter", "Birches A | GN scatter", "Birches B | GN scatter", "Pine saplings | GN scatter", "Moss rocks A | GN scatter", "Moss rocks B | GN scatter", "Meadow grass | GN scatter", "Coastal grass | GN scatter", "Ferns A | GN scatter", "Ferns B | GN scatter", "Shrubs | GN scatter", "Sorrel ground cover | GN scatter", "Flowering rose plants | GN scatter", "Fallen log | GN scatter"], "robot_parts": 18, "baked_fireflies": 0, "render_engine": "BLENDER_EEVEE_NEXT", "render_size": [1920, 1080]}, "Next_step_plan": "运行真实NEWTON萤火虫逐帧物理烘焙与跟随动画，再运行第三轮JEV。"}
 {"stage": "3 萤火虫物理模拟与烘焙", "hardness": "High", "JEV": {"Judgement": "DATA_ONLY", "Evidence": {"particle_system": true, "turbulence_force": true, "directional_wind": true, "all_144_physics_samples": true, "measured_flock_travel_over_1m": true, "baked_count": true, "animated_bake_shape_keys": true, "terrain_clearance": true, "firefly_source_diameter": true}, "Verification": "真实 Blender NEWTON 粒子 + Brownian + turbulence + 有方向风力，逐帧 1–144 连续求值。筛出全程在地面上方且在场景飞行域的 108 只萤火虫；群体质心飞行 3.66 m，逐只路径总位移 395.2 m。每帧作为 shape key 烘焙进 .blend，GN 继续实例化真实 CC0 萤火虫模型。"}, "get_scene_info": {"objects": 55, "collections": {"Architecture": 0, "Environment": 17, "Robot": 18, "Fireflies": 4, "Lights": 0, "Architecture / open-source asset prototypes": 16}, "geometry_nodes": ["Oaks A | GN scatter", "Oaks B | GN scatter", "Birches A | GN scatter", "Birches B | GN scatter", "Pine saplings | GN scatter", "Moss rocks A | GN scatter", "Moss rocks B | GN scatter", "Meadow grass | GN scatter", "Coastal grass | GN scatter", "Ferns A | GN scatter", "Ferns B | GN scatter", "Shrubs | GN scatter", "Sorrel ground cover | GN scatter", "Flowering rose plants | GN scatter", "Fallen log | GN scatter"], "robot_parts": 18, "baked_fireflies": 1, "render_engine": "BLENDER_EEVEE_NEXT", "render_size": [1920, 1080]}, "Next_step_plan": "加入显著生物发光与林地暮色材质，然后进行640x480 EEVEE预览和第四轮JEV。"}
 {"stage": "4 微光灯光与基础材质", "hardness": "High", "JEV": {"Judgement": "DATA_ONLY", "Evidence": {"eevee": true, "preview_le_720p": true, "default_viewport_material_mode": true, "lighting": true, "material_assignments": true}, "Verification": "月光冷主光、弱冷填光、微弱暖色反射；金属、氧化铜、石土与发光材料分离；仅允许 640×480 预览。"}, "get_scene_info": {"objects": 60, "collections": {"Architecture": 0, "Environment": 17, "Robot": 18, "Fireflies": 4, "Lights": 5, "Architecture / open-source asset prototypes": 16}, "geometry_nodes": ["Oaks A | GN scatter", "Oaks B | GN scatter", "Birches A | GN scatter", "Birches B | GN scatter", "Pine saplings | GN scatter", "Moss rocks A | GN scatter", "Moss rocks B | GN scatter", "Meadow grass | GN scatter", "Coastal grass | GN scatter", "Ferns A | GN scatter", "Ferns B | GN scatter", "Shrubs | GN scatter", "Sorrel ground cover | GN scatter", "Flowering rose plants | GN scatter", "Fallen log | GN scatter"], "robot_parts": 18, "baked_fireflies": 1, "render_engine": "BLENDER_EEVEE_NEXT", "render_size": [640, 480]}, "Next_step_plan": "清理交付候选并实际审查640x480 EEVEE预览；任何截图错误继续修复。"}
@@ -46,7 +46,7 @@ BUILD SAVED WITHOUT A PREVIEW: run the separate <=720p EEVEE review script; all 
 
 ===== upgrade_animation.py =====
 Read blend: "/home/runner/work/StrainsmoothingUAL/StrainsmoothingUAL/output/Twilight_Wilderness_Robot.blend"
-OBJ import of 'firefly.obj' took 3.32 ms
+OBJ import of 'firefly.obj' took 3.46 ms
 Info: Saved as "Twilight_Wilderness_Robot.blend"
 UPGRADE {"frame_range": [1, 144], "bones": 18, "animated_bones": 13, "mesh_links": 18, "firefly_vertices": 970, "baked_positions": 108, "removed_broken_import_images": ["OriginalFoliageAtlas", "OriginalFoliageAtlas.001", "OriginalFoliageAtlas.002", "OriginalFoliageNormal", "OriginalFoliageNormal.001", "OriginalFoliageNormal.002", "pine_sapling_small_bark_nor_gl.png", "pine_sapling_small_bark_rough.png", "rock_moss_set_01_diff.png", "rock_moss_set_01_diff.png.001", "rock_moss_set_01_nor_gl.png", "rock_moss_set_01_nor_gl.png.001", "rock_moss_set_01_rough.png", "rock_moss_set_01_rough.png.001", "WoodlandAtlas", "WoodlandAtlas.001", "WoodlandAtlas.002", "WoodlandAtlas.003", "WoodlandNormal", "WoodlandNormal.001", "WoodlandNormal.002", "WoodlandNormal.003"]}
 
@@ -57,18 +57,22 @@ FLIGHT BAKED: 108 insects, 144 geometry states, full range 1 144 centroids (-1.0
 
 ===== refine_walk.py =====
 Read blend: "/home/runner/work/StrainsmoothingUAL/StrainsmoothingUAL/output/Twilight_Wilderness_Robot.blend"
-URDF-LIMITED IK WALK DIAGNOSTIC {"IK_constraints": {"l": "URDF leg IK | l | measured ankle/sole plant", "r": "URDF leg IK | r | measured ankle/sole plant"}, "IK_chain_lengths": {"l": 4, "r": 4}, "leg_joint_axis_locks": {"l": {"l_hip_roll_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.5709999799728394, 3.1415927410125732, 3.1415927410125732, 0.5239999890327454]}, "l_knee_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.5709999799728394, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "l_ankle_pitch_joint": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.3250000476837158, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "l_ankle_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.0470000505447388, 3.1415927410125732, 3.1415927410125732, 1.0470000505447388]}, "l_foot_link": {"locks": [false, false, false], "limits": [-3.1415927410125732, -3.1415927410125732, -3.1415927410125732, 3.1415927410125732, 3.1415927410125732, 3.1415927410125732]}}, "r": {"r_hip_roll_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -0.5239999890327454, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "r_knee_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.5709999799728394, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "r_ankle_pitch_joint": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.3250000476837158, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "r_ankle_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.0470000505447388, 3.1415927410125732, 3.1415927410125732, 1.0470000505447388]}, "r_foot_link": {"locks": [false, false, false], "limits": [-3.1415927410125732, -3.1415927410125732, -3.1415927410125732, 3.1415927410125732, 3.1415927410125732, 3.1415927410125732]}}}, "foot_clearance_range_m": [-0.02768096428182143, 0.04433660220126118], "planted_foot_clearance_range_m": [-0.02768096428182143, 0.025286996628983566], "max_ik_target_error_m": 0.00405540081131055, "contact_clearance_target_m": 0.003, "contact_clearance_tolerance_m": 0.0005, "lowest_sole_sample": {"frame": 70, "side": "r", "clearance_m": -0.02768096428182143}, "highest_sole_sample": {"frame": 28, "side": "r", "clearance_m": 0.04433660220126118}, "frames": 144, "visual_review_completed": false}
+URDF-LIMITED IK WALK DIAGNOSTIC {"IK_constraints": {"l": "URDF leg IK | l | measured ankle/sole plant", "r": "URDF leg IK | r | measured ankle/sole plant"}, "IK_rotation_targets_enabled": {"l": true, "r": true}, "IK_chain_lengths": {"l": 4, "r": 4}, "leg_joint_axis_locks": {"l": {"l_hip_roll_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.5709999799728394, 3.1415927410125732, 3.1415927410125732, 0.5239999890327454]}, "l_knee_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.5709999799728394, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "l_ankle_pitch_joint": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.3250000476837158, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "l_ankle_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.0470000505447388, 3.1415927410125732, 3.1415927410125732, 1.0470000505447388]}, "l_foot_link": {"locks": [false, false, false], "limits": [-3.1415927410125732, -3.1415927410125732, -3.1415927410125732, 3.1415927410125732, 3.1415927410125732, 3.1415927410125732]}}, "r": {"r_hip_roll_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -0.5239999890327454, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "r_knee_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.5709999799728394, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "r_ankle_pitch_joint": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.3250000476837158, 3.1415927410125732, 3.1415927410125732, 1.5709999799728394]}, "r_ankle_link": {"locks": [true, true, false], "limits": [-3.1415927410125732, -3.1415927410125732, -1.0470000505447388, 3.1415927410125732, 3.1415927410125732, 1.0470000505447388]}, "r_foot_link": {"locks": [false, false, false], "limits": [-3.1415927410125732, -3.1415927410125732, -3.1415927410125732, 3.1415927410125732, 3.1415927410125732, 3.1415927410125732]}}}, "foot_clearance_range_m": [0.09114881001349162, 0.574604253451073], "planted_foot_clearance_range_m": [0.091782213802315, 0.34286034961768963], "max_ik_target_error_m": 5.817078636752357, "contact_clearance_target_m": 0.003, "contact_clearance_tolerance_m": 0.0005, "lowest_sole_sample": {"frame": 40, "side": "l", "clearance_m": 0.09114881001349162}, "highest_sole_sample": {"frame": 137, "side": "l", "clearance_m": 0.574604253451073}, "lowest_planted_sample": {"frame": 97, "side": "l", "clearance_m": 0.091782213802315}, "highest_planted_sample": {"frame": 3, "side": "r", "clearance_m": 0.34286034961768963}, "largest_ik_endpoint_error": {"frame": 27, "side": "r", "error_m": 5.817078636752357}, "frames": 144, "visual_review_completed": false}
 Traceback (most recent call last):
-  File "/home/runner/work/StrainsmoothingUAL/StrainsmoothingUAL/refine_walk.py", line 299, in <module>
+  File "/home/runner/work/StrainsmoothingUAL/StrainsmoothingUAL/refine_walk.py", line 326, in <module>
     assert min(clearances) >= -0.003 and max(clearances) < 0.15, summary['foot_clearance_range_m']
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: [-0.02768096428182143, 0.04433660220126118]
+AssertionError: [0.09114881001349162, 0.574604253451073]
 
 ===== output/robot_ik_audit.json =====
 {
   "IK_constraints": {
     "l": "URDF leg IK | l | measured ankle/sole plant",
     "r": "URDF leg IK | r | measured ankle/sole plant"
+  },
+  "IK_rotation_targets_enabled": {
+    "l": true,
+    "r": true
   },
   "IK_chain_lengths": {
     "l": 4,
@@ -231,28 +235,43 @@ AssertionError: [-0.02768096428182143, 0.04433660220126118]
     }
   },
   "foot_clearance_range_m": [
-    -0.02768096428182143,
-    0.04433660220126118
+    0.09114881001349162,
+    0.574604253451073
   ],
   "planted_foot_clearance_range_m": [
-    -0.02768096428182143,
-    0.025286996628983566
+    0.091782213802315,
+    0.34286034961768963
   ],
-  "max_ik_target_error_m": 0.00405540081131055,
+  "max_ik_target_error_m": 5.817078636752357,
   "contact_clearance_target_m": 0.003,
   "contact_clearance_tolerance_m": 0.0005,
   "lowest_sole_sample": {
-    "frame": 70,
-    "side": "r",
-    "clearance_m": -0.02768096428182143
+    "frame": 40,
+    "side": "l",
+    "clearance_m": 0.09114881001349162
   },
   "highest_sole_sample": {
-    "frame": 28,
+    "frame": 137,
+    "side": "l",
+    "clearance_m": 0.574604253451073
+  },
+  "lowest_planted_sample": {
+    "frame": 97,
+    "side": "l",
+    "clearance_m": 0.091782213802315
+  },
+  "highest_planted_sample": {
+    "frame": 3,
     "side": "r",
-    "clearance_m": 0.04433660220126118
+    "clearance_m": 0.34286034961768963
+  },
+  "largest_ik_endpoint_error": {
+    "frame": 27,
+    "side": "r",
+    "error_m": 5.817078636752357
   },
   "frames": 144,
   "visual_review_completed": false
 }
 
-Harness failed in run 36361350678 at 2026-09-28T00:14:22Z
+Harness failed in run 36361631536 at 2026-09-28T00:18:38Z
