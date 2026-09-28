@@ -158,26 +158,23 @@ def scatter(label,src,density,seed,min_radius,max_radius,scl,front_clear=False):
   yhigh=ns.new('ShaderNodeMath');yhigh.operation='LESS_THAN';yhigh.inputs[1].default_value=3.5;yhigh.location=(-230,-710);links.new(sep.outputs['Y'],yhigh.inputs[0])
   corridor=ns.new('ShaderNodeMath');corridor.operation='MULTIPLY';corridor.location=(-10,-520);links.new(xinside.outputs[0],corridor.inputs[0]);links.new(ylow.outputs[0],corridor.inputs[1])
   between=ns.new('ShaderNodeMath');between.operation='MULTIPLY';between.location=(155,-520);links.new(corridor.outputs[0],between.inputs[0]);links.new(yhigh.outputs[0],between.inputs[1])
-  # A broad clear band along the camera approach to the lake: x=1.3..7.7,
-  # y=-8.5..3.6. Trees beyond the far bank remain to frame the water.
-  lake_dx=ns.new('ShaderNodeMath');lake_dx.operation='SUBTRACT';lake_dx.inputs[1].default_value=4.5;links.new(sep.outputs['X'],lake_dx.inputs[0])
+  # Clear the foreground approach to the whole lake, while leaving trees on
+  # the far bank to frame it. Submerged lake-floor faces are masked separately
+  # from the actual analytic terrain height below.
+  lake_dx=ns.new('ShaderNodeMath');lake_dx.operation='SUBTRACT';lake_dx.inputs[1].default_value=LAKE_CENTER[0];links.new(sep.outputs['X'],lake_dx.inputs[0])
   lake_abs=ns.new('ShaderNodeMath');lake_abs.operation='ABSOLUTE';links.new(lake_dx.outputs[0],lake_abs.inputs[0])
-  lake_x=ns.new('ShaderNodeMath');lake_x.operation='LESS_THAN';lake_x.inputs[1].default_value=3.2;links.new(lake_abs.outputs[0],lake_x.inputs[0])
+  lake_x=ns.new('ShaderNodeMath');lake_x.operation='LESS_THAN';lake_x.inputs[1].default_value=4.3;links.new(lake_abs.outputs[0],lake_x.inputs[0])
   lake_ylo=ns.new('ShaderNodeMath');lake_ylo.operation='GREATER_THAN';lake_ylo.inputs[1].default_value=-8.5;links.new(sep.outputs['Y'],lake_ylo.inputs[0])
-  lake_yhi=ns.new('ShaderNodeMath');lake_yhi.operation='LESS_THAN';lake_yhi.inputs[1].default_value=3.6;links.new(sep.outputs['Y'],lake_yhi.inputs[0])
+  lake_yhi=ns.new('ShaderNodeMath');lake_yhi.operation='LESS_THAN';lake_yhi.inputs[1].default_value=1.8;links.new(sep.outputs['Y'],lake_yhi.inputs[0])
   lake_band_a=ns.new('ShaderNodeMath');lake_band_a.operation='MULTIPLY';links.new(lake_x.outputs[0],lake_band_a.inputs[0]);links.new(lake_ylo.outputs[0],lake_band_a.inputs[1])
   lake_band=ns.new('ShaderNodeMath');lake_band.operation='MULTIPLY';links.new(lake_band_a.outputs[0],lake_band.inputs[0]);links.new(lake_yhi.outputs[0],lake_band.inputs[1])
   clear_union=ns.new('ShaderNodeMath');clear_union.operation='MAXIMUM';links.new(between.outputs[0],clear_union.inputs[0]);links.new(lake_band.outputs[0],clear_union.inputs[1])
   not_center=ns.new('ShaderNodeMath');not_center.operation='SUBTRACT';not_center.inputs[0].default_value=1;not_center.location=(300,-520);links.new(clear_union.outputs[0],not_center.inputs[1])
   mask=ns.new('ShaderNodeMath');mask.operation='MULTIPLY';mask.location=(350,-180);links.new(selection,mask.inputs[0]);links.new(not_center.outputs[0],mask.inputs[1]);selection=mask.outputs[0]
- # Mask submerged lake area for every Geometry Nodes vegetation scatter.
- dx=ns.new('ShaderNodeMath');dx.operation='SUBTRACT';dx.inputs[1].default_value=LAKE_CENTER[0];links.new(sep.outputs['X'],dx.inputs[0])
- dy=ns.new('ShaderNodeMath');dy.operation='SUBTRACT';dy.inputs[1].default_value=LAKE_CENTER[1];links.new(sep.outputs['Y'],dy.inputs[0])
- sqx=ns.new('ShaderNodeMath');sqx.operation='MULTIPLY';links.new(dx.outputs[0],sqx.inputs[0]);links.new(dx.outputs[0],sqx.inputs[1])
- sqy=ns.new('ShaderNodeMath');sqy.operation='MULTIPLY';links.new(dy.outputs[0],sqy.inputs[0]);links.new(dy.outputs[0],sqy.inputs[1])
- dist2=ns.new('ShaderNodeMath');dist2.operation='ADD';links.new(sqx.outputs[0],dist2.inputs[0]);links.new(sqy.outputs[0],dist2.inputs[1])
- radius2=ns.new('ShaderNodeMath');radius2.operation='SQRT';links.new(dist2.outputs[0],radius2.inputs[0])
- dry=ns.new('ShaderNodeMath');dry.operation='GREATER_THAN';dry.inputs[1].default_value=LAKE_RADIUS-.15;links.new(radius2.outputs[0],dry.inputs[0])
+ # Mask every submerged face using its actual world-space terrain height.
+ # A radius-only mask missed the non-circular analytic shoreline and allowed
+ # dark rocks/foliage to intersect or float through the water surface.
+ dry=ns.new('ShaderNodeMath');dry.operation='GREATER_THAN';dry.inputs[1].default_value=LAKE_LEVEL+.12;links.new(sep.outputs['Z'],dry.inputs[0])
  land=ns.new('ShaderNodeMath');land.operation='MULTIPLY';links.new(selection,land.inputs[0]);links.new(dry.outputs[0],land.inputs[1]);selection=land.outputs[0]
  links.new(inp.outputs['Geometry'],dist.inputs['Mesh']);links.new(selection,dist.inputs['Selection'])
  info=ns.new('GeometryNodeObjectInfo');info.transform_space='ORIGINAL';info.location=(-240,-90);info.inputs['Object'].default_value=src;info.inputs['As Instance'].default_value=True
@@ -204,9 +201,8 @@ scatter('Shrubs | GN scatter',shrub,.26,47,3.2,15,1,True)
 scatter('Sorrel ground cover | GN scatter',sorrel,.26,34,2.1,15,1)
 scatter('Flowering rose plants | GN scatter',rose,.10,68,1.85,8.5,1,True)
 scatter('Fallen log | GN scatter',log,.008,35,5.5,15,1,True)
-# Sparse foreground moss rocks are the same authored asset, not mesh primitives.
-for idx,(x,y,sc) in enumerate([(-2.9,-1.0,.65),(2.7,1.7,.65)]):
- obj=bpy.data.objects.new('Foreground mossy rock %02d'%idx,rock.data);ENV.objects.link(obj);obj.location=(x,y,ground_z(x,y));obj.scale=(sc,sc,sc)
+# No manual foreground rocks: authored rock assets are GN-scattered on dry land
+# only, so the robot's support area and the lake's reflective sightline stay clear.
 def info():
  return {'objects':len(bpy.data.objects),'collections':{c.name:len(c.objects) for c in scene.collection.children_recursive},'geometry_nodes':[o.name for o in ENV.objects if any(m.type=='NODES' for m in o.modifiers)],'robot_parts':len(ROBOT.objects),'baked_fireflies':len([o for o in FLIES.objects if o.name.startswith('Baked')]),'render_engine':scene.render.engine,'render_size':[scene.render.resolution_x,scene.render.resolution_y]}
 def review(stage,checks,notes):
@@ -233,7 +229,9 @@ emitter=cube('Simulation emitter | hidden after full flight bake',(-1.0,2.0,1.55
 bpy.context.view_layer.objects.active=emitter;emitter.select_set(True)
 emitter.rotation_euler.x=.58  # tilted source plane gives a broad physical altitude distribution
 bpy.ops.object.particle_system_add()
-ps=emitter.particle_systems[-1].settings
+particle_system=emitter.particle_systems[-1]
+particle_system.seed=0  # explicit, reproducible Newton particle initialization
+ps=particle_system.settings
 ps.count=108;ps.frame_start=1;ps.frame_end=1;ps.lifetime=200;ps.emit_from='FACE'
 ps.physics_type='NEWTON';ps.normal_factor=.04;ps.effector_weights.gravity=0
 ps.brownian_factor=1.1;ps.damping=.45;ps.render_type='NONE'
@@ -307,8 +305,13 @@ def area(name,loc,power,color,size,target):
  bpy.ops.object.light_add(type='AREA',location=loc);o=move(bpy.context.object,LIGHTS);o.name=name;o.data.energy=power;o.data.color=color;o.data.shape='DISK';o.data.size=size;o.rotation_euler=(Vector(target)-o.location).to_track_quat('-Z','Y').to_euler()
 area('Cold moonlight | broad rim',(2,3,8),650,(.34,.52,.78),8,(0,0,1))
 area('Soft sky fill',(-4,-2,5),500,(.48,.62,.72),8,(0,0,1.4))
+area('Camera-side subject fill | robot and near bank',(1.0,-2.5,4.0),260,(.58,.70,.78),5,(-.8,1.7,1.0))
 area('Faint amber bounce',(0,-3,3),85,(1,.44,.24),4,(0,0,1.4))
-bpy.ops.object.camera_add(location=(5.2,-8.2,4.15));cam=move(bpy.context.object,LIGHTS);cam.name='Camera | forest clearing';cam.rotation_euler=(Vector((0,0,1.46))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=11.0;scene.camera=cam;cam.location=(4.9,-8.3,5.7);cam.rotation_euler=(Vector((1.75,2.0,.85))-cam.location).to_track_quat('-Z','Y').to_euler()
+# Compose the overview so the moving robot stays left-of-centre and the now
+# genuinely broad lake occupies the right half without cropping its shoreline.
+cam_target=Vector((2.35,2.15,.75));camera_offset=Vector((3.15,-10.3,4.85))
+cam_location=cam_target+camera_offset
+bpy.ops.object.camera_add(location=cam_location);cam=move(bpy.context.object,LIGHTS);cam.name='Camera | forest clearing';cam.data.type='ORTHO';cam.data.ortho_scale=12.5;cam.rotation_euler=(cam_target-cam.location).to_track_quat('-Z','Y').to_euler();scene.camera=cam
 scene.render.engine='BLENDER_EEVEE_NEXT';scene.render.resolution_x=640;scene.render.resolution_y=480;scene.render.resolution_percentage=100;scene.render.image_settings.file_format='PNG';scene.render.filepath=str(ROOT/'output'/'preview_640x480.png');scene.render.film_transparent=False
 scene.view_settings.view_transform='AgX';scene.view_settings.exposure=.35;scene.render.image_settings.color_mode='RGBA'
 scene.frame_set(75)
@@ -318,7 +321,7 @@ for screen in bpy.data.screens:
    area_view.spaces.active.shading.type='MATERIAL'
    area_view.spaces.active.overlay.show_overlays=False
    area_view.spaces.active.region_3d.view_perspective='CAMERA'
-review('4 微光灯光与基础材质',{'eevee':scene.render.engine=='BLENDER_EEVEE_NEXT','preview_le_720p':scene.render.resolution_x<=1280 and scene.render.resolution_y<=720,'default_viewport_material_mode':all(a.spaces.active.shading.type=='MATERIAL' for sc in bpy.data.screens for a in sc.areas if a.type=='VIEW_3D'),'lighting':len([o for o in LIGHTS.objects if o.type=='LIGHT'])==3,'material_assignments':all(o.data.materials for o in ROBOT.objects if o.type=='MESH')},'月光冷主光、弱冷填光、微弱暖色反射；金属、氧化铜、石土与发光材料分离；仅允许 640×480 预览。')
+review('4 微光灯光与基础材质',{'eevee':scene.render.engine=='BLENDER_EEVEE_NEXT','preview_le_720p':scene.render.resolution_x<=1280 and scene.render.resolution_y<=720,'default_viewport_material_mode':all(a.spaces.active.shading.type=='MATERIAL' for sc in bpy.data.screens for a in sc.areas if a.type=='VIEW_3D'),'lighting':len([o for o in LIGHTS.objects if o.type=='LIGHT'])==4,'material_assignments':all(o.data.materials for o in ROBOT.objects if o.type=='MESH')},'月光冷主光、弱冷填光、微弱暖色反射；金属、氧化铜、石土与发光材料分离；仅允许 640×480 预览。')
 # Do not render in the builder. Only render_lowres_preview.py may create 640x480 review PNGs.
 blend=ROOT/'output'/'Twilight_Wilderness_Robot.blend';bpy.ops.wm.save_as_mainfile(filepath=str(blend),compress=True)
 review('5 清理与交付',{'required_collections':all(k in bpy.data.collections for k in ['Architecture','Environment','Robot','Fireflies','Lights']),'blend_saved':blend.exists(),'static_bake':len(baked.data.vertices)==len(positions),'simulation_hidden':emitter.hide_render and force.hide_render},'保留隐藏模拟源以便追溯，静态实例作为最终展示；资产内嵌到 .blend，外部 FBX 仅供重建脚本使用。')

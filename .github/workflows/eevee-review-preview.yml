@@ -12,6 +12,7 @@ on:
       - refine_walk.py
       - audit_flight.py
       - audit_scene.py
+      - scene_harness.py
       - terrain_profile.py
       - robot_asset.py
       - forest_assets.py
@@ -29,11 +30,11 @@ concurrency:
 
 jobs:
   rebuild-and-review:
-    name: Rebuild scene and render 640x480 EEVEE review frames
+    name: Rebuild scene, run contract tests, and render 640x480 EEVEE reviews
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
-      - name: Check out the session branch
+      - name: Check out the fixed session branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
@@ -54,64 +55,92 @@ jobs:
             libxkbcommon-x11-0 libsm6 libice6 libxext6
           python -m pip install --disable-pip-version-check bpy==4.5.14 pillow xacro
 
-      - name: Rebuild the editable candidate and run non-rendering audits
+      - name: Rebuild, audit, and enforce scene contracts
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
           GALLIUM_DRIVER: llvmpipe
           EGL_PLATFORM: surfaceless
           LP_NUM_THREADS: '4'
         run: |
-          rm -f output/rebuild-debug.log
+          set -euo pipefail
+          rm -f output/rebuild-debug.log output/render-debug.log
           timeout --signal=TERM --kill-after=30s 3000s \
             xvfb-run -a -s '-screen 0 1280x720x24' \
             bash -euo pipefail -c '
-          rm -f output/preview_640x480.png \
-            output/preview_frame_001_640x480.png \
-            output/preview_frame_144_640x480.png \
-            output/preview_firefly_075_640x480.png \
-            output/preview_robot_640x480.png \
-            output/preview_robot_frame_001_640x480.png \
-            output/preview_robot_frame_144_640x480.png
-          for script in build_scene.py upgrade_animation.py animate_flight.py refine_walk.py audit_flight.py audit_scene.py; do
-            printf "\\n===== %s =====\\n" "$script" | tee -a output/rebuild-debug.log
-            python -u "$script" 2>&1 | tee -a output/rebuild-debug.log
-          done
-          '
+              rm -f output/preview_640x480.png \
+                output/preview_frame_001_640x480.png \
+                output/preview_frame_144_640x480.png \
+                output/preview_firefly_075_640x480.png \
+                output/preview_robot_640x480.png \
+                output/preview_robot_frame_001_640x480.png \
+                output/preview_robot_frame_144_640x480.png \
+                output/preview_manifest.json
+              for script in build_scene.py upgrade_animation.py animate_flight.py refine_walk.py audit_flight.py audit_scene.py scene_harness.py; do
+                printf "\\n===== %s =====\\n" "$script" | tee -a output/rebuild-debug.log
+                python -u "$script" 2>&1 | tee -a output/rebuild-debug.log
+              done
+            '
 
-      - name: Preserve a failed build log for diagnosis
-        if: failure()
-        run: |
-          if [ -s output/rebuild-debug.log ]; then
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add output/rebuild-debug.log
-            git commit -m 'Record failed scene rebuild log for diagnosis'
-            git push origin "${GITHUB_REF_NAME}"
-          fi
-
-      - name: Render low-resolution EEVEE review frames
+      - name: Render and checksum approved-size EEVEE frames
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
           GALLIUM_DRIVER: llvmpipe
           EGL_PLATFORM: surfaceless
           LP_NUM_THREADS: '4'
         run: |
-          # Four TAA samples keep this a quick structural review, never a final render.
+          set -euo pipefail
           timeout --signal=TERM --kill-after=30s 3300s \
             xvfb-run -a -s '-screen 0 1280x720x24' \
-            python -u render_lowres_preview.py --frames=1,75,144 --include-firefly --include-robot --samples=4
+            bash -euo pipefail -c '
+              python -u render_lowres_preview.py \
+                --frames=1,75,144 --include-firefly --include-robot --samples=4 \
+                2>&1 | tee output/render-debug.log
+            '
           python - <<'PY'
           import json
           from pathlib import Path
-          p=Path('output/flight_audit.json')
-          d=json.loads(p.read_text())
-          d['preview_png_available']=Path('output/preview_640x480.png').is_file()
-          d['preview_files']=[n for n in ('preview_frame_001_640x480.png','preview_640x480.png','preview_frame_144_640x480.png','preview_firefly_075_640x480.png','preview_robot_frame_001_640x480.png','preview_robot_640x480.png','preview_robot_frame_144_640x480.png') if (Path('output')/n).is_file()]
-          d['full_visual_review_completed']=False
-          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+          root=Path('output')
+          audit=root/'flight_audit.json'
+          data=json.loads(audit.read_text())
+          manifest=json.loads((root/'preview_manifest.json').read_text())
+          data['preview_png_available']=(root/'preview_640x480.png').is_file()
+          data['preview_files']=[item['file'] for item in manifest['files']]
+          data['preview_manifest']='preview_manifest.json'
+          data['full_visual_review_completed']=False
+          audit.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
+          assert data['preview_png_available'] and len(data['preview_files'])==7
+          assert manifest['resolution']==[640,480] and manifest['taa_samples']<=16
+          assert all(item['resolution']==[640,480] and item['bytes']>0 for item in manifest['files'])
+          assert manifest['visual_approval'] is False
           PY
 
-      - name: Publish the rebuilt scene, audits, and completed previews
+      - name: Upload bounded render and build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eevee-review-${{ github.run_number }}
+          path: |
+            output/rebuild-debug.log
+            output/render-debug.log
+            output/preview_manifest.json
+            output/preview*640x480.png
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Preserve failed harness logs for diagnosis
+        if: failure()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add output/rebuild-debug.log output/render-debug.log 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo 'No harness logs to preserve.'
+            exit 0
+          fi
+          git commit -m 'Preserve scene harness failure logs'
+          git push origin "${GITHUB_REF_NAME}"
+
+      - name: Publish the rebuilt scene, audits, and review images
         if: success()
         run: |
           git config user.name 'github-actions[bot]'
@@ -129,8 +158,8 @@ jobs:
             if [ -s "$image" ]; then git add "$image"; fi
           done
           if git diff --cached --quiet; then
-            echo 'No scene, audit, or preview changes to publish.'
+            echo 'No scene, audit, manifest, or preview changes to publish.'
             exit 0
           fi
-          git commit -m 'Rebuild woodland candidate and add EEVEE review previews'
+          git commit -m 'Rebuild scene and publish human-review EEVEE previews'
           git push origin "${GITHUB_REF_NAME}"

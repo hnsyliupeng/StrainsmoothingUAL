@@ -40,25 +40,25 @@ assert (max(v.co.y for v in insect.data.vertices)-min(v.co.y for v in insect.dat
 abdomen=insect.data.materials[1].node_tree.nodes.get('Principled BSDF')
 # Saturated yellow-green bioluminescence stays chromatic through AgX instead of
 # clipping into the tiny white pinpricks rejected in the last screenshot.
-abdomen.inputs['Emission Color'].default_value=(.30,.90,.025,1)
-abdomen.inputs['Emission Strength'].default_value=4.2
-abdomen.inputs['Base Color'].default_value=(.24,.48,.018,1)
-# A restrained, translucent aura remains near the authentic ~5 cm insect scale;
-# the EEVEE compositor adds the soft outer bloom without a giant green sphere.
-halo_mat=bpy.data.materials.new('Firefly | soft yellow-green 7cm bioluminescent aura')
+abdomen.inputs['Emission Color'].default_value=(.12,.78,.012,1)
+abdomen.inputs['Emission Strength'].default_value=3.0
+abdomen.inputs['Base Color'].default_value=(.10,.34,.012,1)
+# The biological abdomen remains the bright source. A much smaller and faint
+# 2.4 cm translucent shell softens the edge without becoming a separate green orb.
+halo_mat=bpy.data.materials.new('Firefly | faint 2.4cm abdomen bloom')
 halo_mat.use_nodes=True
 bs=halo_mat.node_tree.nodes.get('Principled BSDF')
-bs.inputs['Base Color'].default_value=(.24,.56,.02,1)
-bs.inputs['Emission Color'].default_value=(.65,1.0,.045,1)
-bs.inputs['Emission Strength'].default_value=.4
-bs.inputs['Alpha'].default_value=.025
+bs.inputs['Base Color'].default_value=(.12,.38,.008,1)
+bs.inputs['Emission Color'].default_value=(.20,.68,.012,1)
+bs.inputs['Emission Strength'].default_value=.20
+bs.inputs['Alpha'].default_value=.015
 halo_mat.surface_render_method='BLENDED'
 bpy.ops.mesh.primitive_uv_sphere_add(segments=16,ring_count=12)
 halo=bpy.context.object
 for c in list(halo.users_collection):c.objects.unlink(halo)
 sources.objects.link(halo)
-halo.name='Firefly | soft 7cm abdomen aura prototype'
-halo.data.transform(Matrix.Translation(Vector((0,-.012,0))) @ Matrix.Diagonal((.024,.021,.020,1)))
+halo.name='Firefly | faint 2.4cm abdomen bloom prototype'
+halo.data.transform(Matrix.Translation(Vector((0,-.012,0))) @ Matrix.Diagonal((.012,.010,.009,1)))
 halo.data.materials.append(halo_mat)
 halo.location=(94,0,-30);halo.hide_render=True;halo.hide_set(True)
 # Extend the ORIGINAL insect GN node tree with a second instance on the SAME
@@ -210,7 +210,7 @@ s.use_nodes=True
 nodes=s.node_tree.nodes;nodes.clear();links=s.node_tree.links
 rl=nodes.new('CompositorNodeRLayers');rl.location=(-350,0)
 glare=nodes.new('CompositorNodeGlare');glare.glare_type='FOG_GLOW';glare.quality='HIGH'
-glare.inputs['Threshold'].default_value=.80;glare.inputs['Strength'].default_value=.95;glare.inputs['Size'].default_value=.92
+glare.inputs['Threshold'].default_value=.72;glare.inputs['Strength'].default_value=.68;glare.inputs['Size'].default_value=.78
 glare.location=(-70,0)
 s.render.use_compositing=True
 out=nodes.new('CompositorNodeComposite');out.location=(250,0)

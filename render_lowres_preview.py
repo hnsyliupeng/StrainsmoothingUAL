@@ -9,6 +9,9 @@ Automated PNG checks do not grant visual JEV approval.
 """
 import bpy
 import json
+import hashlib
+import os
+from datetime import datetime, timezone
 from pathlib import Path
 import struct
 import sys
@@ -96,6 +99,46 @@ if include_firefly:
 if include_robot:
     for frame in frames:
         render_review(frame, robot_closeup=True)
+
+expected_paths = [path_for(frame) for frame in frames]
+if include_firefly:
+    expected_paths.append(path_for(75, closeup=True))
+if include_robot:
+    expected_paths.extend(path_for(frame, robot_closeup=True) for frame in frames)
+files = []
+for path in expected_paths:
+    verify_png(path)
+    raw = path.read_bytes()
+    files.append({
+        'file': path.name,
+        'bytes': len(raw),
+        'sha256': hashlib.sha256(raw).hexdigest(),
+        'resolution': list(struct.unpack('>II', raw[16:24])),
+    })
+manifest = {
+    'renderer': 'Blender EEVEE Next',
+    'blender_version': bpy.app.version_string,
+    'candidate_commit': os.environ.get('GITHUB_SHA', 'local-uncommitted'),
+    'resolution': [w, h],
+    'taa_samples': samples,
+    'overview_frames': frames,
+    'firefly_closeup_frame': 75 if include_firefly else None,
+    'robot_closeup_frames': frames if include_robot else [],
+    'files': files,
+    'full_visual_review_completed': False,
+    'visual_approval': False,
+    'review_status': 'PENDING_HUMAN_REVIEW',
+    'generated_utc': datetime.now(timezone.utc).isoformat(),
+}
+(ROOT / 'output' / 'preview_manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
+report = json.loads(REPORT.read_text())
+for entry in report:
+    evidence = entry['JEV']['Evidence']
+    evidence['preview_manifest'] = 'preview_manifest.json'
+    evidence['preview_image_files'] = [record['file'] for record in files]
+    evidence['full_visual_review_completed'] = False
+    entry['JEV']['Judgement'] = 'PENDING_HUMAN_REVIEW'
+REPORT.write_text(json.dumps(report, ensure_ascii=False, indent=2))
 
 # Leave the saved file untouched and restore an informative scene state in memory.
 scene.camera = bpy.data.objects['Camera | forest clearing']

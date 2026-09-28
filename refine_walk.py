@@ -136,7 +136,9 @@ for side in ('l', 'r'):
 # toe-clearance arc on swing.
 period = 24.0
 stance_fraction = 0.62
-contact_clearance_target = 0.025
+contact_clearance_target = 0.003
+contact_clearance_tolerance = 0.0005
+max_contact_iterations = 16
 stride_half_length = 0.18
 swing_height = 0.10
 phase_offset = {'l': 0.0, 'r': 0.5}
@@ -214,12 +216,13 @@ for frame in range(scene.frame_start, scene.frame_end + 1):
         poles[side].keyframe_insert(data_path='location', frame=frame, group='Moving knee pole target')
         bpy.context.view_layer.update()
         if planted:
-            for _ in range(8):
+            for _ in range(max_contact_iterations):
                 gap = mesh_clearance(side)
                 target.location.z -= gap - contact_clearance_target
                 target.keyframe_insert(data_path='location', frame=frame, group='World-space planted-foot IK')
                 bpy.context.view_layer.update()
-                if abs(gap - contact_clearance_target) < 0.002:
+                corrected_gap = mesh_clearance(side)
+                if abs(corrected_gap - contact_clearance_target) <= contact_clearance_tolerance:
                     break
         else:
             # Prevent toe drag on rough terrain while preserving the authored arc.
@@ -280,13 +283,16 @@ summary = {
     'foot_clearance_range_m': [min(clearances), max(clearances)],
     'planted_foot_clearance_range_m': [min(contact_errors), max(contact_errors)],
     'max_ik_target_error_m': max(target_errors),
+    'contact_clearance_target_m': contact_clearance_target,
+    'contact_clearance_tolerance_m': contact_clearance_tolerance,
     'frames': scene.frame_end,
     'visual_review_completed': False,
 }
 (ROOT / 'output' / 'robot_ik_audit.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2) + '\n')
 assert len(IKs) == 2 and all(c.chain_count == 4 and c.pole_target for c in IKs.values())
-assert min(clearances) > -0.010 and max(clearances) < 0.15, summary['foot_clearance_range_m']
-assert max(target_errors) < 0.10, summary['max_ik_target_error_m']
+assert min(clearances) >= -0.003 and max(clearances) < 0.15, summary['foot_clearance_range_m']
+assert min(contact_errors) >= -0.001 and max(contact_errors) <= 0.006, summary['planted_foot_clearance_range_m']
+assert max(target_errors) < 0.001, summary['max_ik_target_error_m']
 assert scene.render.engine == 'BLENDER_EEVEE_NEXT' and scene.render.resolution_y <= 720
 bpy.ops.wm.save_as_mainfile(filepath=str(BLEND), compress=True)
 # Synchronize the five staged JEVs with the completed rig and immutable physics

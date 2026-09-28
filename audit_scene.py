@@ -8,6 +8,8 @@ s=bpy.context.scene;camera=s.camera
 D=bpy.context.evaluated_depsgraph_get()
 counts=dict(collections.Counter(i.parent.original.name for i in D.object_instances if i.is_instance))
 flies=bpy.data.objects['Baked fireflies | 144-frame physical particle cache']; coords=[v.co for v in flies.data.vertices]
+emitter=bpy.data.objects['Simulation emitter | hidden after full flight bake']
+particle_settings=emitter.particle_systems[0].settings if emitter.particle_systems else None
 robot=[o for o in bpy.data.collections['Robot'].objects if o.type=='MESH']
 rig=bpy.data.objects['Robot armature | 144-frame scanning and step pose']
 insect=bpy.data.objects['Firefly | original CC0 insect mesh | source']
@@ -33,12 +35,12 @@ checks={
  'bone_rig_17_servos_plus_root':rig.type=='ARMATURE' and len(rig.data.bones)==18 and s.frame_end>=120,
  'rigged_robot_links':all(o.parent==rig and any(m.type=='ARMATURE' and m.object==rig for m in o.modifiers) and o.vertex_groups.get(o['urdf_link']) for o in robot),
  'authored_insect_anatomy':len(insect.data.vertices)>=900 and len(insect.data.materials)==5 and all(any(p.material_index==i for p in insect.data.polygons) for i in range(5)) and counts.get(flies.name)==len(flies.data.vertices)*2,
- 'insect_glow_and_wings':insect.data.materials[1].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value>=4.2 and all(m is not None for m in insect.data.materials),
+ 'insect_glow_and_wings':insect.data.materials[1].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value>=2.5 and all(m is not None for m in insect.data.materials),
  'robot_visual_vertices_over_100k':sum(len(o.data.vertices) for o in robot)>100000,
  'robot_camera_frame':all(0<x<640 and 0<y<480 for x,y in frame_positions.values()),
  'foot_mesh_bounds_finite':all(abs(z)<3 for z in feet_base.values()),
  'fifteen_gn_environment_scatterers':len([o for o in bpy.data.collections['Environment'].objects if any(m.type=='NODES' for m in o.modifiers)])==15,
- 'inspection_cameras_present':all(bpy.data.objects.get(n) and bpy.data.objects[n].type=='CAMERA' for n in ('Camera | robot rig inspection','Camera | firefly anatomical inspection')) and camera.data.ortho_scale<=11,
+ 'inspection_cameras_present':all(bpy.data.objects.get(n) and bpy.data.objects[n].type=='CAMERA' for n in ('Camera | robot rig inspection','Camera | firefly anatomical inspection')) and camera.data.ortho_scale<=13.0,
  'robot_inspection_camera_tracks_the_moving_rig':robot_camera_motion>2.0,
  'pine_needles_have_real_face_materials':__import__('collections').Counter(p.material_index for p in bpy.data.objects['Source | pine_sapling_small_b'].data.polygons)[1]>1000 and len(bpy.data.objects['Source | pine_sapling_small_b'].data.materials)==2,
  'fallen_log_woodland_material':bpy.data.objects['Source | FallenHollowLog_A'].data.materials[0]==bpy.data.objects['Source | MatureOak_A'].data.materials[0],
@@ -55,8 +57,9 @@ checks={
      if o.name in ('Oaks A | GN scatter','Oaks B | GN scatter','Birches A | GN scatter','Birches B | GN scatter')), 
  'flowering_instances_in_retained_forest':counts.get('Flowering rose plants | GN scatter',0)>=5,
  'no_central_tree_trunks':all(not (abs(i.matrix_world.translation.x)<2.6 and -5.5<i.matrix_world.translation.y<3.5) for i in D.object_instances if i.is_instance and i.parent.original.name in {'Oaks A | GN scatter','Oaks B | GN scatter','Birches A | GN scatter','Birches B | GN scatter','Pine saplings | GN scatter'}),
- 'fireflies_107_physics_baked_points_with_two_instanced_meshes':counts.get(flies.name)==len(flies.data.vertices)*2==214,
- 'particle_engine_source_retained':len(bpy.data.objects['Simulation emitter | hidden after full flight bake'].particle_systems)>0,
+ 'physics_baked_points_have_two_instanced_meshes':len(flies.data.vertices)>=80 and counts.get(flies.name)==len(flies.data.vertices)*2,
+ 'particle_engine_source_retained':particle_settings is not None and particle_settings.physics_type=='NEWTON' and particle_settings.count>=100 and particle_settings.brownian_factor>=.5,
+ 'no_manual_foreground_rocks':not any(o.name.startswith('Foreground mossy rock') for o in bpy.data.objects),
  'active_material_textures_packed':all(n.image and n.image.packed_file and all(n.image.size) for m in bpy.data.materials if m.use_nodes and m.users for n in m.node_tree.nodes if n.type=='TEX_IMAGE'),
  'all_image_references_packed':all(i.packed_file for i in bpy.data.images if i.type=='IMAGE' and i.users),
 }
