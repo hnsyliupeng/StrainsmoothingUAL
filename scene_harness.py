@@ -118,7 +118,7 @@ check('full_144_sample_moving_geometry_bake',
 abdomen_bsdf = insect.data.materials[1].node_tree.nodes.get('Principled BSDF')
 emission_strength = float(abdomen_bsdf.inputs['Emission Strength'].default_value)
 emission_color = tuple(float(v) for v in abdomen_bsdf.inputs['Emission Color'].default_value[:3])
-aura = bpy.data.objects['Firefly | faint 2.4cm abdomen bloom prototype']
+aura = bpy.data.objects['Firefly | faint 1.1cm secondary halo prototype']
 aura_material = aura.data.materials[0]
 aura_bsdf = aura_material.node_tree.nodes.get('Principled BSDF')
 aura_alpha = float(aura_bsdf.inputs['Alpha'].default_value)
@@ -126,22 +126,31 @@ aura_emission = float(aura_bsdf.inputs['Emission Strength'].default_value)
 aura_dims = [max(v.co[k] for v in aura.data.vertices) - min(v.co[k] for v in aura.data.vertices)
              for k in range(3)]
 check('chromatic_emissive_abdomen_not_white_clipped',
-      emission_strength >= 2.5 and emission_color[1] > emission_color[0] * 1.7
+      1.5 <= emission_strength <= 2.2 and emission_color[1] > emission_color[0] * 1.7
       and emission_color[1] > emission_color[2] * 3.0,
       {'strength': emission_strength, 'emission_color_rgb': emission_color})
 check('small_faint_translucent_aura',
-      max(aura_dims) <= 0.026 and aura_alpha <= 0.02 and aura_emission <= 0.25,
+      max(aura_dims) <= 0.012 and aura_alpha <= 0.005 and aura_emission <= 0.05,
       {'dimensions_m': aura_dims, 'alpha': aura_alpha, 'emission_strength': aura_emission})
 node_group = points.modifiers[0].node_group if points.modifiers else None
 instance_nodes = [n for n in node_group.nodes if n.bl_idname == 'GeometryNodeInstanceOnPoints'] if node_group else []
 check('physical_points_instance_insect_and_aura', len(instance_nodes) == 2,
       [n.label for n in instance_nodes])
+light_energy_keys = [
+    float(key.co.y)
+    for obj in lights if obj.animation_data and obj.animation_data.action
+    for curve in obj.animation_data.action.fcurves if curve.data_path == 'energy'
+    for key in curve.keyframe_points
+]
 check('animated_flight_lights_and_eevee_bloom', len(lights) >= 18
       and all(o.animation_data is not None and o.data.energy > 0 for o in lights)
+      and light_energy_keys and min(light_energy_keys) >= 0.40 and max(light_energy_keys) <= 0.70
       and scene.use_nodes and scene.render.use_compositing
       and any(n.bl_idname == 'CompositorNodeGlare' and n.glare_type == 'FOG_GLOW'
               for n in scene.node_tree.nodes),
-      {'flight_lights': len(lights), 'glare_nodes': sum(
+      {'flight_lights': len(lights), 'flight_light_energy_range':
+       [min(light_energy_keys), max(light_energy_keys)] if light_energy_keys else [],
+       'glare_nodes': sum(
           n.bl_idname == 'CompositorNodeGlare' and n.glare_type == 'FOG_GLOW'
           for n in scene.node_tree.nodes)})
 
@@ -149,11 +158,11 @@ check('animated_flight_lights_and_eevee_bloom', len(lights) >= 18
 ik_constraints = [c for pb in rig.pose.bones for c in pb.constraints if c.type == 'IK']
 check('two_four_link_ik_chains_with_poles', len(ik_constraints) == 2
       and all(c.chain_count == 4 and c.target is not None and c.pole_target is not None
-              and c.use_rotation and not c.use_stretch for c in ik_constraints),
+              and not c.use_rotation and not c.use_stretch for c in ik_constraints),
       [{'name': c.name, 'chain_count': c.chain_count,
         'target': c.target.name if c.target else None,
         'pole': c.pole_target.name if c.pole_target else None,
-        'use_rotation': c.use_rotation} for c in ik_constraints])
+        'position_only_target': not c.use_rotation} for c in ik_constraints])
 leg_joints_ok = True
 for side in ('l', 'r'):
     for name in (side + '_hip_roll_link', side + '_knee_link',
@@ -171,14 +180,8 @@ control_key_counts = {o.name: min((len(fc.keyframe_points) for fc in o.animation
 check('world_space_foot_targets_and_poles_are_keyed_all_frames',
       len(keyed_controls) == 4 and all(count >= 144 for count in control_key_counts.values()),
       control_key_counts)
-orientation_key_counts = {
-    o.name: min((len(fc.keyframe_points) for fc in o.animation_data.action.fcurves
-                 if fc.data_path == 'rotation_quaternion'), default=0)
-    for o in keyed_controls if o.name.startswith('IK Target |')
-}
-check('terrain_tangent_ankle_orientations_keyed_all_frames',
-      len(orientation_key_counts) == 2 and all(count >= 144 for count in orientation_key_counts.values()),
-      orientation_key_counts)
+check('ik_targets_solve_reachable_position_without_rotation_overconstraint',
+      len(ik_constraints) == 2 and all(not c.use_rotation for c in ik_constraints))
 robot_links = [o for o in bpy.data.collections['Robot'].objects if o.type == 'MESH']
 check('18_authored_rigged_urdf_mesh_links', len(robot_links) == 18 and len(rig.data.bones) == 18
       and all(o.parent == rig and any(m.type == 'ARMATURE' and m.object == rig for m in o.modifiers)

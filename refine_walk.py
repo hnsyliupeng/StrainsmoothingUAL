@@ -138,7 +138,7 @@ period = 24.0
 stance_fraction = 0.62
 contact_clearance_target = 0.003
 contact_clearance_tolerance = 0.0005
-max_contact_iterations = 16
+max_contact_iterations = 24
 stride_half_length = 0.18
 swing_height = 0.10
 phase_offset = {'l': 0.0, 'r': 0.5}
@@ -156,10 +156,11 @@ for side in ('l', 'r'):
     constraint.target = target
     constraint.pole_target = pole
     constraint.chain_count = 4
-    constraint.iterations = 256
+    constraint.iterations = 512
     constraint.use_stretch = False
-    constraint.use_rotation = True
-    target.rotation_mode = 'QUATERNION'
+    # Solve the physically reachable ankle position only; rotational IK over-constrains
+    # the URDF-limited chain and previously sent the endpoint metres off target.
+    constraint.use_rotation = False
     IKs[side] = constraint
     for name in leg_bones[side]:
         rig.pose.bones[name]['IK_chain_side'] = side
@@ -178,13 +179,10 @@ def target_position(side, frame):
     local = touchdown_local(side)
     previous = local_to_world(local, touchdown)
     following = local_to_world(local, next_touchdown)
-    previous_yaw = root_at(touchdown)[1]
-    next_yaw = root_at(next_touchdown)[1]
     if u < stance_fraction:
         x, y = previous.x, previous.y
         z = height(x, y) + toe_above_sole[side] + contact_clearance_target
         planted = True
-        foot_yaw = previous_yaw  # a planted sole keeps its landing orientation
     else:
         swing = (u - stance_fraction) / (1.0 - stance_fraction)
         smooth = swing * swing * (3.0 - 2.0 * swing)
@@ -193,29 +191,86 @@ def target_position(side, frame):
         lift = swing_height * 4.0 * swing * (1.0 - swing)
         z = height(x, y) + toe_above_sole[side] + lift + contact_clearance_target
         planted = False
-        foot_yaw = previous_yaw + angle_delta(previous_yaw, next_yaw) * smooth
-    return Vector((x, y, z)), planted, foot_yaw
-
-
-def contact_frame(x, y, yaw):
-    """Return a terrain-tangent foot frame and its world-space rotation."""
-    epsilon = 0.05
-    dx = (height(x + epsilon, y) - height(x - epsilon, y)) / (2.0 * epsilon)
-    dy = (height(x, y + epsilon) - height(x, y - epsilon)) / (2.0 * epsilon)
-    normal = Vector((-dx, -dy, 1.0)).normalized()
-    terrain_tilt = Vector((0.0, 0.0, 1.0)).rotation_difference(normal)
-    world_from_root = terrain_tilt @ Euler((0.0, 0.0, yaw), 'XYZ').to_quaternion()
-    return world_from_root
+    return Vector((x, y, z)), planted
 
 
 def pole_position(side, frame):
     local = (hip_local[side] + knee_local[side]) * 0.5 + Vector((0.0, -0.28, 0.0))
     return local_to_world(local, frame)
 
-# A contact correction moves only the world-space IK target. The pelvis trajectory
-# remains the measured firefly-follow path, and no individual joint is hand-spun.
+# Solve sole clearance by bracketing the evaluated mesh response, rather than
+# assuming one-unit target motion produces one-unit sole motion. This matters
+# near URDF joint limits, where a simple proportional correction can stall or
+# alternate between penetration and hover.
+def solve_stance_height(target, side, frame, desired_gap):
+    base_z = float(target.location.z)
+    best = None
+    evaluations = 0
+
+    def sample(offset):
+        nonlocal evaluations, best
+        target.location.z = base_z + offset
+        target.keyframe_insert(data_path='location', frame=frame,
+                               group='World-space planted-foot IK')
+        bpy.context.view_layer.update()
+        gap = mesh_clearance(side)
+        residual = gap - desired_gap
+        evaluations += 1
+        if best is None or abs(residual) < abs(best[1]):
+            best = (offset, residual, gap)
+        return residual
+
+    residual0 = sample(0.0)
+    if abs(residual0) <= contact_clearance_tolerance:
+        return best[2], evaluations, best[0], True
+
+    # The evaluated sole height should increase monotonically with target Z.
+    # Expand only in the direction needed to bracket zero and cap at 32 cm.
+    direction = -1.0 if residual0 > 0.0 else 1.0
+    step = max(0.005, min(0.02, abs(residual0) * 1.25))
+    offset0, residual_at_zero = 0.0, residual0
+    bracket = None
+    for _ in range(12):
+        offset = direction * step
+        residual = sample(offset)
+        if residual_at_zero <= 0.0 <= residual:
+            bracket = (offset0, offset, residual_at_zero, residual)
+            break
+        if residual <= 0.0 <= residual_at_zero:
+            bracket = (offset, offset0, residual, residual_at_zero)
+            break
+        offset0, residual_at_zero = offset, residual
+        step *= 1.8
+        if step > 0.32:
+            break
+
+    if bracket is not None:
+        lo, hi, flo, fhi = bracket
+        for _ in range(max_contact_iterations):
+            mid = 0.5 * (lo + hi)
+            fm = sample(mid)
+            if abs(fm) <= contact_clearance_tolerance:
+                break
+            if fm < 0.0:
+                lo, flo = mid, fm
+            else:
+                hi, fhi = mid, fm
+        converged = abs(best[1]) <= contact_clearance_tolerance
+    else:
+        converged = False
+
+    # Restore the best evaluated solution so the saved F-curve and the live
+    # dependency graph agree with the diagnostic residual.
+    sample(best[0])
+    return best[2], evaluations, best[0], converged
+
+
+# The pelvis trajectory remains the measured physical flock-follow path; no
+# individual joint is hand-spun. Only world-space IK controls are adjusted.
 contact_errors = []
 contact_samples = []
+contact_solver_iterations = []
+contact_solver_failures = []
 target_errors = []
 target_error_samples = []
 for frame in range(scene.frame_start, scene.frame_end + 1):
@@ -223,44 +278,45 @@ for frame in range(scene.frame_start, scene.frame_end + 1):
     bpy.context.view_layer.update()
     for side in ('l', 'r'):
         target = targets[side]
-        desired_toe, planted, foot_yaw = target_position(side, frame)
-        ground_rotation = contact_frame(desired_toe.x, desired_toe.y, foot_yaw)
-        ankle_toe_offset = ground_rotation @ (base_toe[side] - ankle_tail[side])
+        desired_toe, planted = target_position(side, frame)
+        yaw = root_at(frame)[1]
+        ankle_toe_offset = Euler((0, 0, yaw), 'XYZ').to_matrix() @ (base_toe[side] - ankle_tail[side])
         target.location = desired_toe - ankle_toe_offset
-        target.rotation_quaternion = ground_rotation @ rig.data.bones[side + '_ankle_link'].matrix_local.to_quaternion()
         poles[side].location = pole_position(side, frame)
         # Insert the current keys BEFORE measuring: otherwise Blender evaluates
         # the prior-frame F-curve and the solver sees a stale target transform.
         target.keyframe_insert(data_path='location', frame=frame, group='World-space planted-foot IK')
-        target.keyframe_insert(data_path='rotation_quaternion', frame=frame, group='Terrain-tangent ankle orientation')
         poles[side].keyframe_insert(data_path='location', frame=frame, group='Moving knee pole target')
         bpy.context.view_layer.update()
         if planted:
-            for _ in range(max_contact_iterations):
-                gap = mesh_clearance(side)
-                target.location.z -= gap - contact_clearance_target
-                target.keyframe_insert(data_path='location', frame=frame, group='World-space planted-foot IK')
-                bpy.context.view_layer.update()
-                corrected_gap = mesh_clearance(side)
-                if abs(corrected_gap - contact_clearance_target) <= contact_clearance_tolerance:
-                    break
+            gap, iterations, correction, converged = solve_stance_height(
+                target, side, frame, contact_clearance_target)
+            contact_solver_iterations.append(iterations)
+            sample = {'frame': frame, 'side': side, 'clearance_m': gap,
+                      'target_z_correction_m': correction, 'evaluations': iterations,
+                      'converged': converged}
+            contact_samples.append(sample)
+            if not converged:
+                contact_solver_failures.append(sample)
         else:
-            # Prevent toe drag on rough terrain while preserving the authored arc.
-            for _ in range(3):
+            # Enforce a 3.5 cm swing-toe safety margin against the evaluated
+            # terrain while leaving the authored parabolic step arc intact.
+            for _ in range(12):
                 gap = mesh_clearance(side)
                 if gap >= 0.035:
                     break
-                target.location.z += 0.035 - gap
+                target.location.z += max(0.002, 0.035 - gap)
                 target.keyframe_insert(data_path='location', frame=frame, group='World-space planted-foot IK')
                 bpy.context.view_layer.update()
         gap = mesh_clearance(side)
         if planted:
             contact_errors.append(gap)
-            contact_samples.append({'frame': frame, 'side': side, 'clearance_m': gap})
         end = rig.matrix_world @ rig.pose.bones[side + '_ankle_link'].tail
         endpoint_error = (end - target.location).length
         target_errors.append(endpoint_error)
-        target_error_samples.append({'frame': frame, 'side': side, 'error_m': endpoint_error})
+        target_error_samples.append({'frame': frame, 'side': side, 'error_m': endpoint_error,
+                                     'target_xyz_m': [round(v, 6) for v in target.location],
+                                     'ankle_tail_xyz_m': [round(v, 6) for v in end]})
 
 for obj in list(targets.values()) + list(poles.values()):
     if obj.animation_data and obj.animation_data.action:
@@ -292,7 +348,7 @@ for frame in range(scene.frame_start, scene.frame_end + 1):
 rig['foot_all_frame_clearance_range_m'] = [min(clearances), max(clearances)]
 summary = {
     'IK_constraints': {side: IKs[side].name for side in ('l', 'r')},
-    'IK_rotation_targets_enabled': {side: IKs[side].use_rotation for side in ('l', 'r')},
+    'IK_position_only_targets': {side: not IKs[side].use_rotation for side in ('l', 'r')},
     'IK_chain_lengths': {side: IKs[side].chain_count for side in ('l', 'r')},
     'leg_joint_axis_locks': {
         side: {name: {'locks': [rig.pose.bones[name].lock_ik_x,
@@ -317,6 +373,11 @@ summary = {
     'lowest_planted_sample': min(contact_samples, key=lambda item: item['clearance_m']),
     'highest_planted_sample': max(contact_samples, key=lambda item: item['clearance_m']),
     'largest_ik_endpoint_error': max(target_error_samples, key=lambda item: item['error_m']),
+    'stance_contact_solver': {'method': 'bracketed bisection on evaluated sole-mesh clearance',
+                              'tolerance_m': contact_clearance_tolerance,
+                              'max_evaluations': max(contact_solver_iterations, default=0),
+                              'failed_samples': contact_solver_failures[:12],
+                              'failure_count': len(contact_solver_failures)},
     'frames': scene.frame_end,
     'visual_review_completed': False,
 }
@@ -324,8 +385,9 @@ summary = {
 print('URDF-LIMITED IK WALK DIAGNOSTIC', json.dumps(summary, ensure_ascii=False), flush=True)
 assert len(IKs) == 2 and all(c.chain_count == 4 and c.pole_target for c in IKs.values())
 assert min(clearances) >= -0.003 and max(clearances) < 0.15, summary['foot_clearance_range_m']
+assert not contact_solver_failures, summary['stance_contact_solver']
 assert min(contact_errors) >= -0.001 and max(contact_errors) <= 0.006, summary['planted_foot_clearance_range_m']
-assert max(target_errors) < 0.001, summary['max_ik_target_error_m']
+assert max(target_errors) < 0.001, summary['largest_ik_endpoint_error']
 assert scene.render.engine == 'BLENDER_EEVEE_NEXT' and scene.render.resolution_y <= 720
 bpy.ops.wm.save_as_mainfile(filepath=str(BLEND), compress=True)
 # Synchronize the five staged JEVs with the completed rig and immutable physics
@@ -356,7 +418,7 @@ reviews[1]['JEV']['Evidence'].update({
     'urdf_limited_ik_chain_length': 4,
     'pole_targets_baked_every_frame': True,
     'two_sole_meshes_measured_each_frame': len(clearances) == 288,
-    'terrain_tangent_ankle_rotation_targets': all(c.use_rotation for c in IKs.values()),
+    'ik_position_targets_only': all(not c.use_rotation for c in IKs.values()),
     'all_frame_foot_clearance_range_m': [min(clearances), max(clearances)],
     'stance_only_foot_clearance_range_m': [min(contact_errors), max(contact_errors)],
     'max_ik_endpoint_error_m': max(target_errors),

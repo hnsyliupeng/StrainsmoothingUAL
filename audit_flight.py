@@ -83,7 +83,7 @@ checks={
  'most_of_lake_surface_in_overview_frame':water_visible_fraction>=.70,
  'up_axis_fixed_pine':pine_dim[2]>pine_dim[1]*1.3,
  'insect_wings_body_head_preserved':len(fly.data.vertices)>900 and len({p.material_index for p in fly.data.polygons})==5 and fly_dim[1]>fly_dim[2]*1.3,
- 'chromatic_bioluminescent_abdomen':emission_strength>=2.5 and emission_color[1]>emission_color[0]*1.7 and emission_color[1]>emission_color[2]*3.0,
+ 'chromatic_bioluminescent_abdomen':emission_strength>=1.5 and emission_color[1]>emission_color[0]*1.7 and emission_color[1]>emission_color[2]*3.0,
  'emissive_insect_and_aura_instances_at_every_sample':all(data['baked_insect_and_halo_instances']==2*len(points.data.vertices) for data in frames.values()),
  'actual_newton_system_and_brownian_motion':particle_settings is not None and particle_settings.physics_type=='NEWTON' and particle_settings.count>=100 and particle_settings.brownian_factor>=.5,
  'directional_wind_and_turbulence_fields':len(wind_fields)==1 and len(turbulence_fields)==1 and wind_fields[0].field.strength>=5 and turbulence_fields[0].field.strength>=.5,

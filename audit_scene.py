@@ -35,7 +35,7 @@ checks={
  'bone_rig_17_servos_plus_root':rig.type=='ARMATURE' and len(rig.data.bones)==18 and s.frame_end>=120,
  'rigged_robot_links':all(o.parent==rig and any(m.type=='ARMATURE' and m.object==rig for m in o.modifiers) and o.vertex_groups.get(o['urdf_link']) for o in robot),
  'authored_insect_anatomy':len(insect.data.vertices)>=900 and len(insect.data.materials)==5 and all(any(p.material_index==i for p in insect.data.polygons) for i in range(5)) and counts.get(flies.name)==len(flies.data.vertices)*2,
- 'insect_glow_and_wings':insect.data.materials[1].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value>=2.5 and all(m is not None for m in insect.data.materials),
+ 'insect_glow_and_wings':insect.data.materials[1].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value>=1.5 and all(m is not None for m in insect.data.materials),
  'robot_visual_vertices_over_100k':sum(len(o.data.vertices) for o in robot)>100000,
  'robot_camera_frame':all(0<x<640 and 0<y<480 for x,y in frame_positions.values()),
  'foot_mesh_bounds_finite':all(abs(z)<3 for z in feet_base.values()),

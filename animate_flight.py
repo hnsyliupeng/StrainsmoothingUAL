@@ -40,25 +40,25 @@ assert (max(v.co.y for v in insect.data.vertices)-min(v.co.y for v in insect.dat
 abdomen=insect.data.materials[1].node_tree.nodes.get('Principled BSDF')
 # Saturated yellow-green bioluminescence stays chromatic through AgX instead of
 # clipping into the tiny white pinpricks rejected in the last screenshot.
-abdomen.inputs['Emission Color'].default_value=(.12,.78,.012,1)
-abdomen.inputs['Emission Strength'].default_value=3.0
-abdomen.inputs['Base Color'].default_value=(.10,.34,.012,1)
+abdomen.inputs['Emission Color'].default_value=(.08,.66,.012,1)
+abdomen.inputs['Emission Strength'].default_value=1.8
+abdomen.inputs['Base Color'].default_value=(.08,.28,.010,1)
 # The biological abdomen remains the bright source. A much smaller and faint
 # 2.4 cm translucent shell softens the edge without becoming a separate green orb.
-halo_mat=bpy.data.materials.new('Firefly | faint 2.4cm abdomen bloom')
+halo_mat=bpy.data.materials.new('Firefly | barely visible 1.1cm secondary halo')
 halo_mat.use_nodes=True
 bs=halo_mat.node_tree.nodes.get('Principled BSDF')
 bs.inputs['Base Color'].default_value=(.12,.38,.008,1)
-bs.inputs['Emission Color'].default_value=(.20,.68,.012,1)
-bs.inputs['Emission Strength'].default_value=.20
-bs.inputs['Alpha'].default_value=.015
+bs.inputs['Emission Color'].default_value=(.08,.45,.008,1)
+bs.inputs['Emission Strength'].default_value=.04
+bs.inputs['Alpha'].default_value=.004
 halo_mat.surface_render_method='BLENDED'
 bpy.ops.mesh.primitive_uv_sphere_add(segments=16,ring_count=12)
 halo=bpy.context.object
 for c in list(halo.users_collection):c.objects.unlink(halo)
 sources.objects.link(halo)
-halo.name='Firefly | faint 2.4cm abdomen bloom prototype'
-halo.data.transform(Matrix.Translation(Vector((0,-.012,0))) @ Matrix.Diagonal((.012,.010,.009,1)))
+halo.name='Firefly | faint 1.1cm secondary halo prototype'
+halo.data.transform(Matrix.Translation(Vector((0,-.012,0))) @ Matrix.Diagonal((.0055,.0048,.0042,1)))
 halo.data.materials.append(halo_mat)
 halo.location=(94,0,-30);halo.hide_render=True;halo.hide_set(True)
 # Extend the ORIGINAL insect GN node tree with a second instance on the SAME
@@ -105,12 +105,12 @@ light_count=18
 for index in range(light_count):
     flyindex=round(index*(len(pos)-1)/max(1,light_count-1))
     data=bpy.data.lights.new('Bioluminescence | physical flight-following %02d'%index,'POINT')
-    data.energy=2.4;data.color=(.35,1.0,.045);data.shadow_soft_size=.055;data.use_shadow=False
+    data.energy=.65;data.color=(.28,1.0,.035);data.shadow_soft_size=.035;data.use_shadow=False
     light=bpy.data.objects.new(data.name,data);flies.objects.link(light)
     for f in frames:
         p=snapshots[f][flyindex]
         light.location=p+Vector((0,-.012,0));light.keyframe_insert(data_path='location',frame=f)
-        data.energy=1.7+.7*math.sin(f*.13+phase[flyindex])**2
+        data.energy=.45+.20*math.sin(f*.13+phase[flyindex])**2
         data.keyframe_insert(data_path='energy',frame=f)
     if light.animation_data and light.animation_data.action:
         for curve in light.animation_data.action.fcurves:
@@ -210,7 +210,7 @@ s.use_nodes=True
 nodes=s.node_tree.nodes;nodes.clear();links=s.node_tree.links
 rl=nodes.new('CompositorNodeRLayers');rl.location=(-350,0)
 glare=nodes.new('CompositorNodeGlare');glare.glare_type='FOG_GLOW';glare.quality='HIGH'
-glare.inputs['Threshold'].default_value=.72;glare.inputs['Strength'].default_value=.68;glare.inputs['Size'].default_value=.78
+glare.inputs['Threshold'].default_value=.72;glare.inputs['Strength'].default_value=.55;glare.inputs['Size'].default_value=.45
 glare.location=(-70,0)
 s.render.use_compositing=True
 out=nodes.new('CompositorNodeComposite');out.location=(250,0)
