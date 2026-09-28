@@ -215,6 +215,10 @@ stance = ik_report['planted_foot_clearance_range_m']
 check('planted_sole_clearance_within_6mm', stance[0] >= -0.001 and stance[1] <= 0.006,
       {'min_m': stance[0], 'max_m': stance[1],
        'target_m': ik_report.get('contact_clearance_target_m')})
+solver = ik_report.get('stance_contact_solver', {})
+check('stance_contact_solver_converged_with_small_corrections',
+      solver.get('failure_count') == 0 and solver.get('max_abs_target_correction_m', 1.0) <= 0.12,
+      solver)
 check('ik_target_endpoint_error_below_1mm', ik_report['max_ik_target_error_m'] < 0.001,
       ik_report['max_ik_target_error_m'])
 

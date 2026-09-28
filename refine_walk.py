@@ -203,12 +203,21 @@ def pole_position(side, frame):
 # near URDF joint limits, where a simple proportional correction can stall or
 # alternate between penetration and hover.
 def solve_stance_height(target, side, frame, desired_gap):
+    """Find a reachable ankle-target height using evaluated sole geometry.
+
+    URDF-limited IK can change ankle posture as target height changes, so the
+    sole-clearance response is not guaranteed monotonic. Sweep both directions,
+    then locally refine the best sample instead of assuming a proportional
+    correction always moves the sole in the same direction.
+    """
     base_z = float(target.location.z)
     best = None
     evaluations = 0
+    initial_gap = None
+    sweep = []
 
     def sample(offset):
-        nonlocal evaluations, best
+        nonlocal evaluations, best, initial_gap
         target.location.z = base_z + offset
         target.keyframe_insert(data_path='location', frame=frame,
                                group='World-space planted-foot IK')
@@ -216,53 +225,41 @@ def solve_stance_height(target, side, frame, desired_gap):
         gap = mesh_clearance(side)
         residual = gap - desired_gap
         evaluations += 1
-        if best is None or abs(residual) < abs(best[1]):
+        sample_record = {'offset_m': offset, 'clearance_m': gap, 'residual_m': residual}
+        sweep.append(sample_record)
+        if initial_gap is None and abs(offset) < 1e-12:
+            initial_gap = gap
+        if best is None or (abs(residual), abs(offset)) < (abs(best[1]), abs(best[0])):
             best = (offset, residual, gap)
         return residual
 
-    residual0 = sample(0.0)
-    if abs(residual0) <= contact_clearance_tolerance:
-        return best[2], evaluations, best[0], True
+    coarse_offsets = [step * 0.01 for step in range(-30, 31)]
+    for offset in coarse_offsets:
+        sample(offset)
 
-    # The evaluated sole height should increase monotonically with target Z.
-    # Expand only in the direction needed to bracket zero and cap at 32 cm.
-    direction = -1.0 if residual0 > 0.0 else 1.0
-    step = max(0.005, min(0.02, abs(residual0) * 1.25))
-    offset0, residual_at_zero = 0.0, residual0
-    bracket = None
-    for _ in range(12):
-        offset = direction * step
-        residual = sample(offset)
-        if residual_at_zero <= 0.0 <= residual:
-            bracket = (offset0, offset, residual_at_zero, residual)
-            break
-        if residual <= 0.0 <= residual_at_zero:
-            bracket = (offset, offset0, residual, residual_at_zero)
-            break
-        offset0, residual_at_zero = offset, residual
-        step *= 1.8
-        if step > 0.32:
-            break
+    # A dense local scan (0.4 mm spacing) refines the nearest physically
+    # reachable root without relying on a derivative through the IK solver.
+    center = best[0]
+    fine_offsets = [max(-0.30, min(0.30, center + step * 0.0004))
+                    for step in range(-max_contact_iterations, max_contact_iterations + 1)]
+    for offset in fine_offsets:
+        sample(offset)
 
-    if bracket is not None:
-        lo, hi, flo, fhi = bracket
-        for _ in range(max_contact_iterations):
-            mid = 0.5 * (lo + hi)
-            fm = sample(mid)
-            if abs(fm) <= contact_clearance_tolerance:
-                break
-            if fm < 0.0:
-                lo, flo = mid, fm
-            else:
-                hi, fhi = mid, fm
-        converged = abs(best[1]) <= contact_clearance_tolerance
-    else:
-        converged = False
-
-    # Restore the best evaluated solution so the saved F-curve and the live
-    # dependency graph agree with the diagnostic residual.
-    sample(best[0])
-    return best[2], evaluations, best[0], converged
+    best_offset = best[0]
+    best_gap = best[2]
+    # Only accept small support-foot corrections; a larger correction usually
+    # indicates a bad stride/root/rig transform, not a plausible ankle solution.
+    converged = (abs(best[1]) <= contact_clearance_tolerance
+                 and abs(best_offset) <= 0.12)
+    sample(best_offset)  # restore the best solution into the current keyed pose
+    diagnostics = {
+        'frame': frame, 'side': side, 'initial_clearance_m': initial_gap,
+        'clearance_m': best_gap, 'target_z_correction_m': best_offset,
+        'evaluations': evaluations, 'converged': converged,
+        'sampled_clearance_range_m': [min(v['clearance_m'] for v in sweep),
+                                      max(v['clearance_m'] for v in sweep)],
+    }
+    return best_gap, evaluations, best_offset, converged, diagnostics
 
 
 # The pelvis trajectory remains the measured physical flock-follow path; no
@@ -289,15 +286,12 @@ for frame in range(scene.frame_start, scene.frame_end + 1):
         poles[side].keyframe_insert(data_path='location', frame=frame, group='Moving knee pole target')
         bpy.context.view_layer.update()
         if planted:
-            gap, iterations, correction, converged = solve_stance_height(
+            gap, iterations, correction, converged, diagnostic = solve_stance_height(
                 target, side, frame, contact_clearance_target)
             contact_solver_iterations.append(iterations)
-            sample = {'frame': frame, 'side': side, 'clearance_m': gap,
-                      'target_z_correction_m': correction, 'evaluations': iterations,
-                      'converged': converged}
-            contact_samples.append(sample)
+            contact_samples.append(diagnostic)
             if not converged:
-                contact_solver_failures.append(sample)
+                contact_solver_failures.append(diagnostic)
         else:
             # Enforce a 3.5 cm swing-toe safety margin against the evaluated
             # terrain while leaving the authored parabolic step arc intact.
@@ -373,9 +367,10 @@ summary = {
     'lowest_planted_sample': min(contact_samples, key=lambda item: item['clearance_m']),
     'highest_planted_sample': max(contact_samples, key=lambda item: item['clearance_m']),
     'largest_ik_endpoint_error': max(target_error_samples, key=lambda item: item['error_m']),
-    'stance_contact_solver': {'method': 'bracketed bisection on evaluated sole-mesh clearance',
+    'stance_contact_solver': {'method': 'bidirectional coarse scan + local refinement on evaluated sole-mesh clearance',
                               'tolerance_m': contact_clearance_tolerance,
                               'max_evaluations': max(contact_solver_iterations, default=0),
+                              'max_abs_target_correction_m': max((abs(v['target_z_correction_m']) for v in contact_samples), default=0.0),
                               'failed_samples': contact_solver_failures[:12],
                               'failure_count': len(contact_solver_failures)},
     'frames': scene.frame_end,

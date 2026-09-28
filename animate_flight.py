@@ -44,7 +44,7 @@ abdomen.inputs['Emission Color'].default_value=(.08,.66,.012,1)
 abdomen.inputs['Emission Strength'].default_value=1.8
 abdomen.inputs['Base Color'].default_value=(.08,.28,.010,1)
 # The biological abdomen remains the bright source. A much smaller and faint
-# 2.4 cm translucent shell softens the edge without becoming a separate green orb.
+# 1.1 cm translucent shell softens the edge without becoming a separate green orb.
 halo_mat=bpy.data.materials.new('Firefly | barely visible 1.1cm secondary halo')
 halo_mat.use_nodes=True
 bs=halo_mat.node_tree.nodes.get('Principled BSDF')
